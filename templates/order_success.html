@@ -102,7 +102,9 @@
           <p><span class="font-medium">支付方式:</span>
             {% if order.payment_method == 'anz_transfer' %}ANZ银行转账
             {% elif order.payment_method == 'bank_transfer' %}跨行转账
-            {% else %}现金/移动支付{% endif %}
+            {% elif order.payment_method == 'cash' %}现金支付
+            {% elif order.payment_method == 'wechat_alipay' %}微信/支付宝
+            {% else %}{{ order.payment_method }}{% endif %}
           </p>
           {% if order.customer_address %}
           <p><span class="font-medium">邮寄地址:</span> {{ order.customer_address }}</p>
@@ -136,12 +138,22 @@
         <div>
           <div class="font-medium">支付安排</div>
           <div class="text-blue-600">
-            {% if order.payment_method == 'anz_transfer' %}
-              我会发送ANZ银行账户信息给您，请在确认后进行转账
-            {% elif order.payment_method == 'bank_transfer' %}
-              我会发送银行账户信息给您，请在确认后进行转账
+            {% if order.delivery_method == 'shipping' %}
+              {% if order.payment_method == 'anz_transfer' %}
+                我会发送ANZ银行账户信息给您，请在确认后进行转账，确认到账后安排邮寄
+              {% elif order.payment_method == 'bank_transfer' %}
+                我会发送银行账户信息给您，请在确认后进行转账，确认到账后安排邮寄
+              {% elif order.payment_method == 'wechat_alipay' %}
+                我会发送微信/支付宝收款码给您，请在确认后转账，确认到账后安排邮寄
+              {% endif %}
             {% else %}
-              我们会安排当面交易的时间和地点
+              {% if order.payment_method == 'cash' %}
+                我们会安排当面交易的时间和地点，可以现金支付
+              {% elif order.payment_method == 'wechat_alipay' %}
+                我们会安排当面交易的时间和地点，可以使用微信/支付宝支付
+              {% else %}
+                我会发送银行账户信息给您，也可以选择当面交易时支付
+              {% endif %}
             {% endif %}
           </div>
         </div>
@@ -258,7 +270,7 @@ function printOrder() {
     customer_email: '{{ order.customer_email }}',
     customer_phone: '{{ order.customer_phone or "" }}',
     delivery_method: '{% if order.delivery_method == "pickup" %}当面交易{% else %}邮寄{% endif %}',
-    payment_method: '{% if order.payment_method == "anz_transfer" %}ANZ银行转账{% elif order.payment_method == "bank_transfer" %}跨行转账{% else %}现金/移动支付{% endif %}',
+    payment_method: '{% if order.payment_method == "anz_transfer" %}ANZ银行转账{% elif order.payment_method == "bank_transfer" %}跨行转账{% elif order.payment_method == "cash" %}现金支付{% elif order.payment_method == "wechat_alipay" %}微信/支付宝{% else %}{{ order.payment_method }}{% endif %}',
     customer_address: '{{ order.customer_address or "" }}',
     total_amount: '{{ "%.2f"|format(order.total_amount) }}',
     notes: '{{ order.notes or "" }}'
