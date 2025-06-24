@@ -151,17 +151,15 @@ class Order(db.Model):
     
     # 支付方式常量
     PAYMENT_ANZ_TRANSFER = 'anz_transfer'
-    PAYMENT_OTHER_BANK = 'other_bank'
+    PAYMENT_BANK_TRANSFER = 'bank_transfer'
     PAYMENT_CASH = 'cash'
-    PAYMENT_WECHAT = 'wechat'
-    PAYMENT_ALIPAY = 'alipay'
+    PAYMENT_WECHAT_ALIPAY = 'wechat_alipay'
     
     PAYMENT_METHODS = [
         (PAYMENT_ANZ_TRANSFER, 'ANZ银行转账'),
-        (PAYMENT_OTHER_BANK, '跨行转账'),
+        (PAYMENT_BANK_TRANSFER, '跨行转账'),
         (PAYMENT_CASH, '现金支付'),
-        (PAYMENT_WECHAT, '微信支付'),
-        (PAYMENT_ALIPAY, '支付宝')
+        (PAYMENT_WECHAT_ALIPAY, '微信/支付宝')
     ]
     
     # 订单状态常量
@@ -260,8 +258,10 @@ class Order(db.Model):
         return 0.00
     
     def is_payment_required(self):
-        """判断是否需要预付款"""
-        return self.payment_method in ['anz_transfer', 'bank_transfer']
+        """判断是否需要预付款（邮寄订单需要预付款）"""
+        if self.delivery_method == 'shipping':
+            return True  # 邮寄订单都需要预付款
+        return self.payment_method in ['anz_transfer', 'bank_transfer', 'wechat_alipay']
     
     def can_cancel(self):
         """判断订单是否可以取消"""

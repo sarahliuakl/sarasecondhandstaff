@@ -20,7 +20,7 @@
       </div>
       <div class="flex justify-between items-center mb-2">
         <span class="text-lg">邮费:</span>
-        <span id="shippingFee" class="text-lg">待选择交付方式</span>
+        <span id="shippingFee" class="text-lg font-semibold">待选择交付方式</span>
       </div>
       <div class="flex justify-between items-center pt-2 border-t border-gray-200">
         <span class="text-xl font-bold">总计:</span>
@@ -89,19 +89,8 @@
             <label class="block mb-3 font-semibold text-gray-700">
               支付方式 <span class="text-red-500">*</span>
             </label>
-            <div class="space-y-2">
-              <label class="flex items-center">
-                <input type="radio" name="payment_method" value="anz_transfer" class="mr-2" required>
-                <span class="text-gray-700">ANZ银行转账 (推荐)</span>
-              </label>
-              <label class="flex items-center">
-                <input type="radio" name="payment_method" value="bank_transfer" class="mr-2" required>
-                <span class="text-gray-700">跨行转账</span>
-              </label>
-              <label class="flex items-center">
-                <input type="radio" name="payment_method" value="cash_mobile" class="mr-2" required>
-                <span class="text-gray-700">现金/微信/支付宝 (当面交易)</span>
-              </label>
+            <div id="paymentOptions" class="space-y-2">
+              <!-- 支付选项将通过JavaScript动态更新 -->
             </div>
           </div>
         </div>
@@ -187,7 +176,37 @@ document.addEventListener('DOMContentLoaded', function() {
     window.location.href = '{{ url_for("cart") }}';
     return;
   }
+  
+  // 初始化支付选项（默认当面交易）
+  initializePaymentOptions();
 });
+
+// 初始化支付选项
+function initializePaymentOptions() {
+  const paymentOptions = document.getElementById('paymentOptions');
+  // 默认显示当面交易的支付选项
+  paymentOptions.innerHTML = `
+    <label class="flex items-center">
+      <input type="radio" name="payment_method" value="anz_transfer" class="mr-2" required>
+      <span class="text-gray-700">ANZ银行转账</span>
+    </label>
+    <label class="flex items-center">
+      <input type="radio" name="payment_method" value="bank_transfer" class="mr-2" required>
+      <span class="text-gray-700">跨行转账</span>
+    </label>
+    <label class="flex items-center">
+      <input type="radio" name="payment_method" value="cash" class="mr-2" required>
+      <span class="text-gray-700">现金支付 (当面交易)</span>
+    </label>
+    <label class="flex items-center">
+      <input type="radio" name="payment_method" value="wechat_alipay" class="mr-2" required>
+      <span class="text-gray-700">微信/支付宝 (当面交易)</span>
+    </label>
+    <div class="mt-2 p-3 bg-green-50 border border-green-200 rounded text-sm text-green-700">
+      <strong>当面交易说明：</strong>可以选择现金或移动支付，安全便捷
+    </div>
+  `;
+}
 
 // 显示订单商品
 function displayOrderItems() {
@@ -275,18 +294,61 @@ function updateOrderSummary() {
   document.getElementById('total').textContent = `NZD $${total.toFixed(2)}`;
 }
 
-// 更新邮费显示
+// 更新邮费显示和支付选项
 function updateShipping() {
   const deliveryMethod = document.querySelector('input[name="delivery_method"]:checked').value;
   const addressSection = document.getElementById('addressSection');
+  const paymentOptions = document.getElementById('paymentOptions');
   
   // 显示/隐藏地址输入框
   if (deliveryMethod === 'shipping') {
     addressSection.classList.remove('hidden');
     document.getElementById('customer_address').required = true;
+    
+    // 邮寄时的支付选项：只有转账和移动支付
+    paymentOptions.innerHTML = `
+      <label class="flex items-center">
+        <input type="radio" name="payment_method" value="anz_transfer" class="mr-2" required>
+        <span class="text-gray-700">ANZ银行转账 (推荐)</span>
+      </label>
+      <label class="flex items-center">
+        <input type="radio" name="payment_method" value="bank_transfer" class="mr-2" required>
+        <span class="text-gray-700">跨行转账</span>
+      </label>
+      <label class="flex items-center">
+        <input type="radio" name="payment_method" value="wechat_alipay" class="mr-2" required>
+        <span class="text-gray-700">微信/支付宝转账</span>
+      </label>
+      <div class="mt-2 p-3 bg-blue-50 border border-blue-200 rounded text-sm text-blue-700">
+        <strong>邮寄说明：</strong>需要先付款确认后才会安排邮寄，请选择合适的转账方式
+      </div>
+    `;
   } else {
     addressSection.classList.add('hidden');
     document.getElementById('customer_address').required = false;
+    
+    // 当面交易时的支付选项：包括现金
+    paymentOptions.innerHTML = `
+      <label class="flex items-center">
+        <input type="radio" name="payment_method" value="anz_transfer" class="mr-2" required>
+        <span class="text-gray-700">ANZ银行转账</span>
+      </label>
+      <label class="flex items-center">
+        <input type="radio" name="payment_method" value="bank_transfer" class="mr-2" required>
+        <span class="text-gray-700">跨行转账</span>
+      </label>
+      <label class="flex items-center">
+        <input type="radio" name="payment_method" value="cash" class="mr-2" required>
+        <span class="text-gray-700">现金支付 (当面交易)</span>
+      </label>
+      <label class="flex items-center">
+        <input type="radio" name="payment_method" value="wechat_alipay" class="mr-2" required>
+        <span class="text-gray-700">微信/支付宝 (当面交易)</span>
+      </label>
+      <div class="mt-2 p-3 bg-green-50 border border-green-200 rounded text-sm text-green-700">
+        <strong>当面交易说明：</strong>可以选择现金或移动支付，安全便捷
+      </div>
+    `;
   }
   
   // 更新总计
