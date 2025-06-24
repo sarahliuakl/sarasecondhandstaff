@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}页面未找到 - Sara的二手售卖{% endblock %}
+{% block content %}
+
+<div class="max-w-2xl mx-auto text-center py-16">
+  <!-- 404图标 -->
+  <div class="mb-8">
+    <svg class="w-32 h-32 text-orange-300 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.766 0-5.227-1.116-6.853-2.92L5 12l-.147.08A7.962 7.962 0 0112 21a7.962 7.962 0 016.853-8.92L19 12l-.147-.08z"></path>
+    </svg>
+  </div>
+
+  <!-- 错误信息 -->
+  <h1 class="text-6xl font-bold text-orange-600 mb-4">404</h1>
+  <h2 class="text-2xl font-semibold text-gray-800 mb-4">页面未找到</h2>
+  <p class="text-gray-600 mb-8">抱歉，您访问的页面不存在或已被移除。</p>
+
+  <!-- 导航选项 -->
+  <div class="space-y-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <a href="{{ url_for('index') }}" 
+         class="bg-orange-500 text-white py-3 px-6 rounded-lg hover:bg-orange-600 transition font-medium">
+        返回首页
+      </a>
+      
+      <a href="{{ url_for('products') }}" 
+         class="bg-orange-100 text-orange-700 py-3 px-6 rounded-lg hover:bg-orange-200 transition font-medium">
+        浏览商品
+      </a>
+    </div>
+    
+    <a href="{{ url_for('contact') }}" 
+       class="inline-block text-orange-600 hover:text-orange-700 transition">
+      有问题？联系我们
+    </a>
+  </div>
+
+  <!-- 热门链接 -->
+  <div class="mt-12 text-left">
+    <h3 class="text-lg font-semibold text-gray-800 mb-4">您可能在寻找：</h3>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+      <a href="{{ url_for('products', category='electronics') }}" class="text-orange-600 hover:text-orange-700 transition">
+        • 电子产品
+      </a>
+      <a href="{{ url_for('products', category='clothing') }}" class="text-orange-600 hover:text-orange-700 transition">
+        • 衣物
+      </a>
+      <a href="{{ url_for('products', category='anime') }}" class="text-orange-600 hover:text-orange-700 transition">
+        • 动漫周边
+      </a>
+      <a href="{{ url_for('cart') }}" class="text-orange-600 hover:text-orange-700 transition">
+        • 购物车
+      </a>
+      <a href="{{ url_for('order_query') }}" class="text-orange-600 hover:text-orange-700 transition">
+        • 订单查询
+      </a>
+      <a href="{{ url_for('about') }}" class="text-orange-600 hover:text-orange-700 transition">
+        • 关于我们
+      </a>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

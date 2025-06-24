@@ -1,0 +1,303 @@
+{% extends "base.html" %}
+{% block title %}购物车 - Sara的二手售卖{% endblock %}
+{% block content %}
+
+<div class="max-w-4xl mx-auto">
+  <h2 class="text-3xl font-bold text-orange-700 mb-6">我的购物车</h2>
+  
+  <!-- 购物车内容容器 -->
+  <div id="cartContainer">
+    <!-- 空购物车提示 -->
+    <div id="emptyCart" class="text-center py-12 hidden">
+      <svg class="w-24 h-24 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 4M7 13l2.5 4m6 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"></path>
+      </svg>
+      <h3 class="text-xl font-medium text-gray-700 mb-2">购物车是空的</h3>
+      <p class="text-gray-500 mb-4">还没有添加任何商品到购物车</p>
+      <a href="{{ url_for('products') }}" class="inline-block bg-orange-500 text-white px-6 py-2 rounded hover:bg-orange-600 transition">
+        去购物
+      </a>
+    </div>
+
+    <!-- 购物车商品列表 -->
+    <div id="cartItems" class="space-y-4 hidden">
+      <!-- 商品项目将通过JavaScript动态添加 -->
+    </div>
+
+    <!-- 购物车总计 -->
+    <div id="cartSummary" class="hidden bg-gray-50 rounded-lg p-6 mt-6">
+      <div class="flex justify-between items-center mb-4">
+        <span class="text-lg font-medium">商品小计:</span>
+        <span id="subtotal" class="text-xl font-bold text-orange-600">NZD $0.00</span>
+      </div>
+      
+      <div class="flex justify-between items-center mb-4">
+        <span class="text-lg font-medium">预估邮费:</span>
+        <span id="shippingFee" class="text-lg text-gray-600">NZD $15.00</span>
+      </div>
+      
+      <hr class="my-4">
+      
+      <div class="flex justify-between items-center mb-6">
+        <span class="text-xl font-bold">总计:</span>
+        <span id="total" class="text-2xl font-bold text-orange-600">NZD $0.00</span>
+      </div>
+      
+      <div class="space-y-3">
+        <button onclick="proceedToCheckout()" 
+                class="w-full bg-orange-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-orange-600 transition">
+          订单确认
+        </button>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <a href="{{ url_for('products') }}" 
+             class="block text-center bg-gray-100 text-gray-700 py-2 px-4 rounded font-medium hover:bg-gray-200 transition">
+            继续购物
+          </a>
+          <button onclick="clearCart()" 
+                  class="bg-red-100 text-red-700 py-2 px-4 rounded font-medium hover:bg-red-200 transition">
+            清空购物车
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 交付和支付说明 -->
+  <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- 交付方式 -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+      <h3 class="text-lg font-semibold text-blue-800 mb-4">交付方式</h3>
+      <div class="space-y-3">
+        <div class="flex items-start">
+          <svg class="w-5 h-5 text-blue-600 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+          </svg>
+          <div>
+            <div class="font-medium text-blue-800">当面交易</div>
+            <div class="text-sm text-blue-600">奥克兰地区推荐，免邮费</div>
+          </div>
+        </div>
+        
+        <div class="flex items-start">
+          <svg class="w-5 h-5 text-blue-600 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+          </svg>
+          <div>
+            <div class="font-medium text-blue-800">邮寄</div>
+            <div class="text-sm text-blue-600">新西兰全国，邮费约 NZD $15</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 支付方式 -->
+    <div class="bg-green-50 border border-green-200 rounded-lg p-6">
+      <h3 class="text-lg font-semibold text-green-800 mb-4">支付方式</h3>
+      <div class="space-y-2 text-sm">
+        <div class="flex items-center text-green-700">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          ANZ银行转账（推荐）
+        </div>
+        <div class="flex items-center text-green-700">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          跨行转账
+        </div>
+        <div class="flex items-center text-green-700">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          现金/微信/支付宝（当面）
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 购买须知 -->
+  <div class="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+    <h3 class="text-lg font-semibold text-yellow-800 mb-3">购买须知</h3>
+    <ul class="text-sm text-yellow-700 space-y-1">
+      <li>• 二手物品经当面确认后不支持退货</li>
+      <li>• 所有咨询我会在2小时内回复</li>
+      <li>• 当面交易地点会通过短信确认，保护双方隐私</li>
+      <li>• 跨行转账请提前联系确认到账时间</li>
+      <li>• 如有任何问题，请随时联系：0225255862</li>
+    </ul>
+  </div>
+</div>
+
+<!-- JavaScript -->
+<script>
+// 页面加载时显示购物车内容
+document.addEventListener('DOMContentLoaded', function() {
+  displayCart();
+  updateCartCount();
+});
+
+// 显示购物车内容
+function displayCart() {
+  const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+  const emptyCart = document.getElementById('emptyCart');
+  const cartItems = document.getElementById('cartItems');
+  const cartSummary = document.getElementById('cartSummary');
+  
+  if (cart.length === 0) {
+    emptyCart.classList.remove('hidden');
+    cartItems.classList.add('hidden');
+    cartSummary.classList.add('hidden');
+  } else {
+    emptyCart.classList.add('hidden');
+    cartItems.classList.remove('hidden');
+    cartSummary.classList.remove('hidden');
+    
+    // 清空现有内容
+    cartItems.innerHTML = '';
+    
+    // 添加商品项
+    cart.forEach((item, index) => {
+      const itemElement = createCartItemElement(item, index);
+      cartItems.appendChild(itemElement);
+    });
+    
+    // 更新总计
+    updateCartSummary();
+  }
+}
+
+// 创建购物车商品元素
+function createCartItemElement(item, index) {
+  const div = document.createElement('div');
+  div.className = 'bg-white rounded-lg border border-gray-200 p-4 flex flex-col sm:flex-row gap-4';
+  
+  div.innerHTML = `
+    <div class="flex-shrink-0">
+      <img src="${item.image || 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=400&q=80'}" 
+           alt="${item.name}" 
+           class="w-24 h-24 object-cover rounded">
+    </div>
+    
+    <div class="flex-1">
+      <h4 class="font-semibold text-lg mb-1">${item.name}</h4>
+      <p class="text-sm text-gray-600 mb-2">成色：${item.condition}</p>
+      <p class="text-lg font-bold text-orange-600">NZD $${item.price.toFixed(2)}</p>
+    </div>
+    
+    <div class="flex items-center justify-between sm:flex-col sm:justify-center gap-4">
+      <div class="flex items-center border border-gray-300 rounded">
+        <button onclick="updateQuantity(${index}, ${item.quantity - 1})" 
+                class="px-3 py-1 hover:bg-gray-100 transition ${item.quantity <= 1 ? 'opacity-50 cursor-not-allowed' : ''}">
+          -
+        </button>
+        <span class="px-4 py-1 border-l border-r border-gray-300">${item.quantity}</span>
+        <button onclick="updateQuantity(${index}, ${item.quantity + 1})" 
+                class="px-3 py-1 hover:bg-gray-100 transition">
+          +
+        </button>
+      </div>
+      
+      <button onclick="removeFromCart(${index})" 
+              class="text-red-600 hover:text-red-700 text-sm transition">
+        删除
+      </button>
+    </div>
+  `;
+  
+  return div;
+}
+
+// 更新商品数量
+function updateQuantity(index, newQuantity) {
+  if (newQuantity < 1) return;
+  
+  let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+  if (cart[index]) {
+    cart[index].quantity = newQuantity;
+    localStorage.setItem('cart', JSON.stringify(cart));
+    displayCart();
+    updateCartCount();
+  }
+}
+
+// 从购物车移除商品
+function removeFromCart(index) {
+  let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+  cart.splice(index, 1);
+  localStorage.setItem('cart', JSON.stringify(cart));
+  displayCart();
+  updateCartCount();
+  showMessage('商品已从购物车移除', 'info');
+}
+
+// 清空购物车
+function clearCart() {
+  if (confirm('确定要清空购物车吗？')) {
+    localStorage.removeItem('cart');
+    displayCart();
+    updateCartCount();
+    showMessage('购物车已清空', 'info');
+  }
+}
+
+// 更新购物车总计
+function updateCartSummary() {
+  const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+  let subtotal = 0;
+  
+  cart.forEach(item => {
+    subtotal += item.price * item.quantity;
+  });
+  
+  const shippingFee = 15.00; // 固定邮费
+  const total = subtotal + shippingFee;
+  
+  document.getElementById('subtotal').textContent = `NZD $${subtotal.toFixed(2)}`;
+  document.getElementById('total').textContent = `NZD $${total.toFixed(2)}`;
+}
+
+// 前往订单确认
+function proceedToCheckout() {
+  const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+  if (cart.length === 0) {
+    showMessage('购物车是空的', 'error');
+    return;
+  }
+  
+  // 跳转到订单确认页面
+  window.location.href = '/order/confirm';
+}
+
+// 更新购物车计数
+function updateCartCount() {
+  const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+  
+  const cartCountElements = document.querySelectorAll('.cart-count');
+  cartCountElements.forEach(element => {
+    element.textContent = totalItems;
+    element.style.display = totalItems > 0 ? 'inline' : 'none';
+  });
+}
+
+// 显示消息
+function showMessage(message, type = 'info') {
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
+    type === 'success' ? 'bg-green-500 text-white' : 
+    type === 'error' ? 'bg-red-500 text-white' : 
+    'bg-blue-500 text-white'
+  }`;
+  messageDiv.textContent = message;
+  
+  document.body.appendChild(messageDiv);
+  
+  setTimeout(() => {
+    document.body.removeChild(messageDiv);
+  }, 3000);
+}
+</script>
+
+{% endblock %}

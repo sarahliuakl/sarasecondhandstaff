@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title %}订单查询 - Sara的二手售卖{% endblock %}
+{% block content %}
+
+<div class="max-w-2xl mx-auto">
+  <h2 class="text-3xl font-bold text-orange-700 mb-6">订单查询</h2>
+  
+  <!-- 查询说明 -->
+  <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
+    <div class="flex items-start">
+      <svg class="w-6 h-6 text-blue-600 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      <div>
+        <h3 class="text-lg font-semibold text-blue-800 mb-2">如何查询订单</h3>
+        <ul class="text-blue-700 text-sm space-y-1">
+          <li>• 请输入您购买时提供的邮箱地址或电话号码</li>
+          <li>• 系统将显示您的所有订单和状态信息</li>
+          <li>• 如有任何问题，请直接联系Sara：0225255862</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 查询表单 -->
+  <div class="bg-white rounded-lg shadow border border-gray-200 p-8">
+    <form method="POST" action="{{ url_for('order_search') }}" class="space-y-6">
+      <div>
+        <label for="contact" class="block text-sm font-medium text-gray-700 mb-2">
+          邮箱地址或电话号码 <span class="text-red-500">*</span>
+        </label>
+        <input 
+          type="text" 
+          id="contact" 
+          name="contact" 
+          required
+          placeholder="请输入您的邮箱地址或电话号码"
+          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-orange-300"
+        >
+        <p class="mt-2 text-sm text-gray-500">
+          例如：zhang@example.com 或 021-234-567
+        </p>
+      </div>
+
+      <!-- 验证提示 -->
+      <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <div class="flex items-start">
+          <svg class="w-5 h-5 text-yellow-600 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+          </svg>
+          <div class="text-sm">
+            <p class="text-yellow-800 font-medium">隐私保护</p>
+            <p class="text-yellow-700">为保护您的隐私，请确保输入的是您购买时使用的真实联系方式。</p>
+          </div>
+        </div>
+      </div>
+
+      <button 
+        type="submit" 
+        class="w-full bg-orange-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-orange-600 transition focus:outline-none focus:ring-2 focus:ring-orange-300"
+      >
+        查询我的订单
+      </button>
+    </form>
+  </div>
+
+  <!-- 其他联系方式 -->
+  <div class="mt-8 text-center">
+    <h3 class="text-lg font-semibold text-gray-700 mb-4">找不到订单？</h3>
+    
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <a href="tel:0225255862" 
+         class="flex items-center justify-center bg-green-100 text-green-700 py-3 px-6 rounded-lg hover:bg-green-200 transition">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+        </svg>
+        电话联系
+      </a>
+      
+      <a href="mailto:haixialiu2017@gmail.com" 
+         class="flex items-center justify-center bg-blue-100 text-blue-700 py-3 px-6 rounded-lg hover:bg-blue-200 transition">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+        </svg>
+        邮箱联系
+      </a>
+    </div>
+    
+    <p class="mt-4 text-sm text-gray-500">
+      营业时间：周一至周日 9:00-21:00<br>
+      承诺2小时内回复您的咨询
+    </p>
+  </div>
+
+  <!-- 常见问题 -->
+  <div class="mt-8 bg-gray-50 rounded-lg p-6">
+    <h3 class="text-lg font-semibold text-gray-700 mb-4">常见问题</h3>
+    
+    <div class="space-y-4">
+      <div>
+        <h4 class="font-medium text-gray-800 mb-1">Q: 为什么找不到我的订单？</h4>
+        <p class="text-sm text-gray-600">A: 请确认您输入的联系方式与购买时提供的一致。如果还是找不到，可能是订单信息录入有误，请直接联系我们。</p>
+      </div>
+      
+      <div>
+        <h4 class="font-medium text-gray-800 mb-1">Q: 订单状态都有哪些？</h4>
+        <p class="text-sm text-gray-600">A: 
+          <span class="inline-block bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs mr-1">待支付</span>
+          <span class="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs mr-1">已支付</span>
+          <span class="inline-block bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs mr-1">已发货</span>
+          <span class="inline-block bg-green-100 text-green-800 px-2 py-1 rounded text-xs">已完成</span>
+        </p>
+      </div>
+      
+      <div>
+        <h4 class="font-medium text-gray-800 mb-1">Q: 如何修改订单信息？</h4>
+        <p class="text-sm text-gray-600">A: 请直接联系Sara修改订单信息。为确保准确性，建议通过电话沟通。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 显示Flash消息 -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="fixed top-4 right-4 z-50 space-y-2">
+      {% for category, message in messages %}
+        <div class="p-4 rounded-lg shadow-lg {{ 'bg-green-500 text-white' if category == 'success' else 'bg-red-500 text-white' if category == 'error' else 'bg-blue-500 text-white' }}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+    
+    <script>
+      // 3秒后自动隐藏消息
+      setTimeout(function() {
+        const messages = document.querySelectorAll('.fixed.top-4.right-4 > div');
+        messages.forEach(msg => msg.remove());
+      }, 3000);
+    </script>
+  {% endif %}
+{% endwith %}
+
+{% endblock %}

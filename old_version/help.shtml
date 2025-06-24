@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>售卖说明 - Sara的二手售卖</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-orange-50 text-gray-800">
+  <!--#include virtual="header.shtml" -->
+  <!-- Main -->
+  <main class="container mx-auto px-6 py-10">
+    <h2 class="text-3xl font-bold text-orange-700 mb-6">售卖说明</h2>
+    <section class="mb-8">
+      <h3 class="text-xl font-semibold mb-2 text-orange-600">售后政策</h3>
+      <ul class="list-disc pl-6 text-gray-700">
+        <li>二手物品经当面确认后不支持退货。</li>
+        <li>如有疑问或售后问题，可通过“联系我”页面咨询，Sara会耐心解答。</li>
+        <li>所有商品均为实物拍摄，确保描述真实。</li>
+      </ul>
+    </section>
+    <section>
+      <h3 class="text-xl font-semibold mb-2 text-orange-600">常见问题</h3>
+      <div class="space-y-4">
+        <div>
+          <p class="font-semibold">Q: 可以邮寄到新西兰哪些城市？</p>
+          <p class="text-gray-700">A: 支持新西兰全国范围邮寄，奥克兰地区优先推荐面交。</p>
+        </div>
+        <div>
+          <p class="font-semibold">Q: 支付方式有哪些？</p>
+          <p class="text-gray-700">A: 支持ANZ银行转账、跨行转账、微信/支付宝扫码支付及现金支付。</p>
+        </div>
+        <div>
+          <p class="font-semibold">Q: 如何查询订单状态？</p>
+          <p class="text-gray-700">A: 可通过邮箱或电话联系Sara查询订单状态。</p>
+        </div>
+        <div>
+          <p class="font-semibold">Q: 售后如何保障？</p>
+          <p class="text-gray-700">A: 如有售后问题，Sara会在2小时内回复并协助解决。</p>
+        </div>
+      </div>
+    </section>
+  </main>
+  <!--#include virtual="footer.shtml" -->
+</body>
+</html>
