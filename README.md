@@ -1,5 +1,7 @@
 # Sara的二手售卖网站
 
+[项目GitHub仓库（sarasecondhandstaff）](https://github.com/sarahliuakl/sarasecondhandstaff)
+
 > 新西兰奥克兰个人二手物品售卖平台
 
 ## 项目简介
@@ -176,11 +178,6 @@ python app.py
 
 所有商品均为真实物品信息，包含详细的成色描述和规格参数。
 
-## 联系方式
-
-- **电话**：0225255862
-- **邮箱**：haixialiu2017@gmail.com
-- **地址**：新西兰奥克兰北岸
 
 ## 交付和支付
 
