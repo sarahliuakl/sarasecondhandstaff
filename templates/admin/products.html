@@ -1,0 +1,273 @@
+{% extends "admin/base.html" %}
+
+{% block title %}产品管理{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">产品管理</h1>
+            <p class="text-gray-600">管理您的二手商品库存</p>
+        </div>
+        <div>
+            <a href="{{ url_for('admin.product_create') }}" 
+               class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <i class="fas fa-plus mr-2"></i>
+                添加产品
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- 筛选栏 -->
+<div class="bg-white shadow rounded-lg mb-6">
+    <div class="px-4 py-5 sm:p-6">
+        <form method="GET" class="grid grid-cols-1 gap-4 sm:grid-cols-4">
+            <div>
+                <label for="category" class="block text-sm font-medium text-gray-700">分类</label>
+                <select name="category" id="category" 
+                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                    <option value="">全部分类</option>
+                    {% for value, display in categories %}
+                        <option value="{{ value }}" {% if current_category == value %}selected{% endif %}>
+                            {{ display }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div>
+                <label for="status" class="block text-sm font-medium text-gray-700">状态</label>
+                <select name="status" id="status" 
+                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                    <option value="">全部状态</option>
+                    {% for value, display in statuses %}
+                        <option value="{{ value }}" {% if current_status == value %}selected{% endif %}>
+                            {{ display }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div>
+                <label for="search" class="block text-sm font-medium text-gray-700">搜索</label>
+                <input type="text" name="search" id="search" 
+                       value="{{ search_term }}"
+                       placeholder="产品名称或描述"
+                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+            
+            <div class="flex items-end">
+                <button type="submit" 
+                        class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                    <i class="fas fa-search mr-2"></i>筛选
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 产品列表 -->
+<div class="bg-white shadow rounded-lg">
+    <div class="px-4 py-5 sm:p-6">
+        {% if products.items %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                产品信息
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                分类/状态
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                价格
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                交易方式
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                创建时间
+                            </th>
+                            <th scope="col" class="relative px-6 py-3">
+                                <span class="sr-only">操作</span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for product in products.items %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-12 w-12">
+                                            {% set images = product.get_images() %}
+                                            <img class="h-12 w-12 rounded-lg object-cover" 
+                                                 src="{{ images[0] if images else 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=400&q=80' }}" 
+                                                 alt="{{ product.name }}">
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-gray-900">
+                                                {{ product.name }}
+                                            </div>
+                                            <div class="text-sm text-gray-500">
+                                                {{ product.condition }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">{{ product.get_category_display() }}</div>
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                        {% if product.stock_status == 'available' %}bg-green-100 text-green-800
+                                        {% elif product.stock_status == 'sold' %}bg-red-100 text-red-800
+                                        {% elif product.stock_status == 'reserved' %}bg-yellow-100 text-yellow-800
+                                        {% endif %}">
+                                        {{ product.get_status_display() }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    NZD ${{ "%.2f"|format(product.price) }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {% if product.face_to_face_only %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                                            <i class="fas fa-handshake mr-1"></i>仅见面交易
+                                        </span>
+                                    {% else %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                            <i class="fas fa-shipping-fast mr-1"></i>支持邮寄
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ product.created_at.strftime('%Y-%m-%d') }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <div class="flex space-x-2">
+                                        <a href="{{ url_for('product_detail', product_id=product.id) }}" target="_blank"
+                                           class="text-blue-600 hover:text-blue-900" title="查看详情">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{{ url_for('admin.product_edit', product_id=product.id) }}" 
+                                           class="text-green-600 hover:text-green-900" title="编辑">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button onclick="deleteProduct({{ product.id }}, '{{ product.name }}')" 
+                                                class="text-red-600 hover:text-red-900" title="删除">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- 分页 -->
+            {% if products.pages > 1 %}
+                <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 mt-6">
+                    <div class="flex-1 flex justify-between sm:hidden">
+                        {% if products.has_prev %}
+                            <a href="{{ url_for('admin.products', page=products.prev_num, category=current_category, status=current_status, search=search_term) }}" 
+                               class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                上一页
+                            </a>
+                        {% endif %}
+                        {% if products.has_next %}
+                            <a href="{{ url_for('admin.products', page=products.next_num, category=current_category, status=current_status, search=search_term) }}" 
+                               class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                下一页
+                            </a>
+                        {% endif %}
+                    </div>
+                    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                        <div>
+                            <p class="text-sm text-gray-700">
+                                显示第 <span class="font-medium">{{ products.per_page * (products.page - 1) + 1 }}</span> 
+                                到 <span class="font-medium">{{ products.per_page * (products.page - 1) + products.items|length }}</span> 
+                                项，共 <span class="font-medium">{{ products.total }}</span> 项结果
+                            </p>
+                        </div>
+                        <div>
+                            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                                {% if products.has_prev %}
+                                    <a href="{{ url_for('admin.products', page=products.prev_num, category=current_category, status=current_status, search=search_term) }}" 
+                                       class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </a>
+                                {% endif %}
+                                
+                                {% for page_num in products.iter_pages() %}
+                                    {% if page_num %}
+                                        {% if page_num != products.page %}
+                                            <a href="{{ url_for('admin.products', page=page_num, category=current_category, status=current_status, search=search_term) }}" 
+                                               class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                                {{ page_num }}
+                                            </a>
+                                        {% else %}
+                                            <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600">
+                                                {{ page_num }}
+                                            </span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                                            ...
+                                        </span>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if products.has_next %}
+                                    <a href="{{ url_for('admin.products', page=products.next_num, category=current_category, status=current_status, search=search_term) }}" 
+                                       class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                {% endif %}
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-12">
+                <i class="fas fa-box text-4xl text-gray-300 mb-4"></i>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">暂无产品</h3>
+                <p class="text-gray-500 mb-6">开始添加您的第一个产品</p>
+                <a href="{{ url_for('admin.product_create') }}" 
+                   class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
+                    <i class="fas fa-plus mr-2"></i>添加产品
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function deleteProduct(productId, productName) {
+    if (confirm(`确定要删除产品 "${productName}" 吗？此操作不可恢复。`)) {
+        fetch(`/admin/product/${productId}/delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('删除失败：' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('删除失败，请稍后重试');
+        });
+    }
+}
+</script>
+{% endblock %}

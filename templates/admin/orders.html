@@ -1,0 +1,293 @@
+{% extends "admin/base.html" %}
+
+{% block title %}订单管理{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">订单管理</h1>
+    <p class="text-gray-600">管理客户订单和处理流程</p>
+</div>
+
+<!-- 筛选栏 -->
+<div class="bg-white shadow rounded-lg mb-6">
+    <div class="px-4 py-5 sm:p-6">
+        <form method="GET" class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div>
+                <label for="status" class="block text-sm font-medium text-gray-700">订单状态</label>
+                <select name="status" id="status" 
+                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                    <option value="">全部状态</option>
+                    {% for value, display in statuses %}
+                        <option value="{{ value }}" {% if current_status == value %}selected{% endif %}>
+                            {{ display }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div>
+                <label for="search" class="block text-sm font-medium text-gray-700">搜索</label>
+                <input type="text" name="search" id="search" 
+                       value="{{ search_term }}"
+                       placeholder="订单号、客户姓名或邮箱"
+                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+            
+            <div class="flex items-end">
+                <button type="submit" 
+                        class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                    <i class="fas fa-search mr-2"></i>筛选
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 订单列表 -->
+<div class="bg-white shadow rounded-lg">
+    <div class="px-4 py-5 sm:p-6">
+        {% if orders.items %}
+            <div class="space-y-4">
+                {% for order in orders.items %}
+                    <div class="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-4">
+                                <h3 class="text-lg font-medium text-gray-900">
+                                    订单 #{{ order.order_number }}
+                                </h3>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                    {% if order.status == 'pending' %}bg-yellow-100 text-yellow-800
+                                    {% elif order.status == 'paid' %}bg-blue-100 text-blue-800
+                                    {% elif order.status == 'shipped' %}bg-purple-100 text-purple-800
+                                    {% elif order.status == 'completed' %}bg-green-100 text-green-800
+                                    {% elif order.status == 'cancelled' %}bg-red-100 text-red-800
+                                    {% endif %}">
+                                    {{ order.get_status_display() }}
+                                </span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="showOrderDetails({{ order.id }})" 
+                                        class="text-blue-600 hover:text-blue-900" title="查看详情">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button onclick="updateOrderStatus({{ order.id }}, '{{ order.order_number }}')" 
+                                        class="text-green-600 hover:text-green-900" title="更新状态">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                            <div>
+                                <h4 class="font-medium text-gray-900 mb-2">客户信息</h4>
+                                <div class="text-gray-600 space-y-1">
+                                    <div><strong>姓名:</strong> {{ order.customer_name }}</div>
+                                    <div><strong>邮箱:</strong> {{ order.customer_email }}</div>
+                                    {% if order.customer_phone %}
+                                        <div><strong>电话:</strong> {{ order.customer_phone }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h4 class="font-medium text-gray-900 mb-2">订单信息</h4>
+                                <div class="text-gray-600 space-y-1">
+                                    <div><strong>总金额:</strong> NZD ${{ "%.2f"|format(order.total_amount) }}</div>
+                                    <div><strong>交付方式:</strong> {{ order.get_delivery_display() }}</div>
+                                    <div><strong>支付方式:</strong> {{ order.get_payment_display() }}</div>
+                                    <div><strong>创建时间:</strong> {{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h4 class="font-medium text-gray-900 mb-2">商品信息</h4>
+                                <div class="text-gray-600 space-y-1">
+                                    {% for item in order.get_items() %}
+                                        <div>{{ item.name }} x{{ item.quantity }} - NZD ${{ "%.2f"|format(item.price * item.quantity) }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% if order.customer_address %}
+                            <div class="mt-4 pt-4 border-t border-gray-200">
+                                <h4 class="font-medium text-gray-900 mb-1">配送地址</h4>
+                                <p class="text-gray-600 text-sm">{{ order.customer_address }}</p>
+                            </div>
+                        {% endif %}
+                        
+                        {% if order.notes %}
+                            <div class="mt-4 pt-4 border-t border-gray-200">
+                                <h4 class="font-medium text-gray-900 mb-1">备注</h4>
+                                <p class="text-gray-600 text-sm">{{ order.notes }}</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <!-- 分页 -->
+            {% if orders.pages > 1 %}
+                <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 mt-6">
+                    <div class="flex-1 flex justify-between sm:hidden">
+                        {% if orders.has_prev %}
+                            <a href="{{ url_for('admin.orders', page=orders.prev_num, status=current_status, search=search_term) }}" 
+                               class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                上一页
+                            </a>
+                        {% endif %}
+                        {% if orders.has_next %}
+                            <a href="{{ url_for('admin.orders', page=orders.next_num, status=current_status, search=search_term) }}" 
+                               class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                下一页
+                            </a>
+                        {% endif %}
+                    </div>
+                    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                        <div>
+                            <p class="text-sm text-gray-700">
+                                显示第 <span class="font-medium">{{ orders.per_page * (orders.page - 1) + 1 }}</span> 
+                                到 <span class="font-medium">{{ orders.per_page * (orders.page - 1) + orders.items|length }}</span> 
+                                项，共 <span class="font-medium">{{ orders.total }}</span> 项结果
+                            </p>
+                        </div>
+                        <div>
+                            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                                {% if orders.has_prev %}
+                                    <a href="{{ url_for('admin.orders', page=orders.prev_num, status=current_status, search=search_term) }}" 
+                                       class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </a>
+                                {% endif %}
+                                
+                                {% for page_num in orders.iter_pages() %}
+                                    {% if page_num %}
+                                        {% if page_num != orders.page %}
+                                            <a href="{{ url_for('admin.orders', page=page_num, status=current_status, search=search_term) }}" 
+                                               class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                                {{ page_num }}
+                                            </a>
+                                        {% else %}
+                                            <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600">
+                                                {{ page_num }}
+                                            </span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                                            ...
+                                        </span>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if orders.has_next %}
+                                    <a href="{{ url_for('admin.orders', page=orders.next_num, status=current_status, search=search_term) }}" 
+                                       class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                {% endif %}
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-12">
+                <i class="fas fa-shopping-cart text-4xl text-gray-300 mb-4"></i>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">暂无订单</h3>
+                <p class="text-gray-500">等待客户下单</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 更新状态模态框 -->
+<div id="statusModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">更新订单状态</h3>
+            <form id="statusForm">
+                <input type="hidden" id="orderId" name="order_id">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
+                <div class="mb-4">
+                    <label for="newStatus" class="block text-sm font-medium text-gray-700 mb-2">选择新状态</label>
+                    <select id="newStatus" name="new_status" required
+                            class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        {% for value, display in statuses %}
+                            <option value="{{ value }}">{{ display }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="statusNote" class="block text-sm font-medium text-gray-700 mb-2">备注 (可选)</label>
+                    <textarea id="statusNote" name="note" rows="3"
+                              class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="状态更新说明..."></textarea>
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeStatusModal()" 
+                            class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                        取消
+                    </button>
+                    <button type="submit" 
+                            class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+                        更新状态
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function showOrderDetails(orderId) {
+    // 这里可以实现订单详情查看
+    window.open(`/admin/order/${orderId}/detail`, '_blank');
+}
+
+function updateOrderStatus(orderId, orderNumber) {
+    document.getElementById('orderId').value = orderId;
+    document.getElementById('statusModal').classList.remove('hidden');
+}
+
+function closeStatusModal() {
+    document.getElementById('statusModal').classList.add('hidden');
+    document.getElementById('statusForm').reset();
+}
+
+document.getElementById('statusForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const orderId = formData.get('order_id');
+    
+    fetch(`/admin/order/${orderId}/update-status`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('更新失败：' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('更新失败，请稍后重试');
+    });
+});
+
+// 点击模态框外部关闭
+document.getElementById('statusModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeStatusModal();
+    }
+});
+</script>
+{% endblock %}

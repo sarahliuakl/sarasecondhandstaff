@@ -368,3 +368,294 @@ def messages():
                          messages=messages,
                          statuses=Message.MESSAGE_STATUSES,
                          current_status=status)
+
+
+@admin_bp.route('/product/create', methods=['GET', 'POST'])
+@login_required
+def product_create():
+    """创建产品页面"""
+    if request.method == 'POST':
+        # 获取表单数据
+        form_data = {
+            'name': request.form.get('name', ''),
+            'description': request.form.get('description', ''),
+            'price': request.form.get('price', ''),
+            'category': request.form.get('category', ''),
+            'condition': request.form.get('condition', ''),
+            'stock_status': request.form.get('stock_status', ''),
+            'face_to_face_only': request.form.get('face_to_face_only') == '1'
+        }
+        
+        # 清理用户输入
+        clean_data = sanitize_user_input(form_data)
+        
+        # 验证必填字段
+        required_fields = ['name', 'price', 'category', 'condition', 'stock_status']
+        is_valid, errors = validate_form_data(clean_data, required_fields)
+        
+        if not is_valid:
+            for error in errors:
+                flash(error, 'error')
+            return render_template('admin/product_form.html',
+                                 categories=Product.CATEGORIES,
+                                 statuses=Product.STOCK_STATUSES)
+        
+        # 验证价格
+        try:
+            price = float(clean_data['price'])
+            if price <= 0:
+                flash('价格必须大于0', 'error')
+                return render_template('admin/product_form.html',
+                                     categories=Product.CATEGORIES,
+                                     statuses=Product.STOCK_STATUSES)
+        except ValueError:
+            flash('价格格式不正确', 'error')
+            return render_template('admin/product_form.html',
+                                 categories=Product.CATEGORIES,
+                                 statuses=Product.STOCK_STATUSES)
+        
+        try:
+            # 创建产品
+            product = Product(
+                name=clean_data['name'],
+                description=clean_data['description'],
+                price=price,
+                category=clean_data['category'],
+                condition=clean_data['condition'],
+                stock_status=clean_data['stock_status'],
+                face_to_face_only=clean_data['face_to_face_only']
+            )
+            
+            # 处理图片
+            images = request.form.getlist('images')
+            valid_images = [img.strip() for img in images if img.strip()]
+            if valid_images:
+                product.set_images(valid_images)
+            
+            # 处理规格
+            spec_keys = request.form.getlist('spec_keys')
+            spec_values = request.form.getlist('spec_values')
+            specifications = {}
+            for key, value in zip(spec_keys, spec_values):
+                if key.strip() and value.strip():
+                    specifications[key.strip()] = value.strip()
+            if specifications:
+                product.set_specifications(specifications)
+            
+            db.session.add(product)
+            db.session.commit()
+            
+            logger.info(f'产品创建成功: {product.name} - 管理员: {current_user.username}')
+            flash('产品添加成功', 'success')
+            return redirect(url_for('admin.products'))
+            
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f'产品创建失败: {str(e)} - 管理员: {current_user.username}')
+            flash('添加失败，请稍后重试', 'error')
+    
+    return render_template('admin/product_form.html',
+                         categories=Product.CATEGORIES,
+                         statuses=Product.STOCK_STATUSES)
+
+
+@admin_bp.route('/product/<int:product_id>/edit', methods=['GET', 'POST'])
+@login_required
+def product_edit(product_id):
+    """编辑产品页面"""
+    product = Product.query.get_or_404(product_id)
+    
+    if request.method == 'POST':
+        # 获取表单数据
+        form_data = {
+            'name': request.form.get('name', ''),
+            'description': request.form.get('description', ''),
+            'price': request.form.get('price', ''),
+            'category': request.form.get('category', ''),
+            'condition': request.form.get('condition', ''),
+            'stock_status': request.form.get('stock_status', ''),
+            'face_to_face_only': request.form.get('face_to_face_only') == '1'
+        }
+        
+        # 清理用户输入
+        clean_data = sanitize_user_input(form_data)
+        
+        # 验证必填字段
+        required_fields = ['name', 'price', 'category', 'condition', 'stock_status']
+        is_valid, errors = validate_form_data(clean_data, required_fields)
+        
+        if not is_valid:
+            for error in errors:
+                flash(error, 'error')
+            return render_template('admin/product_form.html',
+                                 product=product,
+                                 categories=Product.CATEGORIES,
+                                 statuses=Product.STOCK_STATUSES)
+        
+        # 验证价格
+        try:
+            price = float(clean_data['price'])
+            if price <= 0:
+                flash('价格必须大于0', 'error')
+                return render_template('admin/product_form.html',
+                                     product=product,
+                                     categories=Product.CATEGORIES,
+                                     statuses=Product.STOCK_STATUSES)
+        except ValueError:
+            flash('价格格式不正确', 'error')
+            return render_template('admin/product_form.html',
+                                 product=product,
+                                 categories=Product.CATEGORIES,
+                                 statuses=Product.STOCK_STATUSES)
+        
+        try:
+            # 更新产品信息
+            product.name = clean_data['name']
+            product.description = clean_data['description']
+            product.price = price
+            product.category = clean_data['category']
+            product.condition = clean_data['condition']
+            product.stock_status = clean_data['stock_status']
+            product.face_to_face_only = clean_data['face_to_face_only']
+            
+            # 处理图片
+            images = request.form.getlist('images')
+            valid_images = [img.strip() for img in images if img.strip()]
+            product.set_images(valid_images)
+            
+            # 处理规格
+            spec_keys = request.form.getlist('spec_keys')
+            spec_values = request.form.getlist('spec_values')
+            specifications = {}
+            for key, value in zip(spec_keys, spec_values):
+                if key.strip() and value.strip():
+                    specifications[key.strip()] = value.strip()
+            product.set_specifications(specifications)
+            
+            db.session.commit()
+            
+            logger.info(f'产品更新成功: {product.name} - 管理员: {current_user.username}')
+            flash('产品更新成功', 'success')
+            return redirect(url_for('admin.products'))
+            
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f'产品更新失败: {str(e)} - 管理员: {current_user.username}')
+            flash('更新失败，请稍后重试', 'error')
+    
+    return render_template('admin/product_form.html',
+                         product=product,
+                         categories=Product.CATEGORIES,
+                         statuses=Product.STOCK_STATUSES)
+
+
+@admin_bp.route('/product/<int:product_id>/delete', methods=['POST'])
+@login_required
+def product_delete(product_id):
+    """删除产品"""
+    try:
+        product = Product.query.get_or_404(product_id)
+        product_name = product.name
+        
+        db.session.delete(product)
+        db.session.commit()
+        
+        logger.info(f'产品删除成功: {product_name} - 管理员: {current_user.username}')
+        return jsonify({'success': True, 'message': '产品删除成功'})
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f'产品删除失败: {str(e)} - 管理员: {current_user.username}')
+        return jsonify({'success': False, 'message': '删除失败，请稍后重试'})
+
+
+@admin_bp.route('/order/<int:order_id>/update-status', methods=['POST'])
+@login_required
+def order_update_status(order_id):
+    """更新订单状态"""
+    try:
+        order = Order.query.get_or_404(order_id)
+        new_status = request.form.get('new_status')
+        note = request.form.get('note', '')
+        
+        if new_status not in dict(Order.ORDER_STATUSES):
+            return jsonify({'success': False, 'message': '无效的状态'})
+        
+        old_status = order.status
+        order.status = new_status
+        db.session.commit()
+        
+        logger.info(f'订单状态更新: {order.order_number} {old_status}->{new_status} - 管理员: {current_user.username}')
+        
+        # TODO: 发送状态更新邮件给客户
+        
+        return jsonify({'success': True, 'message': '状态更新成功'})
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f'订单状态更新失败: {str(e)} - 管理员: {current_user.username}')
+        return jsonify({'success': False, 'message': '更新失败，请稍后重试'})
+
+
+@admin_bp.route('/message/<int:message_id>/reply', methods=['POST'])
+@login_required
+def message_reply(message_id):
+    """回复留言"""
+    try:
+        message = Message.query.get_or_404(message_id)
+        reply_content = request.form.get('reply_content', '').strip()
+        
+        if not reply_content:
+            return jsonify({'success': False, 'message': '回复内容不能为空'})
+        
+        message.mark_as_replied(reply_content)
+        db.session.commit()
+        
+        logger.info(f'留言回复成功: ID {message_id} - 管理员: {current_user.username}')
+        
+        # TODO: 发送回复邮件给客户
+        
+        return jsonify({'success': True, 'message': '回复发送成功'})
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f'留言回复失败: {str(e)} - 管理员: {current_user.username}')
+        return jsonify({'success': False, 'message': '回复失败，请稍后重试'})
+
+
+@admin_bp.route('/message/<int:message_id>/archive', methods=['POST'])
+@login_required
+def message_archive(message_id):
+    """归档留言"""
+    try:
+        message = Message.query.get_or_404(message_id)
+        message.status = Message.STATUS_ARCHIVED
+        db.session.commit()
+        
+        logger.info(f'留言归档成功: ID {message_id} - 管理员: {current_user.username}')
+        return jsonify({'success': True, 'message': '留言已归档'})
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f'留言归档失败: {str(e)} - 管理员: {current_user.username}')
+        return jsonify({'success': False, 'message': '归档失败，请稍后重试'})
+
+
+@admin_bp.route('/message/<int:message_id>/delete', methods=['POST'])
+@login_required
+def message_delete(message_id):
+    """删除留言"""
+    try:
+        message = Message.query.get_or_404(message_id)
+        customer_name = message.name
+        
+        db.session.delete(message)
+        db.session.commit()
+        
+        logger.info(f'留言删除成功: {customer_name} - 管理员: {current_user.username}')
+        return jsonify({'success': True, 'message': '留言删除成功'})
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f'留言删除失败: {str(e)} - 管理员: {current_user.username}')
+        return jsonify({'success': False, 'message': '删除失败，请稍后重试'})

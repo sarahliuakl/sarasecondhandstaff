@@ -1,0 +1,309 @@
+{% extends "admin/base.html" %}
+
+{% block title %}留言管理{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">留言管理</h1>
+    <p class="text-gray-600">管理客户留言和咨询</p>
+</div>
+
+<!-- 筛选栏 -->
+<div class="bg-white shadow rounded-lg mb-6">
+    <div class="px-4 py-5 sm:p-6">
+        <form method="GET" class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+                <label for="status" class="block text-sm font-medium text-gray-700">留言状态</label>
+                <select name="status" id="status" 
+                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                    <option value="">全部状态</option>
+                    {% for value, display in statuses %}
+                        <option value="{{ value }}" {% if current_status == value %}selected{% endif %}>
+                            {{ display }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="flex items-end">
+                <button type="submit" 
+                        class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                    <i class="fas fa-search mr-2"></i>筛选
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 留言列表 -->
+<div class="bg-white shadow rounded-lg">
+    <div class="px-4 py-5 sm:p-6">
+        {% if messages.items %}
+            <div class="space-y-6">
+                {% for message in messages.items %}
+                    <div class="border border-gray-200 rounded-lg p-6 {% if message.status == 'unread' %}bg-blue-50{% endif %}">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center space-x-4">
+                                <div>
+                                    <h3 class="text-lg font-medium text-gray-900">{{ message.name }}</h3>
+                                    <p class="text-sm text-gray-600">{{ message.contact }}</p>
+                                </div>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                    {% if message.status == 'unread' %}bg-yellow-100 text-yellow-800
+                                    {% elif message.status == 'replied' %}bg-green-100 text-green-800
+                                    {% elif message.status == 'archived' %}bg-gray-100 text-gray-800
+                                    {% endif %}">
+                                    {{ message.get_status_display() }}
+                                </span>
+                            </div>
+                            <div class="flex items-center space-x-2 text-sm text-gray-500">
+                                <i class="fas fa-clock"></i>
+                                <span>{{ message.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h4 class="font-medium text-gray-900 mb-2">留言内容</h4>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <p class="text-gray-700 whitespace-pre-wrap">{{ message.message }}</p>
+                            </div>
+                        </div>
+                        
+                        {% if message.reply %}
+                            <div class="mb-4">
+                                <h4 class="font-medium text-gray-900 mb-2">回复内容</h4>
+                                <div class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400">
+                                    <p class="text-gray-700 whitespace-pre-wrap">{{ message.reply }}</p>
+                                    {% if message.replied_at %}
+                                        <p class="text-sm text-gray-500 mt-2">
+                                            回复时间: {{ message.replied_at.strftime('%Y-%m-%d %H:%M') }}
+                                        </p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="flex justify-end space-x-2">
+                            {% if message.status != 'replied' %}
+                                <button onclick="replyMessage({{ message.id }}, '{{ message.name }}')" 
+                                        class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                    <i class="fas fa-reply mr-2"></i>回复
+                                </button>
+                            {% endif %}
+                            {% if message.status != 'archived' %}
+                                <button onclick="archiveMessage({{ message.id }})" 
+                                        class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                    <i class="fas fa-archive mr-2"></i>归档
+                                </button>
+                            {% endif %}
+                            <button onclick="deleteMessage({{ message.id }}, '{{ message.name }}')" 
+                                    class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                <i class="fas fa-trash mr-2"></i>删除
+                            </button>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <!-- 分页 -->
+            {% if messages.pages > 1 %}
+                <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 mt-6">
+                    <div class="flex-1 flex justify-between sm:hidden">
+                        {% if messages.has_prev %}
+                            <a href="{{ url_for('admin.messages', page=messages.prev_num, status=current_status) }}" 
+                               class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                上一页
+                            </a>
+                        {% endif %}
+                        {% if messages.has_next %}
+                            <a href="{{ url_for('admin.messages', page=messages.next_num, status=current_status) }}" 
+                               class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                下一页
+                            </a>
+                        {% endif %}
+                    </div>
+                    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                        <div>
+                            <p class="text-sm text-gray-700">
+                                显示第 <span class="font-medium">{{ messages.per_page * (messages.page - 1) + 1 }}</span> 
+                                到 <span class="font-medium">{{ messages.per_page * (messages.page - 1) + messages.items|length }}</span> 
+                                项，共 <span class="font-medium">{{ messages.total }}</span> 项结果
+                            </p>
+                        </div>
+                        <div>
+                            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                                {% if messages.has_prev %}
+                                    <a href="{{ url_for('admin.messages', page=messages.prev_num, status=current_status) }}" 
+                                       class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </a>
+                                {% endif %}
+                                
+                                {% for page_num in messages.iter_pages() %}
+                                    {% if page_num %}
+                                        {% if page_num != messages.page %}
+                                            <a href="{{ url_for('admin.messages', page=page_num, status=current_status) }}" 
+                                               class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                                {{ page_num }}
+                                            </a>
+                                        {% else %}
+                                            <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600">
+                                                {{ page_num }}
+                                            </span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                                            ...
+                                        </span>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if messages.has_next %}
+                                    <a href="{{ url_for('admin.messages', page=messages.next_num, status=current_status) }}" 
+                                       class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                {% endif %}
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-12">
+                <i class="fas fa-envelope text-4xl text-gray-300 mb-4"></i>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">暂无留言</h3>
+                <p class="text-gray-500">等待客户留言咨询</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 回复模态框 -->
+<div id="replyModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+    <div class="relative top-20 mx-auto p-5 border w-2/3 max-w-2xl shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">回复留言</h3>
+            <form id="replyForm">
+                <input type="hidden" id="messageId" name="message_id">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
+                <div class="mb-4">
+                    <label for="replyContent" class="block text-sm font-medium text-gray-700 mb-2">回复内容</label>
+                    <textarea id="replyContent" name="reply_content" rows="6" required
+                              class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="请输入回复内容..."></textarea>
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeReplyModal()" 
+                            class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                        取消
+                    </button>
+                    <button type="submit" 
+                            class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+                        发送回复
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function replyMessage(messageId, customerName) {
+    document.getElementById('messageId').value = messageId;
+    document.getElementById('replyModal').classList.remove('hidden');
+    
+    // 可以预填充一些内容
+    const defaultReply = `您好 ${customerName}，\n\n感谢您的咨询。\n\n如有其他问题，请随时联系我们。\n\n此致\nSara`;
+    document.getElementById('replyContent').value = defaultReply;
+}
+
+function closeReplyModal() {
+    document.getElementById('replyModal').classList.add('hidden');
+    document.getElementById('replyForm').reset();
+}
+
+function archiveMessage(messageId) {
+    if (confirm('确定要归档这条留言吗？')) {
+        fetch(`/admin/message/${messageId}/archive`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('归档失败：' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('归档失败，请稍后重试');
+        });
+    }
+}
+
+function deleteMessage(messageId, customerName) {
+    if (confirm(`确定要删除来自 "${customerName}" 的留言吗？此操作不可恢复。`)) {
+        fetch(`/admin/message/${messageId}/delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('删除失败：' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('删除失败，请稍后重试');
+        });
+    }
+}
+
+document.getElementById('replyForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const messageId = formData.get('message_id');
+    
+    fetch(`/admin/message/${messageId}/reply`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('回复失败：' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('回复失败，请稍后重试');
+    });
+});
+
+// 点击模态框外部关闭
+document.getElementById('replyModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeReplyModal();
+    }
+});
+</script>
+{% endblock %}

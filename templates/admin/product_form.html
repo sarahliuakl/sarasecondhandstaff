@@ -1,0 +1,326 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{% if product %}编辑产品{% else %}添加产品{% endif %}{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <div class="flex items-center">
+        <a href="{{ url_for('admin.products') }}" class="text-gray-500 hover:text-gray-700 mr-4">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">
+                {% if product %}编辑产品{% else %}添加产品{% endif %}
+            </h1>
+            <p class="text-gray-600">
+                {% if product %}修改产品信息{% else %}添加新的二手商品到库存{% endif %}
+            </p>
+        </div>
+    </div>
+</div>
+
+<form method="POST" class="space-y-8">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    
+    <!-- 基本信息 -->
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">基本信息</h3>
+            
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div class="sm:col-span-2">
+                    <label for="name" class="block text-sm font-medium text-gray-700">
+                        产品名称 <span class="text-red-500">*</span>
+                    </label>
+                    <div class="mt-1">
+                        <input type="text" name="name" id="name" required
+                               value="{{ product.name if product else '' }}"
+                               class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                               placeholder="如：9成新笔记本电脑">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="price" class="block text-sm font-medium text-gray-700">
+                        价格 (NZD) <span class="text-red-500">*</span>
+                    </label>
+                    <div class="mt-1 relative rounded-md shadow-sm">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <span class="text-gray-500 sm:text-sm">$</span>
+                        </div>
+                        <input type="number" name="price" id="price" required min="0" step="0.01"
+                               value="{{ product.price if product else '' }}"
+                               class="focus:ring-blue-500 focus:border-blue-500 block w-full pl-7 pr-12 sm:text-sm border-gray-300 rounded-md"
+                               placeholder="0.00">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="condition" class="block text-sm font-medium text-gray-700">
+                        成色 <span class="text-red-500">*</span>
+                    </label>
+                    <div class="mt-1">
+                        <input type="text" name="condition" id="condition" required
+                               value="{{ product.condition if product else '' }}"
+                               class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                               placeholder="如：9成新、8.5成新">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="category" class="block text-sm font-medium text-gray-700">
+                        分类 <span class="text-red-500">*</span>
+                    </label>
+                    <div class="mt-1">
+                        <select name="category" id="category" required
+                                class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                            <option value="">请选择分类</option>
+                            {% for value, display in categories %}
+                                <option value="{{ value }}" {% if product and product.category == value %}selected{% endif %}>
+                                    {{ display }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="stock_status" class="block text-sm font-medium text-gray-700">
+                        库存状态 <span class="text-red-500">*</span>
+                    </label>
+                    <div class="mt-1">
+                        <select name="stock_status" id="stock_status" required
+                                class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                            {% for value, display in statuses %}
+                                <option value="{{ value }}" {% if product and product.stock_status == value %}selected{% elif not product and value == 'available' %}selected{% endif %}>
+                                    {{ display }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="sm:col-span-2">
+                    <label for="description" class="block text-sm font-medium text-gray-700">
+                        产品描述
+                    </label>
+                    <div class="mt-1">
+                        <textarea name="description" id="description" rows="4"
+                                  class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                  placeholder="详细描述产品的特点、使用情况等">{{ product.description if product else '' }}</textarea>
+                    </div>
+                    <p class="mt-1 text-sm text-gray-500">详细的描述有助于买家了解商品</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 交易设置 -->
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">交易设置</h3>
+            
+            <div class="space-y-4">
+                <div class="flex items-start">
+                    <div class="flex items-center h-5">
+                        <input id="face_to_face_only" name="face_to_face_only" type="checkbox" value="1"
+                               {% if product and product.face_to_face_only %}checked{% endif %}
+                               class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded">
+                    </div>
+                    <div class="ml-3 text-sm">
+                        <label for="face_to_face_only" class="font-medium text-gray-700">
+                            仅支持见面交易
+                        </label>
+                        <p class="text-gray-500">
+                            勾选此项表示该商品只支持见面交易，不提供邮寄服务。建议贵重物品（如电脑、手机等）选择此选项。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 图片设置 -->
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">产品图片</h3>
+            
+            <div class="space-y-4">
+                <div id="image-inputs">
+                    {% if product %}
+                        {% for image in product.get_images() %}
+                            <div class="image-input-group flex items-center space-x-2">
+                                <input type="url" name="images" placeholder="图片URL地址" 
+                                       value="{{ image }}"
+                                       class="flex-1 shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                <button type="button" onclick="removeImageInput(this)" 
+                                        class="text-red-600 hover:text-red-800">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    {% if not product or not product.get_images() %}
+                        <div class="image-input-group flex items-center space-x-2">
+                            <input type="url" name="images" placeholder="图片URL地址" 
+                                   class="flex-1 shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                            <button type="button" onclick="removeImageInput(this)" 
+                                    class="text-red-600 hover:text-red-800">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <button type="button" onclick="addImageInput()" 
+                        class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <i class="fas fa-plus mr-2"></i>添加图片
+                </button>
+                
+                <p class="text-sm text-gray-500">
+                    请输入图片的URL地址。建议使用高质量的产品图片，多角度展示商品。
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 商品规格 -->
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">商品规格</h3>
+            
+            <div class="space-y-4">
+                <div id="spec-inputs">
+                    {% if product %}
+                        {% for key, value in product.get_specifications().items() %}
+                            <div class="spec-input-group grid grid-cols-2 gap-2">
+                                <input type="text" name="spec_keys" placeholder="规格名称（如：品牌）" 
+                                       value="{{ key }}"
+                                       class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                <div class="flex items-center space-x-2">
+                                    <input type="text" name="spec_values" placeholder="规格值（如：Dell）" 
+                                           value="{{ value }}"
+                                           class="flex-1 shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                    <button type="button" onclick="removeSpecInput(this)" 
+                                            class="text-red-600 hover:text-red-800">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    {% if not product or not product.get_specifications() %}
+                        <div class="spec-input-group grid grid-cols-2 gap-2">
+                            <input type="text" name="spec_keys" placeholder="规格名称（如：品牌）" 
+                                   class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                            <div class="flex items-center space-x-2">
+                                <input type="text" name="spec_values" placeholder="规格值（如：Dell）" 
+                                       class="flex-1 shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                <button type="button" onclick="removeSpecInput(this)" 
+                                        class="text-red-600 hover:text-red-800">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <button type="button" onclick="addSpecInput()" 
+                        class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <i class="fas fa-plus mr-2"></i>添加规格
+                </button>
+                
+                <p class="text-sm text-gray-500">
+                    添加商品的详细规格信息，如品牌、型号、尺寸、颜色等。
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 操作按钮 -->
+    <div class="flex justify-end space-x-3">
+        <a href="{{ url_for('admin.products') }}" 
+           class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            <i class="fas fa-times mr-2"></i>取消
+        </a>
+        
+        <button type="submit" 
+                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            <i class="fas fa-save mr-2"></i>
+            {% if product %}更新产品{% else %}添加产品{% endif %}
+        </button>
+    </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function addImageInput() {
+    const container = document.getElementById('image-inputs');
+    const div = document.createElement('div');
+    div.className = 'image-input-group flex items-center space-x-2';
+    div.innerHTML = `
+        <input type="url" name="images" placeholder="图片URL地址" 
+               class="flex-1 shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+        <button type="button" onclick="removeImageInput(this)" 
+                class="text-red-600 hover:text-red-800">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    container.appendChild(div);
+}
+
+function removeImageInput(button) {
+    const container = document.getElementById('image-inputs');
+    if (container.children.length > 1) {
+        button.closest('.image-input-group').remove();
+    }
+}
+
+function addSpecInput() {
+    const container = document.getElementById('spec-inputs');
+    const div = document.createElement('div');
+    div.className = 'spec-input-group grid grid-cols-2 gap-2';
+    div.innerHTML = `
+        <input type="text" name="spec_keys" placeholder="规格名称（如：品牌）" 
+               class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+        <div class="flex items-center space-x-2">
+            <input type="text" name="spec_values" placeholder="规格值（如：Dell）" 
+                   class="flex-1 shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+            <button type="button" onclick="removeSpecInput(this)" 
+                    class="text-red-600 hover:text-red-800">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `;
+    container.appendChild(div);
+}
+
+function removeSpecInput(button) {
+    const container = document.getElementById('spec-inputs');
+    if (container.children.length > 1) {
+        button.closest('.spec-input-group').remove();
+    }
+}
+
+// 表单验证
+document.querySelector('form').addEventListener('submit', function(e) {
+    const name = document.getElementById('name').value.trim();
+    const price = document.getElementById('price').value;
+    const category = document.getElementById('category').value;
+    const condition = document.getElementById('condition').value.trim();
+
+    if (!name || !price || !category || !condition) {
+        e.preventDefault();
+        alert('请填写所有必需字段');
+        return;
+    }
+
+    if (parseFloat(price) <= 0) {
+        e.preventDefault();
+        alert('价格必须大于0');
+        return;
+    }
+});
+</script>
+{% endblock %}
