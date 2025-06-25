@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "sara-shop": {
+      "command": "python",
+      "args": ["/mnt/d/projects/sarasecondhandstaff/mcp/start.py"],
+      "env": {},
+      "description": "Sara Secondhand Shop MCP Server - 产品和分类管理工具"
+    }
+  }
+}

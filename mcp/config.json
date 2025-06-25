@@ -1,0 +1,12 @@
+{
+  "description": "Sara Secondhand Shop MCP Server Configuration",
+  "base_url": "http://localhost:5000/api/v1",
+  "api_key": "your_api_key_here",
+  "timeout": 30,
+  "rate_limits": {
+    "default": 100,
+    "products": 200,
+    "categories": 200,
+    "images": 50
+  }
+}
