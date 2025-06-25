@@ -1,5 +1,37 @@
 {% extends "base.html" %}
-{% block title %}Sara的二手售卖网站{% endblock %}
+{% block title %}Sara的二手售卖网站 - 新西兰奥克兰优质二手商品{% endblock %}
+
+{% block description %}Sara二手商品售卖网站，新西兰奥克兰地区优质二手商品专卖店。电子产品、服装、动漫周边等，品质保证，价格优惠，支持当面交易和邮寄服务。{% endblock %}
+
+{% block keywords %}Sara,二手售卖,新西兰,奥克兰,二手商品,电子产品,服装,动漫周边,当面交易,邮寄{% endblock %}
+
+{% block structured_data %}
+{{ super() }}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Store",
+  "name": "Sara的二手售卖",
+  "description": "新西兰奥克兰地区优质二手商品专卖店",
+  "url": "{{ request.url }}",
+  "telephone": "0225255862",
+  "email": "haixialiu2017@gmail.com",
+  "address": {
+    "@type": "PostalAddress",
+    "addressRegion": "Auckland",
+    "addressCountry": "NZ"
+  },
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": -36.8485,
+    "longitude": 174.7633
+  },
+  "paymentAccepted": ["Cash", "Credit Card", "Bank Transfer"],
+  "currenciesAccepted": "NZD"
+}
+</script>
+{% endblock %}
+
 {% block content %}
 <section class="mb-10">
   <div class="flex flex-col md:flex-row items-center gap-8">

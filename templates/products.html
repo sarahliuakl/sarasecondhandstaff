@@ -1,5 +1,41 @@
 {% extends "base.html" %}
-{% block title %}宝贝列表 - Sara的二手售卖{% endblock %}
+{% block title %}{% if current_category %}{{ dict(categories)[current_category] }}{% elif search_term %}搜索"{{ search_term }}"的结果{% else %}全部商品{% endif %} - Sara的二手售卖{% endblock %}
+
+{% block description %}{% if current_category %}{{ dict(categories)[current_category] }}分类下的{% elif search_term %}搜索"{{ search_term }}"的{% else %}全部{% endif %}二手商品，新西兰奥克兰地区优质二手商品，品质保证，价格优惠{% endblock %}
+
+{% block keywords %}{% if current_category %}{{ dict(categories)[current_category] }},{% endif %}{% if search_term %}{{ search_term }},{% endif %}二手商品,商品列表,新西兰,奥克兰,Sara{% endblock %}
+
+{% block structured_data %}
+{{ super() }}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "{% if current_category %}{{ dict(categories)[current_category] }}{% elif search_term %}搜索结果{% else %}全部商品{% endif %}",
+  "numberOfItems": {{ products|length }},
+  "itemListElement": [
+    {% for product in products[:10] %}
+    {
+      "@type": "ListItem",
+      "position": {{ loop.index }},
+      "item": {
+        "@type": "Product",
+        "name": "{{ product.name }}",
+        "description": "{{ product.description[:100]|replace('"', '\\"') }}",
+        "offers": {
+          "@type": "Offer",
+          "priceCurrency": "NZD",
+          "price": "{{ product.price }}",
+          "availability": "{% if product.is_available() %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}"
+        }
+      }
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+{% endblock %}
+
 {% block content %}
 
 <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">

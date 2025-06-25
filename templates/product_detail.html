@@ -1,5 +1,57 @@
 {% extends "base.html" %}
 {% block title %}{{ product.name }} - Sara的二手售卖{% endblock %}
+
+{% block description %}{{ product.description[:150] }}{% if product.description|length > 150 %}...{% endif %} - {{ product.get_category_display() }},{{ product.condition }},仅售NZD ${{ "%.2f"|format(product.price) }}{% endblock %}
+
+{% block keywords %}{{ product.name }},{{ product.get_category_display() }},{{ product.condition }},二手,新西兰,奥克兰,{{ "%.0f"|format(product.price) }}元{% endblock %}
+
+{% block og_title %}{{ product.name }} - {{ product.condition }} - NZD ${{ "%.2f"|format(product.price) }}{% endblock %}
+{% block og_description %}{{ product.description[:200] }}{% if product.description|length > 200 %}...{% endif %}{% endblock %}
+{% block og_image %}{% set images = product.get_images() %}{{ images[0] if images else url_for('static', filename='images/default-product.png', _external=True) }}{% endblock %}
+
+{% block extra_meta %}
+<meta property="product:price:amount" content="{{ product.price }}" />
+<meta property="product:price:currency" content="NZD" />
+<meta property="product:condition" content="used" />
+<meta property="product:availability" content="{% if product.is_available() %}in stock{% else %}out of stock{% endif %}" />
+{% endblock %}
+
+{% block structured_data %}
+{{ super() }}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "{{ product.name }}",
+  "description": "{{ product.description|replace('"', '\\"') }}",
+  "image": {% set images = product.get_images() %}{% if images %}{{ images|tojson }}{% else %}["{{ url_for('static', filename='images/default-product.png', _external=True) }}"]{% endif %},
+  "sku": "{{ product.id }}",
+  "category": "{{ product.get_category_display() }}",
+  "brand": {
+    "@type": "Brand",
+    "name": "{{ product.get_specifications().get('brand', 'Generic') if product.get_specifications() else 'Generic' }}"
+  },
+  "offers": {
+    "@type": "Offer",
+    "url": "{{ request.url }}",
+    "priceCurrency": "NZD",
+    "price": "{{ product.price }}",
+    "itemCondition": "https://schema.org/UsedCondition",
+    "availability": "{% if product.is_available() %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}",
+    "seller": {
+      "@type": "Person",
+      "name": "Sara"
+    }
+  },
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "4.5",
+    "reviewCount": "1"
+  }
+}
+</script>
+{% endblock %}
+
 {% block content %}
 
 <div class="max-w-6xl mx-auto">

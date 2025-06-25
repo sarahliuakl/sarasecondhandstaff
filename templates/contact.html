@@ -1,5 +1,33 @@
 {% extends "base.html" %}
 {% block title %}联系我 - Sara的二手售卖{% endblock %}
+
+{% block description %}联系Sara，咨询二手商品详情、购买方式或其他问题。电话：0225255862，邮箱：haixialiu2017@gmail.com，承诺2小时内回复{% endblock %}
+
+{% block keywords %}联系Sara,咨询购买,二手商品咨询,奥克兰,电话,邮箱,客服{% endblock %}
+
+{% block structured_data %}
+{{ super() }}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ContactPage",
+  "name": "联系Sara",
+  "description": "联系Sara咨询二手商品相关问题",
+  "mainEntity": {
+    "@type": "Person",
+    "name": "Sara",
+    "telephone": "0225255862",
+    "email": "haixialiu2017@gmail.com",
+    "address": {
+      "@type": "PostalAddress",
+      "addressRegion": "Auckland",
+      "addressCountry": "NZ"
+    }
+  }
+}
+</script>
+{% endblock %}
+
 {% block content %}
 <h2 class="text-3xl font-bold text-orange-700 mb-6">联系我</h2>
 <div class="bg-white rounded-lg shadow p-8 max-w-xl mx-auto">

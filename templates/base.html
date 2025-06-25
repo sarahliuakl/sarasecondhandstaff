@@ -4,7 +4,64 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{% block title %}Sara的二手售卖网站{% endblock %}</title>
+  
+  <!-- SEO Meta标签 -->
+  <meta name="description" content="{% block description %}Sara二手商品售卖网站 - 新西兰奥克兰地区优质二手商品，电子产品、服装、动漫周边等，品质保证，价格优惠{% endblock %}" />
+  <meta name="keywords" content="{% block keywords %}二手商品,新西兰,奥克兰,电子产品,服装,动漫周边,二手交易,Sara{% endblock %}" />
+  <meta name="author" content="Sara" />
+  <meta name="robots" content="index, follow" />
+  <meta name="language" content="zh-CN" />
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="{% block og_url %}{{ request.url }}{% endblock %}" />
+  <meta property="og:title" content="{% block og_title %}{% block title %}Sara的二手售卖网站{% endblock %}{% endblock %}" />
+  <meta property="og:description" content="{% block og_description %}Sara二手商品售卖网站 - 新西兰奥克兰地区优质二手商品，电子产品、服装、动漫周边等，品质保证，价格优惠{% endblock %}" />
+  <meta property="og:image" content="{% block og_image %}{{ url_for('static', filename='images/logo.png', _external=True) if url_for else '/static/images/logo.png' }}{% endblock %}" />
+  <meta property="og:locale" content="zh_CN" />
+  <meta property="og:site_name" content="Sara的二手售卖" />
+  
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="{% block twitter_url %}{{ request.url }}{% endblock %}" />
+  <meta name="twitter:title" content="{% block twitter_title %}{% block title %}Sara的二手售卖网站{% endblock %}{% endblock %}" />
+  <meta name="twitter:description" content="{% block twitter_description %}Sara二手商品售卖网站 - 新西兰奥克兰地区优质二手商品，电子产品、服装、动漫周边等，品质保证，价格优惠{% endblock %}" />
+  <meta name="twitter:image" content="{% block twitter_image %}{{ url_for('static', filename='images/logo.png', _external=True) if url_for else '/static/images/logo.png' }}{% endblock %}" />
+  
+  <!-- 额外的SEO标签 -->
+  <meta name="geo.region" content="NZ-AUK" />
+  <meta name="geo.placename" content="Auckland" />
+  <meta name="geo.position" content="-36.8485;174.7633" />
+  <meta name="ICBM" content="-36.8485, 174.7633" />
+  
+  <!-- 页面特定的额外meta标签 -->
+  {% block extra_meta %}{% endblock %}
+  
+  <!-- Canonical URL -->
+  <link rel="canonical" href="{% block canonical %}{{ request.url }}{% endblock %}" />
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') if url_for else '/static/favicon.ico' }}" />
+  
   <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- 结构化数据 -->
+  {% block structured_data %}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Sara的二手售卖",
+    "url": "{{ request.url_root if request else 'https://example.com' }}",
+    "description": "Sara二手商品售卖网站 - 新西兰奥克兰地区优质二手商品，电子产品、服装、动漫周边等，品质保证，价格优惠",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "{{ (request.url_root + 'products?search={search_term_string}') if request else 'https://example.com/products?search={search_term_string}' }}",
+      "query-input": "required name=search_term_string"
+    }
+  }
+  </script>
+  {% endblock %}
 </head>
 <body class="bg-orange-50 text-gray-800">
   <!-- Header -->

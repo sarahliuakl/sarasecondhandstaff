@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, Response
 from flask_wtf.csrf import CSRFProtect
 from flask_login import LoginManager
 from models import db, Product, Order, Message, Admin, get_products_by_category, get_product_by_id
@@ -303,6 +303,89 @@ def search_suggestions():
             })
     
     return jsonify(suggestions[:8])  # 限制最多8个建议
+
+
+@app.route("/sitemap.xml")
+def sitemap():
+    """生成XML格式的网站地图"""
+    try:
+        # 获取所有可用产品
+        products = get_products_by_category(available_only=True)
+        
+        # 构建sitemap XML
+        sitemap_xml = '''<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+'''
+        
+        # 添加主要页面
+        base_url = request.url_root.rstrip('/')
+        main_pages = [
+            ('', '1.0', 'daily'),  # 首页
+            ('/products', '0.9', 'daily'),  # 产品列表
+            ('/contact', '0.8', 'monthly'),  # 联系页面
+            ('/about', '0.7', 'monthly'),  # 关于页面
+            ('/help', '0.6', 'monthly'),  # 帮助页面
+        ]
+        
+        for page, priority, changefreq in main_pages:
+            sitemap_xml += f'''  <url>
+    <loc>{base_url}{page}</loc>
+    <changefreq>{changefreq}</changefreq>
+    <priority>{priority}</priority>
+  </url>
+'''
+        
+        # 添加分类页面
+        categories = Product.CATEGORIES
+        for category_code, category_name in categories:
+            sitemap_xml += f'''  <url>
+    <loc>{base_url}/products?category={category_code}</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+'''
+        
+        # 添加产品详情页
+        for product in products:
+            sitemap_xml += f'''  <url>
+    <loc>{base_url}/product/{product.id}</loc>
+    <lastmod>{product.updated_at.strftime('%Y-%m-%d')}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+'''
+        
+        sitemap_xml += '</urlset>'
+        
+        return Response(sitemap_xml, mimetype='application/xml')
+        
+    except Exception as e:
+        app.logger.error(f'生成sitemap失败: {str(e)}')
+        return Response('', status=500)
+
+
+@app.route("/robots.txt")
+def robots_txt():
+    """生成robots.txt文件"""
+    robots_content = f"""User-agent: *
+Allow: /
+Allow: /products
+Allow: /product/*
+Allow: /contact
+Allow: /about
+Allow: /help
+
+Disallow: /admin/*
+Disallow: /api/*
+Disallow: /order/*
+Disallow: /cart
+
+Sitemap: {request.url_root}sitemap.xml
+"""
+    return Response(robots_content, mimetype='text/plain')
 
 
 @app.route("/order/search", methods=['POST'])
