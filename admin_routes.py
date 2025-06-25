@@ -6,10 +6,11 @@ Sara二手售卖网站 - 管理后台路由
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.urls import url_parse
-from models import db, Admin, Product, Order, Message, SiteSettings
+from models import db, Admin, Product, Order, Message, SiteSettings, Category
 from models import get_admin_by_username, create_admin, get_site_setting, set_site_setting
 from models import get_low_stock_products, get_out_of_stock_products, get_inventory_stats
 from models import get_sales_stats, get_monthly_sales_trend, get_popular_products, get_customer_stats
+from models import get_all_categories, get_category_by_id, create_category
 from utils import sanitize_user_input, validate_form_data, validate_email_address
 from file_upload import upload_image, delete_image, get_image_url
 import logging
@@ -928,6 +929,259 @@ def analytics_api_trend():
         
     except Exception as e:
         logger.error(f'销售趋势API错误: {str(e)} - 管理员: {current_user.username}')
+        return jsonify({
+            'success': False,
+            'message': f'数据获取失败: {str(e)}'
+        })
+
+
+# =================
+# 分类管理路由
+# =================
+
+@admin_bp.route('/categories')
+@login_required
+def categories():
+    """分类管理页面"""
+    try:
+        # 获取所有分类（包括非活跃的）
+        categories = get_all_categories(active_only=False)
+        
+        logger.info(f'分类管理页面访问 - 管理员: {current_user.username}')
+        return render_template('admin/categories.html', categories=categories)
+        
+    except Exception as e:
+        logger.error(f'分类管理页面加载失败: {str(e)} - 管理员: {current_user.username}')
+        flash(f'页面加载失败: {str(e)}', 'error')
+        return redirect(url_for('admin.dashboard'))
+
+
+@admin_bp.route('/categories/create', methods=['GET', 'POST'])
+@login_required
+def create_category():
+    """创建分类页面"""
+    if request.method == 'POST':
+        try:
+            form_data = {
+                'name': request.form.get('name', '').strip(),
+                'display_name': request.form.get('display_name', '').strip(),
+                'description': request.form.get('description', '').strip(),
+                'slug': request.form.get('slug', '').strip(),
+                'icon': request.form.get('icon', '').strip(),
+                'sort_order': request.form.get('sort_order', '0')
+            }
+            
+            # 验证必填字段
+            if not form_data['name'] or not form_data['display_name']:
+                flash('分类名称和显示名称为必填项', 'error')
+                return render_template('admin/category_form.html', category=None, form_data=form_data)
+            
+            # 验证分类名称唯一性
+            existing_name = Category.query.filter(Category.name == form_data['name']).first()
+            if existing_name:
+                flash('分类名称已存在', 'error')
+                return render_template('admin/category_form.html', category=None, form_data=form_data)
+            
+            # 自动生成slug如果为空
+            if not form_data['slug']:
+                import re
+                form_data['slug'] = re.sub(r'[^a-zA-Z0-9\-_]', '', form_data['name'].lower().replace(' ', '-'))
+            
+            # 验证slug唯一性
+            existing_slug = Category.query.filter(Category.slug == form_data['slug']).first()
+            if existing_slug:
+                flash('URL标识(slug)已存在', 'error')
+                return render_template('admin/category_form.html', category=None, form_data=form_data)
+            
+            # 验证排序值
+            try:
+                sort_order = int(form_data['sort_order'])
+            except ValueError:
+                sort_order = 0
+            
+            # 创建分类
+            category = Category(
+                name=form_data['name'],
+                display_name=form_data['display_name'],
+                description=form_data['description'] if form_data['description'] else None,
+                slug=form_data['slug'],
+                icon=form_data['icon'] if form_data['icon'] else None,
+                sort_order=sort_order
+            )
+            
+            db.session.add(category)
+            db.session.commit()
+            
+            logger.info(f'分类创建成功: {category.name} - 管理员: {current_user.username}')
+            flash('分类创建成功', 'success')
+            return redirect(url_for('admin.categories'))
+            
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f'分类创建失败: {str(e)} - 管理员: {current_user.username}')
+            flash(f'创建失败: {str(e)}', 'error')
+    
+    return render_template('admin/category_form.html', category=None, form_data=None)
+
+
+@admin_bp.route('/categories/<int:category_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_category(category_id):
+    """编辑分类页面"""
+    category = get_category_by_id(category_id)
+    if not category:
+        flash('分类不存在', 'error')
+        return redirect(url_for('admin.categories'))
+    
+    if request.method == 'POST':
+        try:
+            form_data = {
+                'name': request.form.get('name', '').strip(),
+                'display_name': request.form.get('display_name', '').strip(),
+                'description': request.form.get('description', '').strip(),
+                'slug': request.form.get('slug', '').strip(),
+                'icon': request.form.get('icon', '').strip(),
+                'sort_order': request.form.get('sort_order', '0'),
+                'is_active': request.form.get('is_active') == 'on'
+            }
+            
+            # 验证必填字段
+            if not form_data['name'] or not form_data['display_name']:
+                flash('分类名称和显示名称为必填项', 'error')
+                return render_template('admin/category_form.html', category=category, form_data=form_data)
+            
+            # 验证分类名称唯一性（排除当前分类）
+            existing_name = Category.query.filter(
+                Category.name == form_data['name'],
+                Category.id != category_id
+            ).first()
+            if existing_name:
+                flash('分类名称已存在', 'error')
+                return render_template('admin/category_form.html', category=category, form_data=form_data)
+            
+            # 验证slug唯一性（排除当前分类）
+            existing_slug = Category.query.filter(
+                Category.slug == form_data['slug'],
+                Category.id != category_id
+            ).first()
+            if existing_slug:
+                flash('URL标识(slug)已存在', 'error')
+                return render_template('admin/category_form.html', category=category, form_data=form_data)
+            
+            # 验证排序值
+            try:
+                sort_order = int(form_data['sort_order'])
+            except ValueError:
+                sort_order = 0
+            
+            # 更新分类信息
+            category.name = form_data['name']
+            category.display_name = form_data['display_name']
+            category.description = form_data['description'] if form_data['description'] else None
+            category.slug = form_data['slug']
+            category.icon = form_data['icon'] if form_data['icon'] else None
+            category.sort_order = sort_order
+            category.is_active = form_data['is_active']
+            
+            db.session.commit()
+            
+            logger.info(f'分类更新成功: {category.name} - 管理员: {current_user.username}')
+            flash('分类更新成功', 'success')
+            return redirect(url_for('admin.categories'))
+            
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f'分类更新失败: {str(e)} - 管理员: {current_user.username}')
+            flash(f'更新失败: {str(e)}', 'error')
+    
+    return render_template('admin/category_form.html', category=category, form_data=None)
+
+
+@admin_bp.route('/categories/<int:category_id>/delete', methods=['POST'])
+@login_required
+def delete_category(category_id):
+    """删除分类"""
+    try:
+        category = get_category_by_id(category_id)
+        if not category:
+            return jsonify({'success': False, 'message': '分类不存在'})
+        
+        # 检查是否有产品使用此分类
+        product_count = category.products.count()
+        if product_count > 0:
+            return jsonify({
+                'success': False, 
+                'message': f'无法删除：还有 {product_count} 个产品使用此分类'
+            })
+        
+        # 删除分类
+        db.session.delete(category)
+        db.session.commit()
+        
+        logger.info(f'分类删除成功: {category.name} - 管理员: {current_user.username}')
+        return jsonify({'success': True, 'message': '分类删除成功'})
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f'分类删除失败: {str(e)} - 管理员: {current_user.username}')
+        return jsonify({'success': False, 'message': f'删除失败: {str(e)}'})
+
+
+@admin_bp.route('/categories/<int:category_id>/toggle-status', methods=['POST'])
+@login_required
+def toggle_category_status(category_id):
+    """切换分类激活状态"""
+    try:
+        category = get_category_by_id(category_id)
+        if not category:
+            return jsonify({'success': False, 'message': '分类不存在'})
+        
+        # 切换状态
+        category.is_active = not category.is_active
+        db.session.commit()
+        
+        status_text = '激活' if category.is_active else '禁用'
+        logger.info(f'分类状态切换: {category.name} -> {status_text} - 管理员: {current_user.username}')
+        
+        return jsonify({
+            'success': True, 
+            'message': f'分类已{status_text}',
+            'is_active': category.is_active
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f'分类状态切换失败: {str(e)} - 管理员: {current_user.username}')
+        return jsonify({'success': False, 'message': f'操作失败: {str(e)}'})
+
+
+@admin_bp.route('/categories/api/list')
+@login_required
+def categories_api_list():
+    """分类列表API（用于产品表单的分类选择）"""
+    try:
+        active_only = request.args.get('active_only', 'true').lower() == 'true'
+        categories = get_all_categories(active_only=active_only)
+        
+        category_list = []
+        for cat in categories:
+            category_list.append({
+                'id': cat.id,
+                'name': cat.name,
+                'display_name': cat.display_name,
+                'slug': cat.slug,
+                'icon': cat.icon,
+                'is_active': cat.is_active,
+                'product_count': cat.get_product_count()
+            })
+        
+        return jsonify({
+            'success': True,
+            'data': category_list
+        })
+        
+    except Exception as e:
+        logger.error(f'分类列表API错误: {str(e)} - 管理员: {current_user.username}')
         return jsonify({
             'success': False,
             'message': f'数据获取失败: {str(e)}'

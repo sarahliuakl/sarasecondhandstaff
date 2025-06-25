@@ -13,6 +13,48 @@ from datetime import datetime
 db = SQLAlchemy()
 
 
+class Category(db.Model):
+    """产品分类模型 - 存储产品分类信息"""
+    __tablename__ = 'categories'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False, unique=True)
+    display_name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text)
+    slug = db.Column(db.String(100), nullable=False, unique=True)  # URL友好的分类标识
+    icon = db.Column(db.String(50))  # 图标类名
+    sort_order = db.Column(db.Integer, default=0)  # 排序权重
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # 关联产品
+    products = db.relationship('Product', backref='category_obj', lazy='dynamic')
+    
+    def get_product_count(self):
+        """获取该分类下的产品数量"""
+        return self.products.filter(Product.stock_status == Product.STATUS_AVAILABLE).count()
+    
+    def to_dict(self):
+        """转换为字典格式"""
+        return {
+            'id': self.id,
+            'name': self.name,
+            'display_name': self.display_name,
+            'description': self.description,
+            'slug': self.slug,
+            'icon': self.icon,
+            'sort_order': self.sort_order,
+            'is_active': self.is_active,
+            'product_count': self.get_product_count(),
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat()
+        }
+    
+    def __repr__(self):
+        return f'<Category {self.name}: {self.display_name}>'
+
+
 class Admin(UserMixin, db.Model):
     """管理员模型 - 管理后台用户管理"""
     __tablename__ = 'admins'
@@ -90,7 +132,8 @@ class Product(db.Model):
     name = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
     price = db.Column(db.Numeric(10, 2), nullable=False)
-    category = db.Column(db.String(50), nullable=False)
+    category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=True)  # 新的分类关联
+    category = db.Column(db.String(50), nullable=False)  # 保留旧字段以兼容现有数据
     condition = db.Column(db.String(20), nullable=False)
     stock_status = db.Column(db.String(20), default='available')
     face_to_face_only = db.Column(db.Boolean, default=False, nullable=False)  # 是否仅支持见面交易
@@ -163,6 +206,10 @@ class Product(db.Model):
     
     def get_category_display(self):
         """获取分类显示名称"""
+        # 优先使用新的分类关联
+        if self.category_obj:
+            return self.category_obj.display_name
+        # 兼容旧的分类常量
         category_dict = dict(self.CATEGORIES)
         return category_dict.get(self.category, self.category)
     
@@ -884,3 +931,100 @@ def get_customer_stats():
         'avg_orders_per_customer': avg_orders_per_customer,
         'vip_customers': vip_customers
     }
+
+
+# 分类管理相关函数
+def get_all_categories(active_only=True):
+    """获取所有分类"""
+    query = Category.query
+    if active_only:
+        query = query.filter(Category.is_active == True)
+    return query.order_by(Category.sort_order, Category.created_at).all()
+
+
+def get_category_by_id(category_id):
+    """根据ID获取分类"""
+    return Category.query.get(category_id)
+
+
+def get_category_by_slug(slug):
+    """根据slug获取分类"""
+    return Category.query.filter(Category.slug == slug).first()
+
+
+def create_category(name, display_name, description=None, slug=None, icon=None, sort_order=0):
+    """创建新分类"""
+    if not slug:
+        # 自动生成slug
+        import re
+        slug = re.sub(r'[^a-zA-Z0-9\-_]', '', name.lower().replace(' ', '-'))
+    
+    category = Category(
+        name=name,
+        display_name=display_name,
+        description=description,
+        slug=slug,
+        icon=icon,
+        sort_order=sort_order
+    )
+    return category
+
+
+def init_default_categories():
+    """初始化默认分类数据"""
+    default_categories = [
+        {
+            'name': 'electronics',
+            'display_name': '电子产品',
+            'description': '包括电脑、手机、相机等电子设备',
+            'slug': 'electronics',
+            'icon': 'fas fa-laptop',
+            'sort_order': 1
+        },
+        {
+            'name': 'clothing',
+            'display_name': '衣物',
+            'description': '各种服装、鞋帽配饰',
+            'slug': 'clothing',
+            'icon': 'fas fa-tshirt',
+            'sort_order': 2
+        },
+        {
+            'name': 'anime',
+            'display_name': '动漫周边',
+            'description': '动漫相关商品、手办、cosplay用品',
+            'slug': 'anime',
+            'icon': 'fas fa-star',
+            'sort_order': 3
+        },
+        {
+            'name': 'appliances',
+            'display_name': '家电用品',
+            'description': '生活家电、厨房用品等',
+            'slug': 'appliances',
+            'icon': 'fas fa-blender',
+            'sort_order': 4
+        },
+        {
+            'name': 'other',
+            'display_name': '其他',
+            'description': '其他未分类商品',
+            'slug': 'other',
+            'icon': 'fas fa-cube',
+            'sort_order': 5
+        }
+    ]
+    
+    for cat_data in default_categories:
+        existing = Category.query.filter(Category.name == cat_data['name']).first()
+        if not existing:
+            category = Category(**cat_data)
+            db.session.add(category)
+    
+    try:
+        db.session.commit()
+        return True
+    except Exception as e:
+        db.session.rollback()
+        print(f"初始化默认分类失败: {str(e)}")
+        return False

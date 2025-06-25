@@ -1,0 +1,321 @@
+{% extends "admin/base.html" %}
+{% block title %}分类管理 - 管理后台{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h2 class="text-2xl font-bold text-gray-900">分类管理</h2>
+    <a href="{{ url_for('admin.create_category') }}" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center">
+        <i class="fas fa-plus mr-2"></i>添加分类
+    </a>
+</div>
+
+<!-- 统计卡片 -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+            <div class="p-3 bg-blue-100 rounded-full">
+                <i class="fas fa-list-alt text-blue-500 text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-sm text-gray-500">总分类数</p>
+                <p class="text-2xl font-semibold text-gray-900">{{ categories|length }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+            <div class="p-3 bg-green-100 rounded-full">
+                <i class="fas fa-check-circle text-green-500 text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-sm text-gray-500">激活分类</p>
+                <p class="text-2xl font-semibold text-gray-900">{{ categories|selectattr('is_active')|list|length }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+            <div class="p-3 bg-yellow-100 rounded-full">
+                <i class="fas fa-pause-circle text-yellow-500 text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-sm text-gray-500">禁用分类</p>
+                <p class="text-2xl font-semibold text-gray-900">{{ categories|rejectattr('is_active')|list|length }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+            <div class="p-3 bg-purple-100 rounded-full">
+                <i class="fas fa-box text-purple-500 text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-sm text-gray-500">平均产品数</p>
+                <p class="text-2xl font-semibold text-gray-900">
+                    {% if categories %}
+                        {{ "%.1f"|format((categories|sum(attribute='get_product_count')) / categories|length) }}
+                    {% else %}
+                        0
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 分类列表 -->
+<div class="bg-white shadow rounded-lg">
+    <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-medium text-gray-900">分类列表</h3>
+    </div>
+    
+    {% if categories %}
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">排序</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">分类信息</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">描述</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">产品数</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for category in categories|sort(attribute='sort_order') %}
+                <tr id="category-{{ category.id }}" class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                            {{ category.sort_order }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            {% if category.icon %}
+                            <i class="{{ category.icon }} text-gray-400 mr-3"></i>
+                            {% endif %}
+                            <div>
+                                <div class="text-sm font-medium text-gray-900">{{ category.display_name }}</div>
+                                <div class="text-sm text-gray-500">{{ category.name }}</div>
+                                <div class="text-xs text-gray-400">{{ category.slug }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        {% if category.description %}
+                            <div class="text-sm text-gray-900" title="{{ category.description }}">
+                                {{ category.description[:50] }}{% if category.description|length > 50 %}...{% endif %}
+                            </div>
+                        {% else %}
+                            <span class="text-sm text-gray-400">无描述</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            {{ category.get_product_count() }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" 
+                                   class="sr-only status-switch" 
+                                   data-category-id="{{ category.id }}"
+                                   {% if category.is_active %}checked{% endif %}>
+                            <div class="relative">
+                                <div class="w-10 h-6 bg-gray-200 rounded-full shadow-inner toggle-bg"></div>
+                                <div class="absolute w-4 h-4 bg-white rounded-full shadow inset-y-1 left-1 toggle-dot transition-transform duration-300 ease-in-out"></div>
+                            </div>
+                            <span class="ml-3 text-sm status-text">{{ '激活' if category.is_active else '禁用' }}</span>
+                        </label>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div class="flex space-x-2">
+                            <a href="{{ url_for('admin.edit_category', category_id=category.id) }}" 
+                               class="text-blue-600 hover:text-blue-900" title="编辑">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            {% if category.get_product_count() == 0 %}
+                            <button class="text-red-600 hover:text-red-900 delete-btn" 
+                                    data-category-id="{{ category.id }}"
+                                    data-category-name="{{ category.display_name }}" 
+                                    title="删除">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            {% else %}
+                            <span class="text-gray-400" title="有产品使用此分类，无法删除">
+                                <i class="fas fa-lock"></i>
+                            </span>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center py-12">
+        <i class="fas fa-list-alt text-gray-300 text-6xl mb-4"></i>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">暂无分类</h3>
+        <p class="text-gray-500 mb-6">点击右上角的"添加分类"按钮创建第一个分类</p>
+        <a href="{{ url_for('admin.create_category') }}" 
+           class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg inline-flex items-center">
+            <i class="fas fa-plus mr-2"></i>立即创建
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- 删除确认模态框 -->
+<div id="deleteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3 text-center">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mt-2">确认删除</h3>
+            <div class="mt-2 px-7 py-3">
+                <p class="text-sm text-gray-500">
+                    确定要删除分类 "<span id="deleteItemName" class="font-medium"></span>" 吗？
+                </p>
+                <p class="text-sm text-red-600 mt-2">此操作不可撤销！</p>
+            </div>
+            <div class="items-center px-4 py-3">
+                <button id="confirmDeleteBtn" 
+                        class="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-24 mr-2 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">
+                    删除
+                </button>
+                <button id="cancelDeleteBtn" 
+                        class="px-4 py-2 bg-gray-300 text-gray-800 text-base font-medium rounded-md w-24 hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                    取消
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* 自定义开关样式 */
+.status-switch:checked + div .toggle-bg {
+    @apply bg-blue-500;
+}
+.status-switch:checked + div .toggle-dot {
+    @apply transform translate-x-4;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 状态切换
+    document.querySelectorAll('.status-switch').forEach(function(checkbox) {
+        checkbox.addEventListener('change', function() {
+            const categoryId = this.dataset.categoryId;
+            const statusText = this.closest('label').querySelector('.status-text');
+            
+            fetch(`/admin/categories/${categoryId}/toggle-status`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    statusText.textContent = data.is_active ? '激活' : '禁用';
+                    showAlert('success', data.message);
+                } else {
+                    // 恢复开关状态
+                    this.checked = !this.checked;
+                    showAlert('error', data.message);
+                }
+            })
+            .catch(error => {
+                // 恢复开关状态
+                this.checked = !this.checked;
+                showAlert('error', '操作失败，请稍后重试');
+                console.error('Error:', error);
+            });
+        });
+    });
+    
+    // 删除确认
+    const deleteModal = document.getElementById('deleteModal');
+    let deleteCategoryId = null;
+    
+    document.querySelectorAll('.delete-btn').forEach(function(button) {
+        button.addEventListener('click', function() {
+            deleteCategoryId = this.dataset.categoryId;
+            document.getElementById('deleteItemName').textContent = this.dataset.categoryName;
+            deleteModal.classList.remove('hidden');
+        });
+    });
+    
+    document.getElementById('cancelDeleteBtn').addEventListener('click', function() {
+        deleteModal.classList.add('hidden');
+    });
+    
+    document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+        if (!deleteCategoryId) return;
+        
+        fetch(`/admin/categories/${deleteCategoryId}/delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById(`category-${deleteCategoryId}`).remove();
+                showAlert('success', data.message);
+                deleteModal.classList.add('hidden');
+                
+                // 如果没有分类了，刷新页面显示空状态
+                const tbody = document.querySelector('tbody');
+                if (!tbody || !tbody.children.length) {
+                    location.reload();
+                }
+            } else {
+                showAlert('error', data.message);
+            }
+        })
+        .catch(error => {
+            showAlert('error', '删除失败，请稍后重试');
+            console.error('Error:', error);
+        });
+    });
+    
+    // 点击模态框外部关闭
+    deleteModal.addEventListener('click', function(e) {
+        if (e.target === deleteModal) {
+            deleteModal.classList.add('hidden');
+        }
+    });
+});
+
+function showAlert(type, message) {
+    const alertColor = type === 'success' ? 'green' : type === 'error' ? 'red' : 'blue';
+    const alertHtml = `
+        <div class="fixed top-4 right-4 z-50 bg-${alertColor}-100 border border-${alertColor}-400 text-${alertColor}-700 px-4 py-3 rounded max-w-md">
+            ${message}
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', alertHtml);
+    
+    // 3秒后自动消失
+    setTimeout(function() {
+        const alert = document.querySelector('.fixed.top-4.right-4');
+        if (alert) {
+            alert.remove();
+        }
+    }, 3000);
+}
+</script>
+{% endblock %}
