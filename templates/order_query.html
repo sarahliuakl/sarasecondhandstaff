@@ -25,7 +25,7 @@
   <!-- 查询表单 -->
   <div class="bg-white rounded-lg shadow border border-gray-200 p-8">
     <form method="POST" action="{{ url_for('order_search') }}" class="space-y-6">
-      {{ csrf_token() }}
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
       <div>
         <label for="contact" class="block text-sm font-medium text-gray-700 mb-2">
           邮箱地址或电话号码 <span class="text-red-500">*</span>
