@@ -6,27 +6,19 @@ from utils import sanitize_user_input, validate_form_data, validate_email_addres
 from email_service import email_service
 from email_queue import email_queue
 from admin_routes import admin_bp
+from config import config
 import requests
 import datetime
 import os
 import logging
 from logging.handlers import RotatingFileHandler
-from dotenv import load_dotenv
-
-# 加载环境变量
-load_dotenv()
 
 app = Flask(__name__)
 
-# 应用配置
-basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(basedir, "sara_shop.db")}'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'fallback-key-change-in-production')
-
-# 文件上传配置
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB 最大请求大小
-app.config['UPLOAD_FOLDER'] = os.path.join(basedir, 'static', 'uploads')
+# 根据环境变量选择配置
+config_name = os.getenv('FLASK_ENV', 'development')
+config_obj = config[config_name]()
+app.config.from_object(config_obj)
 
 # 确保上传目录存在
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
