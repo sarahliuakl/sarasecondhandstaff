@@ -1,9 +1,11 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_wtf.csrf import CSRFProtect
-from models import db, Product, Order, Message, get_products_by_category, get_product_by_id
+from flask_login import LoginManager
+from models import db, Product, Order, Message, Admin, get_products_by_category, get_product_by_id
 from utils import sanitize_user_input, validate_form_data, validate_email_address
 from email_service import email_service
 from email_queue import email_queue
+from admin_routes import admin_bp
 import requests
 import datetime
 import os
@@ -27,6 +29,19 @@ csrf = CSRFProtect(app)
 
 # 豁免API端点的CSRF检查
 csrf.exempt('add_to_cart')
+
+# 初始化Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'admin.login'
+login_manager.login_message = '请先登录以访问管理后台'
+login_manager.login_message_category = 'info'
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    """Flask-Login用户加载回调"""
+    return Admin.query.get(int(user_id))
 
 # 配置日志
 def setup_logging(app):
@@ -76,6 +91,9 @@ db.init_app(app)
 
 # 设置邮件队列的应用实例
 email_queue.app = app
+
+# 注册管理后台蓝图
+app.register_blueprint(admin_bp)
 
 @app.route("/")
 def index():

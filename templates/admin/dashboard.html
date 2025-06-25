@@ -1,0 +1,206 @@
+{% extends "admin/base.html" %}
+
+{% block title %}仪表板{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">仪表板</h1>
+    <p class="text-gray-600">欢迎回来，{{ current_user.username }}！这里是您的管理概览。</p>
+</div>
+
+<!-- 统计卡片 -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-box text-2xl text-blue-600"></i>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">
+                            商品总数
+                        </dt>
+                        <dd class="text-lg font-medium text-gray-900">
+                            {{ stats.total_products }}
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+        <div class="bg-gray-50 px-5 py-3">
+            <div class="text-sm">
+                <span class="text-green-600 font-medium">{{ stats.available_products }}</span>
+                <span class="text-gray-500">件在售</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-shopping-cart text-2xl text-green-600"></i>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">
+                            订单总数
+                        </dt>
+                        <dd class="text-lg font-medium text-gray-900">
+                            {{ stats.total_orders }}
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+        <div class="bg-gray-50 px-5 py-3">
+            <div class="text-sm">
+                <span class="text-orange-600 font-medium">{{ stats.pending_orders }}</span>
+                <span class="text-gray-500">待处理</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-envelope text-2xl text-purple-600"></i>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">
+                            未读留言
+                        </dt>
+                        <dd class="text-lg font-medium text-gray-900">
+                            {{ stats.unread_messages }}
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+        <div class="bg-gray-50 px-5 py-3">
+            <div class="text-sm">
+                <a href="{{ url_for('admin.messages') }}" class="text-purple-600 hover:text-purple-500">
+                    查看全部 →
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-dollar-sign text-2xl text-yellow-600"></i>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">
+                            总收入
+                        </dt>
+                        <dd class="text-lg font-medium text-gray-900">
+                            NZD ${{ "%.2f"|format(stats.total_revenue) }}
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+        <div class="bg-gray-50 px-5 py-3">
+            <div class="text-sm">
+                <span class="text-gray-500">已完成订单收入</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 最近订单和留言 -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- 最近订单 -->
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                <i class="fas fa-shopping-cart mr-2"></i>最近订单
+            </h3>
+            
+            {% if recent_orders %}
+                <div class="space-y-3">
+                    {% for order in recent_orders %}
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div class="flex-1">
+                                <div class="flex items-center">
+                                    <span class="text-sm font-medium text-gray-900">{{ order.order_number }}</span>
+                                    <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                        {% if order.status == 'pending' %}bg-yellow-100 text-yellow-800
+                                        {% elif order.status == 'paid' %}bg-blue-100 text-blue-800
+                                        {% elif order.status == 'shipped' %}bg-purple-100 text-purple-800
+                                        {% elif order.status == 'completed' %}bg-green-100 text-green-800
+                                        {% elif order.status == 'cancelled' %}bg-red-100 text-red-800
+                                        {% endif %}">
+                                        {{ order.get_status_display() }}
+                                    </span>
+                                </div>
+                                <div class="text-sm text-gray-500">
+                                    {{ order.customer_name }} • NZD ${{ "%.2f"|format(order.total_amount) }}
+                                </div>
+                                <div class="text-xs text-gray-400">
+                                    {{ order.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="mt-4">
+                    <a href="{{ url_for('admin.orders') }}" 
+                       class="text-sm text-blue-600 hover:text-blue-500">
+                        查看全部订单 →
+                    </a>
+                </div>
+            {% else %}
+                <p class="text-gray-500 text-sm">暂无订单</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 未读留言 -->
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                <i class="fas fa-envelope mr-2"></i>未读留言
+            </h3>
+            
+            {% if unread_messages %}
+                <div class="space-y-3">
+                    {% for message in unread_messages %}
+                        <div class="p-3 bg-gray-50 rounded-lg">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-medium text-gray-900">{{ message.name }}</span>
+                                <span class="text-xs text-gray-400">
+                                    {{ message.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                </span>
+                            </div>
+                            <div class="text-sm text-gray-600 mt-1">
+                                {{ message.contact }}
+                            </div>
+                            <div class="text-sm text-gray-700 mt-2 line-clamp-2">
+                                {{ message.message[:100] }}{% if message.message|length > 100 %}...{% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="mt-4">
+                    <a href="{{ url_for('admin.messages') }}" 
+                       class="text-sm text-blue-600 hover:text-blue-500">
+                        查看全部留言 →
+                    </a>
+                </div>
+            {% else %}
+                <p class="text-gray-500 text-sm">暂无未读留言</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

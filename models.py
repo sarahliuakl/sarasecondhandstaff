@@ -4,11 +4,82 @@ Sara二手售卖网站 - 数据库模型
 """
 
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import UserMixin
 import json
 import uuid
 from datetime import datetime
 
 db = SQLAlchemy()
+
+
+class Admin(UserMixin, db.Model):
+    """管理员模型 - 管理后台用户管理"""
+    __tablename__ = 'admins'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password_hash = db.Column(db.String(128), nullable=False)
+    is_active = db.Column(db.Boolean, default=True)
+    is_super_admin = db.Column(db.Boolean, default=False)
+    last_login = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def set_password(self, password):
+        """设置密码哈希"""
+        self.password_hash = generate_password_hash(password)
+    
+    def check_password(self, password):
+        """验证密码"""
+        return check_password_hash(self.password_hash, password)
+    
+    def update_last_login(self):
+        """更新最后登录时间"""
+        self.last_login = datetime.utcnow()
+    
+    def to_dict(self):
+        """转换为字典格式"""
+        return {
+            'id': self.id,
+            'username': self.username,
+            'email': self.email,
+            'is_active': self.is_active,
+            'is_super_admin': self.is_super_admin,
+            'last_login': self.last_login.isoformat() if self.last_login else None,
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat()
+        }
+    
+    def __repr__(self):
+        return f'<Admin {self.username}>'
+
+
+class SiteSettings(db.Model):
+    """网站设置模型 - 存储网站配置信息"""
+    __tablename__ = 'site_settings'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    key = db.Column(db.String(100), unique=True, nullable=False)
+    value = db.Column(db.Text, nullable=False)
+    description = db.Column(db.String(200))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        """转换为字典格式"""
+        return {
+            'id': self.id,
+            'key': self.key,
+            'value': self.value,
+            'description': self.description,
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat()
+        }
+    
+    def __repr__(self):
+        return f'<SiteSettings {self.key}>'
 
 
 class Product(db.Model):
@@ -416,3 +487,43 @@ def get_orders_by_contact(contact_info):
         (Order.customer_email == contact_info) | 
         (Order.customer_contact == contact_info)
     ).order_by(Order.created_at.desc()).all()
+
+
+def get_admin_by_username(username):
+    """根据用户名获取管理员"""
+    return Admin.query.filter(Admin.username == username).first()
+
+
+def get_admin_by_email(email):
+    """根据邮箱获取管理员"""
+    return Admin.query.filter(Admin.email == email).first()
+
+
+def create_admin(username, email, password, is_super_admin=False):
+    """创建新管理员"""
+    admin = Admin(
+        username=username,
+        email=email,
+        is_super_admin=is_super_admin
+    )
+    admin.set_password(password)
+    return admin
+
+
+def get_site_setting(key, default_value=None):
+    """获取网站设置"""
+    setting = SiteSettings.query.filter(SiteSettings.key == key).first()
+    return setting.value if setting else default_value
+
+
+def set_site_setting(key, value, description=None):
+    """设置网站配置"""
+    setting = SiteSettings.query.filter(SiteSettings.key == key).first()
+    if setting:
+        setting.value = value
+        if description:
+            setting.description = description
+    else:
+        setting = SiteSettings(key=key, value=value, description=description)
+        db.session.add(setting)
+    return setting
