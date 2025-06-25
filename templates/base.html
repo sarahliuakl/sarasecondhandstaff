@@ -15,7 +15,7 @@
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="{% block og_url %}{{ request.url }}{% endblock %}" />
-  <meta property="og:title" content="{% block og_title %}{% block title %}Sara的二手售卖网站{% endblock %}{% endblock %}" />
+  <meta property="og:title" content="{% block og_title %}Sara的二手售卖网站{% endblock %}" />
   <meta property="og:description" content="{% block og_description %}Sara二手商品售卖网站 - 新西兰奥克兰地区优质二手商品，电子产品、服装、动漫周边等，品质保证，价格优惠{% endblock %}" />
   <meta property="og:image" content="{% block og_image %}{{ url_for('static', filename='images/logo.png', _external=True) if url_for else '/static/images/logo.png' }}{% endblock %}" />
   <meta property="og:locale" content="zh_CN" />
@@ -24,7 +24,7 @@
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:url" content="{% block twitter_url %}{{ request.url }}{% endblock %}" />
-  <meta name="twitter:title" content="{% block twitter_title %}{% block title %}Sara的二手售卖网站{% endblock %}{% endblock %}" />
+  <meta name="twitter:title" content="{% block twitter_title %}Sara的二手售卖网站{% endblock %}" />
   <meta name="twitter:description" content="{% block twitter_description %}Sara二手商品售卖网站 - 新西兰奥克兰地区优质二手商品，电子产品、服装、动漫周边等，品质保证，价格优惠{% endblock %}" />
   <meta name="twitter:image" content="{% block twitter_image %}{{ url_for('static', filename='images/logo.png', _external=True) if url_for else '/static/images/logo.png' }}{% endblock %}" />
   
