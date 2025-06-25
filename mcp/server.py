@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Sara Secondhand Shop MCP Server
+E-commerce API MCP Server
 
 A Model Context Protocol server that provides tools to interact with 
-the Sara Secondhand Shop API for product and category management.
+e-commerce APIs for product and category management.
 """
 
 import asyncio
@@ -29,11 +29,11 @@ import os
 from pathlib import Path
 
 
-class SaraShopMCPServer:
-    """MCP Server for Sara Secondhand Shop API integration"""
+class EcommerceMCPServer:
+    """MCP Server for E-commerce API integration"""
     
     def __init__(self):
-        self.server = Server("sara-shop")
+        self.server = Server("ecommerce-api")
         self.base_url = "http://localhost:5000/api/v1"  # Default local development URL
         self.api_key = None
         self.client = None
@@ -743,7 +743,7 @@ class SaraShopMCPServer:
 
 async def main():
     """Main entry point"""
-    server_instance = SaraShopMCPServer()
+    server_instance = EcommerceMCPServer()
     
     async with stdio_server() as (read_stream, write_stream):
         try:

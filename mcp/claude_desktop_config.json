@@ -1,10 +1,13 @@
 {
   "mcpServers": {
-    "sara-shop": {
+    "ecommerce-api": {
       "command": "python",
       "args": ["/mnt/d/projects/sarasecondhandstaff/mcp/start.py"],
-      "env": {},
-      "description": "Sara Secondhand Shop MCP Server - 产品和分类管理工具"
+      "env": {
+        "ECOMMERCE_API_BASE_URL": "http://localhost:5000/api/v1",
+        "ECOMMERCE_API_KEY": "your_api_key_here"
+      },
+      "description": "E-commerce API MCP Server - 产品和分类管理工具"
     }
   }
 }

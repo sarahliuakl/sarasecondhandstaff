@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-图片处理助手 - Sara Secondhand Shop MCP Server
+图片处理助手 - E-commerce API MCP Server
 
 帮助用户将图片文件转换为Base64编码，用于MCP图片上传
 """
@@ -80,7 +80,7 @@ def process_image(image_path):
 def main():
     """主函数"""
     if len(sys.argv) < 2:
-        print("🖼️  Sara Secondhand Shop - 图片处理助手")
+        print("🖼️  E-commerce API - 图片处理助手")
         print()
         print("用法:")
         print("  python image_helper.py <图片文件路径> [输出文件]")

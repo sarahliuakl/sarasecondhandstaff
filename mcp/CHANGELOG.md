@@ -1,4 +1,4 @@
-# Sara Secondhand Shop MCP Server - 更新日志
+# E-commerce API MCP Server - 更新日志
 
 ## [1.0.0] - 2025-06-25
 
@@ -174,6 +174,6 @@ pip install -r requirements.txt
 
 ---
 
-**维护者**: Sara Shop 开发团队  
+**维护者**: E-commerce API 开发团队  
 **最后更新**: 2025-06-25  
 **版本**: 1.0.0

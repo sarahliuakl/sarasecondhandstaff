@@ -1,6 +1,6 @@
-# Sara Secondhand Shop MCP Server
+# E-commerce API MCP Server
 
-一个Model Context Protocol (MCP) 服务器，用于与Sara二手商店API进行交互，提供产品和分类管理功能。
+一个Model Context Protocol (MCP) 服务器，用于与电商API进行交互，提供产品和分类管理功能。
 
 ## 功能特性
 
@@ -58,21 +58,30 @@ python server.py
 ```json
 {
   "mcpServers": {
-    "sara-shop": {
+    "ecommerce-api": {
       "command": "python",
-      "args": ["/path/to/sara-shop/mcp/server.py"],
-      "env": {}
+      "args": ["/path/to/ecommerce/mcp/start.py"],
+      "env": {
+        "ECOMMERCE_API_BASE_URL": "http://localhost:5000/api/v1",
+        "ECOMMERCE_API_KEY": "your_actual_api_key_here"
+      },
+      "description": "E-commerce API MCP Server - 产品和分类管理工具"
     }
   }
 }
 ```
+
+**配置说明：**
+- `ECOMMERCE_API_BASE_URL`: 你的API基础URL
+- `ECOMMERCE_API_KEY`: 你的实际API密钥
+- 这样配置后无需修改config.json文件
 
 ## 工具说明
 
 ### 配置工具
 
 #### `configure_api`
-配置API连接信息
+配置API连接信息（当环境变量未设置时使用）
 
 **参数：**
 - `base_url`: API基础URL
@@ -82,6 +91,8 @@ python server.py
 ```
 使用configure_api工具配置连接到http://localhost:5000/api/v1，API密钥为你的实际密钥
 ```
+
+**注意：** 如果在Claude Desktop中设置了环境变量，将优先使用环境变量配置，无需调用此工具。
 
 ### 产品管理工具
 

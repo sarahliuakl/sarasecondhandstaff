@@ -13,16 +13,16 @@ from pathlib import Path
 # 确保可以导入server模块
 sys.path.insert(0, str(Path(__file__).parent))
 
-from server import SaraShopMCPServer
+from server import EcommerceMCPServer
 
 
 async def test_mcp_server():
     """测试MCP Server功能"""
-    print("🧪 开始测试 Sara Secondhand Shop MCP Server")
+    print("🧪 开始测试 E-commerce API MCP Server")
     print("=" * 50)
     
     # 创建服务器实例
-    server = SaraShopMCPServer()
+    server = EcommerceMCPServer()
     
     try:
         # 测试1: 获取工具列表
@@ -123,7 +123,7 @@ def test_config_loading():
 
 async def main():
     """主测试函数"""
-    print("🚀 Sara Secondhand Shop MCP Server 测试套件")
+    print("🚀 E-commerce API MCP Server 测试套件")
     print("=" * 60)
     
     # 运行所有测试

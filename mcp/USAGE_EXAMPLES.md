@@ -1,13 +1,32 @@
-# Sara Secondhand Shop MCP Server 使用示例
+# E-commerce API MCP Server 使用示例
 
-本文档提供了详细的使用示例，展示如何通过MCP Server与Sara二手商店API进行交互。
+本文档提供了详细的使用示例，展示如何通过MCP Server与电商API进行交互。
 
 ## 快速开始
 
 ### 1. 配置API连接
 
-在使用任何其他工具之前，需要先配置API连接：
+**方法一：Claude Desktop环境变量配置（推荐）**
 
+在Claude Desktop配置文件中设置：
+```json
+{
+  "mcpServers": {
+    "ecommerce-api": {
+      "command": "python",
+      "args": ["/path/to/ecommerce/mcp/start.py"],
+      "env": {
+        "ECOMMERCE_API_BASE_URL": "http://localhost:5000/api/v1",
+        "ECOMMERCE_API_KEY": "your_actual_api_key_here"
+      }
+    }
+  }
+}
+```
+
+**方法二：运行时配置工具**
+
+如果环境变量未设置，可以使用configure_api工具：
 ```
 使用configure_api工具：
 - base_url: http://localhost:5000/api/v1
