@@ -129,6 +129,7 @@ class Order(db.Model):
     __tablename__ = 'orders'
     
     id = db.Column(db.Integer, primary_key=True)
+    order_number = db.Column(db.String(20), unique=True, nullable=False)
     customer_name = db.Column(db.String(100), nullable=False)
     customer_email = db.Column(db.String(100), nullable=False)
     customer_phone = db.Column(db.String(50))
@@ -181,6 +182,15 @@ class Order(db.Model):
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        if not self.order_number:
+            self.order_number = self._generate_order_number()
+    
+    def _generate_order_number(self):
+        """生成唯一订单号"""
+        import time
+        timestamp = str(int(time.time()))[-8:]  # 取时间戳后8位
+        random_part = str(uuid.uuid4())[:4].upper()  # 取UUID前4位并转大写
+        return f"SR{timestamp}{random_part}"
     
     def get_items(self):
         """获取订单商品列表"""

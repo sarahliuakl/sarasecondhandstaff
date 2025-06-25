@@ -1,7 +1,9 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
-from flask_wtf.csrf import CSRFProtect, exempt
+from flask_wtf.csrf import CSRFProtect
 from models import db, Product, Order, Message, get_products_by_category, get_product_by_id
 from utils import sanitize_user_input, validate_form_data, validate_email_address
+from email_service import email_service
+from email_queue import email_queue
 import requests
 import datetime
 import os
@@ -22,6 +24,9 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'fallback-key-change-in-produ
 
 # 初始化CSRF保护
 csrf = CSRFProtect(app)
+
+# 豁免API端点的CSRF检查
+csrf.exempt('add_to_cart')
 
 # 配置日志
 def setup_logging(app):
@@ -68,6 +73,9 @@ setup_logging(app)
 
 # 初始化数据库
 db.init_app(app)
+
+# 设置邮件队列的应用实例
+email_queue.app = app
 
 @app.route("/")
 def index():
@@ -210,9 +218,11 @@ def cart():
 
 
 @app.route("/api/cart", methods=['POST'])
-@csrf.exempt
 def add_to_cart():
     """添加商品到购物车（API接口）"""
+    # 对于JSON API，暂时跳过CSRF检查
+    # 在生产环境中应该使用其他方式验证，如JWT token
+    
     data = request.get_json()
     product_id = data.get('product_id')
     quantity = data.get('quantity', 1)
@@ -346,6 +356,19 @@ def order_confirm():
             
             app.logger.info(f'新订单创建: {order.order_number} - {normalized_email} - 总额: NZD ${total_amount}')
             
+            # 将邮件添加到队列中异步发送
+            try:
+                # 添加客户确认邮件到队列
+                email_queue.add_order_confirmation_email(order)
+                
+                # 添加管理员通知邮件到队列
+                email_queue.add_admin_notification_email(order)
+                
+                app.logger.info(f'订单相关邮件已添加到发送队列: {order.order_number}')
+                
+            except Exception as e:
+                app.logger.error(f'邮件队列添加失败: {order.order_number} - {str(e)}')
+            
             # 订单创建成功，清空购物车并跳转到成功页面
             flash('订单提交成功！我会在2小时内联系您确认详情。', 'success')
             return redirect(url_for('order_success', order_id=order.id))
@@ -394,4 +417,13 @@ if __name__ == "__main__":
     with app.app_context():
         db.create_all()
     
-    app.run(debug=True)
+    # 启动邮件队列工作线程
+    email_queue.start_worker()
+    
+    try:
+        app.run(debug=True)
+    except KeyboardInterrupt:
+        print("\n正在关闭应用...")
+    finally:
+        # 停止邮件队列工作线程
+        email_queue.stop_worker()
