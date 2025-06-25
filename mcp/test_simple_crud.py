@@ -10,6 +10,7 @@ import json
 import sys
 from pathlib import Path
 from unittest.mock import patch, AsyncMock
+import pytest
 
 # 确保可以导入server模块
 sys.path.insert(0, str(Path(__file__).parent))
@@ -47,6 +48,7 @@ def setup_mock_client(mock_client, responses):
     mock_client.patch.return_value = create_mock_response(200, responses.get('patch', {"success": True, "data": {}}))
 
 
+@pytest.mark.asyncio
 async def test_category_crud():
     """测试分类CRUD操作"""
     print("📁 测试分类CRUD操作")
@@ -151,6 +153,7 @@ async def test_category_crud():
     print("   🏁 分类CRUD测试完成！\n")
 
 
+@pytest.mark.asyncio
 async def test_product_crud():
     """测试产品CRUD操作"""
     print("📦 测试产品CRUD操作")
@@ -269,6 +272,7 @@ async def test_product_crud():
     print("   🏁 产品CRUD测试完成！\n")
 
 
+@pytest.mark.asyncio
 async def test_error_handling():
     """测试错误处理"""
     print("🚫 测试错误处理")
@@ -318,6 +322,7 @@ async def test_error_handling():
     print("   🏁 错误处理测试完成！\n")
 
 
+@pytest.mark.asyncio
 async def test_configuration():
     """测试配置功能"""
     print("⚙️ 测试配置功能")
@@ -350,6 +355,7 @@ async def test_configuration():
     print("   🏁 配置测试完成！\n")
 
 
+@pytest.mark.asyncio
 async def test_data_processing():
     """测试数据处理"""
     print("📊 测试数据处理")

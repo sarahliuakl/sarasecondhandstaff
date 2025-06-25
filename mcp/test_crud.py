@@ -11,6 +11,7 @@ import json
 import sys
 import base64
 from pathlib import Path
+import pytest
 
 # 确保可以导入server模块
 sys.path.insert(0, str(Path(__file__).parent))
@@ -18,6 +19,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from server import EcommerceMCPServer
 
 
+@pytest.mark.asyncio
 async def test_crud_operations():
     """测试CRUD操作"""
     print("🧪 开始测试 E-commerce API MCP Server CRUD操作")
@@ -196,6 +198,7 @@ async def test_crud_operations():
         await server.cleanup()
 
 
+@pytest.mark.asyncio
 async def test_error_handling():
     """测试错误处理"""
     print("\n7️⃣ 测试错误处理")

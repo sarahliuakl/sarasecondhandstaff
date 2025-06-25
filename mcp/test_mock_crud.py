@@ -11,6 +11,7 @@ import json
 import sys
 from pathlib import Path
 from unittest.mock import AsyncMock, patch
+import pytest
 
 # 确保可以导入server模块
 sys.path.insert(0, str(Path(__file__).parent))
@@ -32,6 +33,7 @@ def create_mock_response(status_code, json_data):
     return MockResponse(status_code, json_data)
 
 
+@pytest.mark.asyncio
 async def test_category_crud_operations():
     """测试分类CRUD操作（模拟）"""
     print("📁 测试分类CRUD操作")
@@ -138,6 +140,7 @@ async def test_category_crud_operations():
     await server.cleanup()
 
 
+@pytest.mark.asyncio
 async def test_product_crud_operations():
     """测试产品CRUD操作（模拟）"""
     print("\n📦 测试产品CRUD操作")
@@ -303,6 +306,7 @@ async def test_product_crud_operations():
     await server.cleanup()
 
 
+@pytest.mark.asyncio
 async def test_batch_operations():
     """测试批量操作（模拟）"""
     print("\n📦 测试批量操作")
@@ -361,6 +365,7 @@ async def test_batch_operations():
     await server.cleanup()
 
 
+@pytest.mark.asyncio
 async def test_error_handling():
     """测试错误处理（模拟）"""
     print("\n🚫 测试错误处理")
@@ -420,6 +425,7 @@ async def test_error_handling():
     await server.cleanup()
 
 
+@pytest.mark.asyncio
 async def test_tool_schemas():
     """测试工具定义"""
     print("\n🛠️ 测试工具定义")

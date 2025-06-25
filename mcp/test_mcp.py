@@ -9,6 +9,7 @@ import asyncio
 import json
 import sys
 from pathlib import Path
+import pytest
 
 # 确保可以导入server模块
 sys.path.insert(0, str(Path(__file__).parent))
@@ -16,6 +17,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from server import EcommerceMCPServer
 
 
+@pytest.mark.asyncio
 async def test_mcp_server():
     """测试MCP Server功能"""
     print("🧪 开始测试 E-commerce API MCP Server")
@@ -59,12 +61,10 @@ async def test_mcp_server():
         
     except Exception as e:
         print(f"❌ 测试失败: {str(e)}")
-        return False
+        assert False, f"测试失败: {str(e)}"
     
     finally:
         await server.cleanup()
-    
-    return True
 
 
 def test_image_processing():
@@ -92,9 +92,7 @@ def test_image_processing():
         
     except Exception as e:
         print(f"❌ 图片处理测试失败: {str(e)}")
-        return False
-    
-    return True
+        assert False, f"图片处理测试失败: {str(e)}"
 
 
 def test_config_loading():
@@ -116,9 +114,7 @@ def test_config_loading():
             
     except Exception as e:
         print(f"❌ 配置文件测试失败: {str(e)}")
-        return False
-    
-    return True
+        assert False, f"配置文件测试失败: {str(e)}"
 
 
 async def main():
@@ -144,12 +140,8 @@ async def main():
             else:
                 result = test_coro
                 
-            if result:
-                passed += 1
-                print(f"✅ {test_name} - 通过")
-            else:
-                failed += 1
-                print(f"❌ {test_name} - 失败")
+            passed += 1
+            print(f"✅ {test_name} - 通过")
         except Exception as e:
             failed += 1
             print(f"❌ {test_name} - 异常: {str(e)}")

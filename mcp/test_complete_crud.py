@@ -10,6 +10,7 @@ import json
 import sys
 from pathlib import Path
 from unittest.mock import patch, AsyncMock
+import pytest
 
 # 确保可以导入server模块
 sys.path.insert(0, str(Path(__file__).parent))
@@ -31,6 +32,24 @@ def create_mock_response(status_code, json_data):
     return MockResponse(status_code, json_data)
 
 
+def setup_mock_client(mock_client, responses):
+    """设置模拟客户端的所有方法"""
+    from unittest.mock import AsyncMock
+    mock_client.get = AsyncMock()
+    mock_client.post = AsyncMock()
+    mock_client.put = AsyncMock()
+    mock_client.delete = AsyncMock()
+    mock_client.patch = AsyncMock()
+    
+    # 设置默认返回值
+    mock_client.get.return_value = create_mock_response(200, responses.get('get', {"success": True, "data": {}}))
+    mock_client.post.return_value = create_mock_response(201, responses.get('post', {"success": True, "data": {}}))
+    mock_client.put.return_value = create_mock_response(200, responses.get('put', {"success": True, "data": {}}))
+    mock_client.delete.return_value = create_mock_response(200, responses.get('delete', {"success": True, "data": {}}))
+    mock_client.patch.return_value = create_mock_response(200, responses.get('patch', {"success": True, "data": {}}))
+
+
+@pytest.mark.asyncio
 async def test_complete_product_lifecycle():
     """测试完整的产品生命周期"""
     print("🔄 测试完整产品生命周期")
@@ -190,14 +209,14 @@ async def test_complete_product_lifecycle():
         
         # 4. 获取产品详情
         print("4️⃣ 查看产品详情...")
-        mock_client.get.return_value = create_mock_response(200, responses['get_product'])
+        mock_client.get = AsyncMock(return_value=create_mock_response(200, responses['get_product']))
         
         result = await server._get_product({"product_id": 1})
         print(f"   ✅ 产品详情获取成功: {result.content[0].text[:60]}...")
         
         # 5. 上传产品图片
         print("5️⃣ 上传产品图片...")
-        mock_client.post.return_value = create_mock_response(200, responses['upload_images'])
+        mock_client.post = AsyncMock(return_value=create_mock_response(200, responses['upload_images']))
         
         # 创建测试图片（1x1像素PNG）
         test_images = [
@@ -221,7 +240,7 @@ async def test_complete_product_lifecycle():
         
         # 6. 更新产品（降价）
         print("6️⃣ 更新产品价格...")
-        mock_client.put.return_value = create_mock_response(200, responses['update_product'])
+        mock_client.put = AsyncMock(return_value=create_mock_response(200, responses['update_product']))
         
         result = await server._update_product({
             "product_id": 1,
@@ -234,7 +253,7 @@ async def test_complete_product_lifecycle():
         print("7️⃣ 搜索产品...")
         search_response = responses['get_products'].copy()
         search_response["message"] = "搜索结果"
-        mock_client.get.return_value = create_mock_response(200, search_response)
+        mock_client.get = AsyncMock(return_value=create_mock_response(200, search_response))
         
         result = await server._get_products({
             "search": "iPhone",
@@ -244,7 +263,7 @@ async def test_complete_product_lifecycle():
         
         # 8. 删除产品
         print("8️⃣ 删除产品...")
-        mock_client.delete.return_value = create_mock_response(200, responses['delete_product'])
+        mock_client.delete = AsyncMock(return_value=create_mock_response(200, responses['delete_product']))
         
         result = await server._delete_product({"product_id": 1})
         print(f"   ✅ 产品删除成功: {result.content[0].text[:60]}...")
@@ -254,6 +273,7 @@ async def test_complete_product_lifecycle():
     print()
 
 
+@pytest.mark.asyncio
 async def test_complete_category_lifecycle():
     """测试完整的分类生命周期"""
     print("📁 测试完整分类生命周期")
@@ -349,7 +369,7 @@ async def test_complete_category_lifecycle():
     with patch.object(server, 'client') as mock_client:
         # 1. 创建单个分类
         print("1️⃣ 创建新分类...")
-        mock_client.post.return_value = create_mock_response(201, responses['create_category'])
+        mock_client.post = AsyncMock(return_value=create_mock_response(201, responses['create_category']))
         
         result = await server._create_category({
             "name": "smartphones",
@@ -363,7 +383,7 @@ async def test_complete_category_lifecycle():
         
         # 2. 批量创建分类
         print("2️⃣ 批量创建分类...")
-        mock_client.post.return_value = create_mock_response(201, responses['batch_create'])
+        mock_client.post = AsyncMock(return_value=create_mock_response(201, responses['batch_create']))
         
         result = await server._batch_create_categories({
             "categories": [
@@ -376,7 +396,7 @@ async def test_complete_category_lifecycle():
         
         # 3. 获取分类列表
         print("3️⃣ 查看分类列表...")
-        mock_client.get.return_value = create_mock_response(200, responses['get_categories'])
+        mock_client.get = AsyncMock(return_value=create_mock_response(200, responses['get_categories']))
         
         result = await server._get_categories({
             "active_only": True,
@@ -386,14 +406,14 @@ async def test_complete_category_lifecycle():
         
         # 4. 获取分类详情
         print("4️⃣ 查看分类详情...")
-        mock_client.get.return_value = create_mock_response(200, responses['create_category'])
+        mock_client.get = AsyncMock(return_value=create_mock_response(200, responses['create_category']))
         
         result = await server._get_category({"category_id": 1})
         print(f"   ✅ 分类详情获取成功: {result.content[0].text[:60]}...")
         
         # 5. 更新分类
         print("5️⃣ 更新分类信息...")
-        mock_client.put.return_value = create_mock_response(200, responses['update_category'])
+        mock_client.put = AsyncMock(return_value=create_mock_response(200, responses['update_category']))
         
         result = await server._update_category({
             "category_id": 1,
@@ -404,14 +424,14 @@ async def test_complete_category_lifecycle():
         
         # 6. 切换分类状态
         print("6️⃣ 切换分类状态...")
-        mock_client.patch.return_value = create_mock_response(200, responses['toggle_category'])
+        mock_client.patch = AsyncMock(return_value=create_mock_response(200, responses['toggle_category']))
         
         result = await server._toggle_category({"category_id": 1})
         print(f"   ✅ 状态切换成功: {result.content[0].text[:60]}...")
         
         # 7. 删除分类
         print("7️⃣ 删除分类...")
-        mock_client.delete.return_value = create_mock_response(200, responses['delete_category'])
+        mock_client.delete = AsyncMock(return_value=create_mock_response(200, responses['delete_category']))
         
         result = await server._delete_category({"category_id": 1})
         print(f"   ✅ 分类删除成功: {result.content[0].text[:60]}...")
@@ -421,6 +441,7 @@ async def test_complete_category_lifecycle():
     print()
 
 
+@pytest.mark.asyncio
 async def test_error_scenarios():
     """测试各种错误场景"""
     print("🚫 测试错误处理场景")
@@ -466,13 +487,13 @@ async def test_error_scenarios():
     with patch.object(server, 'client') as mock_client:
         # 1. 认证错误
         print("1️⃣ 测试认证错误...")
-        mock_client.get.return_value = create_mock_response(403, error_responses['auth_error'])
+        mock_client.get = AsyncMock(return_value=create_mock_response(403, error_responses['auth_error']))
         result = await server._get_products({})
         print(f"   ✅ 认证错误处理: {result.content[0].text[:80]}...")
         
         # 2. 数据验证错误
         print("2️⃣ 测试数据验证错误...")
-        mock_client.post.return_value = create_mock_response(400, error_responses['validation_error'])
+        mock_client.post = AsyncMock(return_value=create_mock_response(400, error_responses['validation_error']))
         result = await server._create_product({
             "name": "测试产品",
             "price": -100,  # 负价格
@@ -482,19 +503,19 @@ async def test_error_scenarios():
         
         # 3. 资源不存在
         print("3️⃣ 测试资源不存在...")
-        mock_client.get.return_value = create_mock_response(404, error_responses['not_found'])
+        mock_client.get = AsyncMock(return_value=create_mock_response(404, error_responses['not_found']))
         result = await server._get_product({"product_id": 99999})
         print(f"   ✅ 不存在错误处理: {result.content[0].text[:80]}...")
         
         # 4. 速率限制
         print("4️⃣ 测试速率限制...")
-        mock_client.get.return_value = create_mock_response(429, error_responses['rate_limit'])
+        mock_client.get = AsyncMock(return_value=create_mock_response(429, error_responses['rate_limit']))
         result = await server._get_categories({})
         print(f"   ✅ 速率限制处理: {result.content[0].text[:80]}...")
         
         # 5. 服务器错误
         print("5️⃣ 测试服务器错误...")
-        mock_client.post.return_value = create_mock_response(500, error_responses['server_error'])
+        mock_client.post = AsyncMock(return_value=create_mock_response(500, error_responses['server_error']))
         result = await server._create_category({
             "name": "test",
             "display_name": "测试"
@@ -506,6 +527,7 @@ async def test_error_scenarios():
     print()
 
 
+@pytest.mark.asyncio
 async def test_special_scenarios():
     """测试特殊场景"""
     print("⭐ 测试特殊使用场景")
@@ -535,7 +557,7 @@ async def test_special_scenarios():
             },
             "message": "大图片上传成功"
         }
-        mock_client.post.return_value = create_mock_response(200, large_image_response)
+        mock_client.post = AsyncMock(return_value=create_mock_response(200, large_image_response))
         
         # 创建一个较大的Base64字符串（模拟）
         large_image_base64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==" * 100
@@ -575,7 +597,7 @@ async def test_special_scenarios():
             },
             "message": "复杂产品创建成功"
         }
-        mock_client.post.return_value = create_mock_response(201, complex_product_response)
+        mock_client.post = AsyncMock(return_value=create_mock_response(201, complex_product_response))
         
         result = await server._create_product({
             "name": "专业相机",
@@ -609,7 +631,7 @@ async def test_special_scenarios():
             },
             "message": "多语言产品创建成功"
         }
-        mock_client.post.return_value = create_mock_response(201, multilang_response)
+        mock_client.post = AsyncMock(return_value=create_mock_response(201, multilang_response))
         
         result = await server._create_product({
             "name": "多语言产品",
@@ -638,7 +660,7 @@ async def test_special_scenarios():
             },
             "message": "分页数据获取成功"
         }
-        mock_client.get.return_value = create_mock_response(200, paginated_response)
+        mock_client.get = AsyncMock(return_value=create_mock_response(200, paginated_response))
         
         result = await server._get_products({
             "page": 2,
