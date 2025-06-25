@@ -100,6 +100,50 @@
                     </div>
                 </div>
 
+                <div>
+                    <label for="quantity" class="block text-sm font-medium text-gray-700">
+                        库存数量
+                    </label>
+                    <div class="mt-1">
+                        <input type="number" name="quantity" id="quantity" min="0" 
+                               value="{{ product.quantity if product else '1' }}"
+                               class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                               placeholder="1">
+                    </div>
+                    <p class="mt-1 text-sm text-gray-500">产品的当前库存数量</p>
+                </div>
+
+                <div>
+                    <label for="low_stock_threshold" class="block text-sm font-medium text-gray-700">
+                        低库存警告阈值
+                    </label>
+                    <div class="mt-1">
+                        <input type="number" name="low_stock_threshold" id="low_stock_threshold" min="0" 
+                               value="{{ product.low_stock_threshold if product else '1' }}"
+                               class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                               placeholder="1">
+                    </div>
+                    <p class="mt-1 text-sm text-gray-500">库存数量低于此值时会显示警告</p>
+                </div>
+
+                <div class="sm:col-span-2">
+                    <div class="flex items-start">
+                        <div class="flex items-center h-5">
+                            <input id="track_inventory" name="track_inventory" type="checkbox" value="1"
+                                   {% if not product or product.track_inventory %}checked{% endif %}
+                                   class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded">
+                        </div>
+                        <div class="ml-3 text-sm">
+                            <label for="track_inventory" class="font-medium text-gray-700">
+                                启用库存跟踪
+                            </label>
+                            <p class="text-gray-500">
+                                启用后将自动跟踪库存数量变化。关闭后只使用简单的状态管理（有货/已售出）。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="sm:col-span-2">
                     <label for="description" class="block text-sm font-medium text-gray-700">
                         产品描述

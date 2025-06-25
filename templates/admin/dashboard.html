@@ -115,6 +115,134 @@
     </div>
 </div>
 
+<!-- 库存警告 -->
+{% if low_stock_products or out_of_stock_products %}
+<div class="mb-8">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- 低库存警告 -->
+        {% if low_stock_products %}
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <div class="flex items-center mb-4">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-triangle text-2xl text-yellow-600"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            低库存警告
+                        </h3>
+                        <p class="text-sm text-gray-500">
+                            {{ low_stock_products|length }} 件商品库存不足
+                        </p>
+                    </div>
+                </div>
+                <div class="space-y-3 max-h-60 overflow-y-auto">
+                    {% for product in low_stock_products %}
+                        <div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+                            <div class="flex-1">
+                                <p class="text-sm font-medium text-gray-900">{{ product.name }}</p>
+                                <p class="text-xs text-gray-500">分类: {{ product.get_category_display() }}</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                    剩余 {{ product.quantity }}
+                                </span>
+                                <p class="text-xs text-gray-500 mt-1">阈值: {{ product.low_stock_threshold }}</p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="mt-4">
+                    <a href="{{ url_for('admin.products', status='available') }}" 
+                       class="text-sm text-blue-600 hover:text-blue-900">
+                        查看所有商品 →
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 缺货警告 -->
+        {% if out_of_stock_products %}
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <div class="flex items-center mb-4">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-times-circle text-2xl text-red-600"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            缺货提醒
+                        </h3>
+                        <p class="text-sm text-gray-500">
+                            {{ out_of_stock_products|length }} 件商品已缺货
+                        </p>
+                    </div>
+                </div>
+                <div class="space-y-3 max-h-60 overflow-y-auto">
+                    {% for product in out_of_stock_products %}
+                        <div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+                            <div class="flex-1">
+                                <p class="text-sm font-medium text-gray-900">{{ product.name }}</p>
+                                <p class="text-xs text-gray-500">分类: {{ product.get_category_display() }}</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                    已售罄
+                                </span>
+                                {% if product.track_inventory %}
+                                    <p class="text-xs text-gray-500 mt-1">库存: {{ product.quantity }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="mt-4">
+                    <a href="{{ url_for('admin.products', status='sold') }}" 
+                       class="text-sm text-blue-600 hover:text-blue-900">
+                        查看已售商品 →
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<!-- 库存统计信息 -->
+<div class="bg-white shadow rounded-lg mb-8">
+    <div class="px-4 py-5 sm:p-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+            <i class="fas fa-chart-bar mr-2"></i>库存概览
+        </h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="text-center">
+                <div class="text-2xl font-bold text-blue-600">{{ stats.total_products }}</div>
+                <div class="text-sm text-gray-500">商品总数</div>
+            </div>
+            <div class="text-center">
+                <div class="text-2xl font-bold text-green-600">{{ stats.available_products }}</div>
+                <div class="text-sm text-gray-500">可售商品</div>
+            </div>
+            <div class="text-center">
+                <div class="text-2xl font-bold text-yellow-600">{{ stats.low_stock_count }}</div>
+                <div class="text-sm text-gray-500">低库存</div>
+            </div>
+            <div class="text-center">
+                <div class="text-2xl font-bold text-red-600">{{ stats.out_of_stock_count }}</div>
+                <div class="text-sm text-gray-500">缺货</div>
+            </div>
+        </div>
+        <div class="mt-4 pt-4 border-t border-gray-200">
+            <div class="text-center">
+                <div class="text-lg font-medium text-green-600">NZD ${{ "%.2f"|format(stats.total_inventory_value) }}</div>
+                <div class="text-sm text-gray-500">库存总价值</div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- 最近订单和留言 -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <!-- 最近订单 -->

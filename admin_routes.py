@@ -8,6 +8,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.urls import url_parse
 from models import db, Admin, Product, Order, Message, SiteSettings
 from models import get_admin_by_username, create_admin, get_site_setting, set_site_setting
+from models import get_low_stock_products, get_out_of_stock_products, get_inventory_stats
 from utils import sanitize_user_input, validate_form_data, validate_email_address
 from file_upload import upload_image, delete_image, get_image_url
 import logging
@@ -88,7 +89,7 @@ def logout():
 @login_required
 def dashboard():
     """管理后台首页"""
-    # 获取统计数据
+    # 获取基础统计数据
     stats = {
         'total_products': Product.query.count(),
         'available_products': Product.query.filter(Product.stock_status == 'available').count(),
@@ -100,6 +101,14 @@ def dashboard():
         ).scalar() or 0
     }
     
+    # 获取库存统计数据
+    inventory_stats = get_inventory_stats()
+    stats.update(inventory_stats)
+    
+    # 获取低库存和缺货产品
+    low_stock_products = get_low_stock_products()
+    out_of_stock_products = get_out_of_stock_products()
+    
     # 获取最近的订单
     recent_orders = Order.query.order_by(Order.created_at.desc()).limit(5).all()
     
@@ -109,7 +118,9 @@ def dashboard():
     return render_template('admin/dashboard.html', 
                          stats=stats, 
                          recent_orders=recent_orders,
-                         unread_messages=unread_messages)
+                         unread_messages=unread_messages,
+                         low_stock_products=low_stock_products,
+                         out_of_stock_products=out_of_stock_products)
 
 
 @admin_bp.route('/profile', methods=['GET', 'POST'])
@@ -384,7 +395,10 @@ def product_create():
             'category': request.form.get('category', ''),
             'condition': request.form.get('condition', ''),
             'stock_status': request.form.get('stock_status', ''),
-            'face_to_face_only': request.form.get('face_to_face_only') == '1'
+            'face_to_face_only': request.form.get('face_to_face_only') == '1',
+            'quantity': request.form.get('quantity', '1'),
+            'low_stock_threshold': request.form.get('low_stock_threshold', '1'),
+            'track_inventory': request.form.get('track_inventory') == '1'
         }
         
         # 清理用户输入
@@ -415,6 +429,34 @@ def product_create():
                                  categories=Product.CATEGORIES,
                                  statuses=Product.STOCK_STATUSES)
         
+        # 验证库存数量
+        try:
+            quantity = int(clean_data['quantity'])
+            if quantity < 0:
+                flash('库存数量不能为负数', 'error')
+                return render_template('admin/product_form.html',
+                                     categories=Product.CATEGORIES,
+                                     statuses=Product.STOCK_STATUSES)
+        except ValueError:
+            flash('库存数量格式不正确', 'error')
+            return render_template('admin/product_form.html',
+                                 categories=Product.CATEGORIES,
+                                 statuses=Product.STOCK_STATUSES)
+        
+        # 验证低库存阈值
+        try:
+            low_stock_threshold = int(clean_data['low_stock_threshold'])
+            if low_stock_threshold < 0:
+                flash('低库存阈值不能为负数', 'error')
+                return render_template('admin/product_form.html',
+                                     categories=Product.CATEGORIES,
+                                     statuses=Product.STOCK_STATUSES)
+        except ValueError:
+            flash('低库存阈值格式不正确', 'error')
+            return render_template('admin/product_form.html',
+                                 categories=Product.CATEGORIES,
+                                 statuses=Product.STOCK_STATUSES)
+        
         try:
             # 创建产品
             product = Product(
@@ -424,7 +466,10 @@ def product_create():
                 category=clean_data['category'],
                 condition=clean_data['condition'],
                 stock_status=clean_data['stock_status'],
-                face_to_face_only=clean_data['face_to_face_only']
+                face_to_face_only=clean_data['face_to_face_only'],
+                quantity=quantity,
+                low_stock_threshold=low_stock_threshold,
+                track_inventory=clean_data['track_inventory']
             )
             
             # 处理图片 - 支持文件上传和URL输入
@@ -492,7 +537,10 @@ def product_edit(product_id):
             'category': request.form.get('category', ''),
             'condition': request.form.get('condition', ''),
             'stock_status': request.form.get('stock_status', ''),
-            'face_to_face_only': request.form.get('face_to_face_only') == '1'
+            'face_to_face_only': request.form.get('face_to_face_only') == '1',
+            'quantity': request.form.get('quantity', '1'),
+            'low_stock_threshold': request.form.get('low_stock_threshold', '1'),
+            'track_inventory': request.form.get('track_inventory') == '1'
         }
         
         # 清理用户输入
@@ -526,6 +574,38 @@ def product_edit(product_id):
                                  categories=Product.CATEGORIES,
                                  statuses=Product.STOCK_STATUSES)
         
+        # 验证库存数量
+        try:
+            quantity = int(clean_data['quantity'])
+            if quantity < 0:
+                flash('库存数量不能为负数', 'error')
+                return render_template('admin/product_form.html',
+                                     product=product,
+                                     categories=Product.CATEGORIES,
+                                     statuses=Product.STOCK_STATUSES)
+        except ValueError:
+            flash('库存数量格式不正确', 'error')
+            return render_template('admin/product_form.html',
+                                 product=product,
+                                 categories=Product.CATEGORIES,
+                                 statuses=Product.STOCK_STATUSES)
+        
+        # 验证低库存阈值
+        try:
+            low_stock_threshold = int(clean_data['low_stock_threshold'])
+            if low_stock_threshold < 0:
+                flash('低库存阈值不能为负数', 'error')
+                return render_template('admin/product_form.html',
+                                     product=product,
+                                     categories=Product.CATEGORIES,
+                                     statuses=Product.STOCK_STATUSES)
+        except ValueError:
+            flash('低库存阈值格式不正确', 'error')
+            return render_template('admin/product_form.html',
+                                 product=product,
+                                 categories=Product.CATEGORIES,
+                                 statuses=Product.STOCK_STATUSES)
+        
         try:
             # 更新产品信息
             product.name = clean_data['name']
@@ -535,6 +615,9 @@ def product_edit(product_id):
             product.condition = clean_data['condition']
             product.stock_status = clean_data['stock_status']
             product.face_to_face_only = clean_data['face_to_face_only']
+            product.quantity = quantity
+            product.low_stock_threshold = low_stock_threshold
+            product.track_inventory = clean_data['track_inventory']
             
             # 处理图片 - 支持文件上传和URL输入
             uploaded_images = []
@@ -702,3 +785,61 @@ def message_delete(message_id):
         db.session.rollback()
         logger.error(f'留言删除失败: {str(e)} - 管理员: {current_user.username}')
         return jsonify({'success': False, 'message': '删除失败，请稍后重试'})
+
+
+@admin_bp.route('/product/<int:product_id>/inventory', methods=['POST'])
+@login_required
+def product_inventory_update(product_id):
+    """更新产品库存"""
+    try:
+        product = Product.query.get_or_404(product_id)
+        action = request.form.get('action')
+        quantity = request.form.get('quantity', type=int)
+        
+        if not action or quantity is None:
+            return jsonify({'success': False, 'message': '参数不完整'})
+        
+        old_quantity = product.quantity
+        old_status = product.stock_status
+        
+        if action == 'set':
+            # 设置绝对库存数量
+            product.set_stock_quantity(quantity)
+        elif action == 'add':
+            # 增加库存
+            product.increase_stock(quantity)
+        elif action == 'reduce':
+            # 减少库存
+            if not product.reduce_stock(quantity):
+                return jsonify({'success': False, 'message': '库存不足，无法减少指定数量'})
+        else:
+            return jsonify({'success': False, 'message': '无效的操作类型'})
+        
+        db.session.commit()
+        
+        # 记录库存变化
+        logger.info(f'库存更新: {product.name} ({old_quantity} -> {product.quantity}) - 管理员: {current_user.username}')
+        
+        # 检查库存状态
+        inventory_status = product.get_inventory_status()
+        warnings = []
+        
+        if product.is_low_stock():
+            warnings.append(f'库存不足！当前库存: {product.quantity}，警告阈值: {product.low_stock_threshold}')
+        
+        if product.is_out_of_stock():
+            warnings.append('商品已缺货！')
+        
+        return jsonify({
+            'success': True, 
+            'message': '库存更新成功',
+            'new_quantity': product.quantity,
+            'new_status': product.get_status_display(),
+            'inventory_status': inventory_status,
+            'warnings': warnings
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f'库存更新失败: {str(e)} - 管理员: {current_user.username}')
+        return jsonify({'success': False, 'message': f'更新失败: {str(e)}'})

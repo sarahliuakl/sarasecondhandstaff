@@ -94,6 +94,10 @@ class Product(db.Model):
     condition = db.Column(db.String(20), nullable=False)
     stock_status = db.Column(db.String(20), default='available')
     face_to_face_only = db.Column(db.Boolean, default=False, nullable=False)  # 是否仅支持见面交易
+    # 库存管理字段
+    quantity = db.Column(db.Integer, default=1, nullable=False)  # 库存数量
+    low_stock_threshold = db.Column(db.Integer, default=1, nullable=False)  # 低库存警告阈值
+    track_inventory = db.Column(db.Boolean, default=True, nullable=False)  # 是否启用库存跟踪
     images = db.Column(db.Text)  # JSON格式存储图片URL列表
     specifications = db.Column(db.Text)  # JSON格式存储商品规格
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -169,7 +173,87 @@ class Product(db.Model):
     
     def is_available(self):
         """检查商品是否可购买"""
-        return self.stock_status == self.STATUS_AVAILABLE
+        if self.track_inventory:
+            return self.stock_status == self.STATUS_AVAILABLE and self.quantity > 0
+        else:
+            return self.stock_status == self.STATUS_AVAILABLE
+    
+    def is_low_stock(self):
+        """检查是否低库存"""
+        if not self.track_inventory:
+            return False
+        return self.quantity <= self.low_stock_threshold
+    
+    def is_out_of_stock(self):
+        """检查是否缺货"""
+        if not self.track_inventory:
+            return self.stock_status == self.STATUS_SOLD
+        return self.quantity <= 0
+    
+    def reduce_stock(self, quantity=1):
+        """减少库存"""
+        if not self.track_inventory:
+            # 如果不跟踪库存，直接标记为已售出
+            self.stock_status = self.STATUS_SOLD
+            return True
+        
+        if self.quantity >= quantity:
+            self.quantity -= quantity
+            # 如果库存为0，自动更新状态为已售出
+            if self.quantity == 0:
+                self.stock_status = self.STATUS_SOLD
+            return True
+        return False
+    
+    def increase_stock(self, quantity=1):
+        """增加库存"""
+        if not self.track_inventory:
+            # 如果不跟踪库存，恢复为可用状态
+            self.stock_status = self.STATUS_AVAILABLE
+            return True
+        
+        self.quantity += quantity
+        # 如果之前是已售出状态且现在有库存，恢复为可用状态
+        if self.stock_status == self.STATUS_SOLD and self.quantity > 0:
+            self.stock_status = self.STATUS_AVAILABLE
+        return True
+    
+    def set_stock_quantity(self, quantity):
+        """设置库存数量"""
+        if not self.track_inventory:
+            # 如果不跟踪库存，根据数量设置状态
+            if quantity > 0:
+                self.stock_status = self.STATUS_AVAILABLE
+            else:
+                self.stock_status = self.STATUS_SOLD
+            return True
+        
+        self.quantity = max(0, quantity)
+        # 根据库存数量自动更新状态
+        if self.quantity == 0:
+            self.stock_status = self.STATUS_SOLD
+        elif self.stock_status == self.STATUS_SOLD and self.quantity > 0:
+            self.stock_status = self.STATUS_AVAILABLE
+        return True
+    
+    def get_inventory_status(self):
+        """获取库存状态信息"""
+        if not self.track_inventory:
+            return {
+                'tracking_enabled': False,
+                'status': self.get_status_display(),
+                'available': self.stock_status == self.STATUS_AVAILABLE
+            }
+        
+        return {
+            'tracking_enabled': True,
+            'quantity': self.quantity,
+            'low_stock_threshold': self.low_stock_threshold,
+            'status': self.get_status_display(),
+            'is_low_stock': self.is_low_stock(),
+            'is_out_of_stock': self.is_out_of_stock(),
+            'available': self.is_available()
+        }
     
     def to_dict(self):
         """转换为字典格式，用于JSON序列化"""
@@ -193,6 +277,49 @@ class Product(db.Model):
     
     def __repr__(self):
         return f'<Product {self.id}: {self.name}>'
+
+
+def get_low_stock_products():
+    """获取低库存商品列表"""
+    return Product.query.filter(
+        Product.track_inventory == True,
+        Product.quantity <= Product.low_stock_threshold,
+        Product.quantity > 0
+    ).all()
+
+
+def get_out_of_stock_products():
+    """获取缺货商品列表"""
+    return Product.query.filter(
+        db.or_(
+            db.and_(Product.track_inventory == True, Product.quantity <= 0),
+            db.and_(Product.track_inventory == False, Product.stock_status == Product.STATUS_SOLD)
+        )
+    ).all()
+
+
+def get_inventory_stats():
+    """获取库存统计信息"""
+    total_products = Product.query.count()
+    available_products = Product.query.filter(Product.stock_status == Product.STATUS_AVAILABLE).count()
+    low_stock_count = len(get_low_stock_products())
+    out_of_stock_count = len(get_out_of_stock_products())
+    
+    # 计算总库存值
+    total_inventory_value = db.session.query(
+        db.func.sum(Product.price * Product.quantity)
+    ).filter(
+        Product.track_inventory == True,
+        Product.quantity > 0
+    ).scalar() or 0
+    
+    return {
+        'total_products': total_products,
+        'available_products': available_products,
+        'low_stock_count': low_stock_count,
+        'out_of_stock_count': out_of_stock_count,
+        'total_inventory_value': float(total_inventory_value)
+    }
 
 
 class Order(db.Model):
