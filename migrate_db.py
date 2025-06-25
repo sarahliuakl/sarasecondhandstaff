@@ -91,7 +91,10 @@ def create_postgres_tables(pg_conn):
             name VARCHAR(100) NOT NULL,
             contact VARCHAR(100) NOT NULL,
             message TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            status VARCHAR(20) DEFAULT 'unread',
+            reply TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            replied_at TIMESTAMP
         )
     """)
     
@@ -214,13 +217,16 @@ def migrate_data(sqlite_conn, pg_conn):
         message_dict = dict(zip(message_columns, message))
         
         pg_cursor.execute("""
-            INSERT INTO messages (name, contact, message, created_at)
-            VALUES (%s, %s, %s, %s)
+            INSERT INTO messages (name, contact, message, status, reply, created_at, replied_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
         """, (
             message_dict.get('name'),
             message_dict.get('contact'),
             message_dict.get('message'),
-            message_dict.get('created_at')
+            message_dict.get('status', 'unread'),
+            message_dict.get('reply'),
+            message_dict.get('created_at'),
+            message_dict.get('replied_at')
         ))
     
     print(f"已迁移 {len(messages)} 条留言")
