@@ -6,15 +6,28 @@
   <h2 class="text-3xl font-bold text-orange-700 mb-4 lg:mb-0">全部商品</h2>
   
   <!-- 搜索框 -->
-  <form method="GET" class="flex gap-2">
-    <input type="text" name="search" value="{{ search_term or '' }}" 
-           placeholder="搜索商品..." 
-           class="px-4 py-2 border border-orange-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-300">
-    <button type="submit" class="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition">
+  <form method="GET" class="flex gap-2 relative">
+    <div class="relative flex-1">
+      <input type="text" name="search" id="searchInput" value="{{ search_term or '' }}" 
+             placeholder="搜索商品名称、分类、成色..." 
+             class="w-full px-4 py-2 border border-orange-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-300"
+             autocomplete="off">
+      
+      <!-- 搜索建议下拉框 -->
+      <div id="searchSuggestions" class="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-10 hidden max-h-60 overflow-y-auto">
+        <!-- 搜索建议将在这里动态显示 -->
+      </div>
+    </div>
+    
+    <button type="submit" class="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition flex items-center gap-2">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+      </svg>
       搜索
     </button>
+    
     {% if search_term %}
-    <a href="{{ url_for('products') }}" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition">
+    <a href="{{ url_for('products') }}" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition flex items-center">
       清除
     </a>
     {% endif %}
@@ -132,6 +145,184 @@
 
 <!-- JavaScript -->
 <script>
+// 搜索建议功能
+let searchTimeout;
+const searchInput = document.getElementById('searchInput');
+const searchSuggestions = document.getElementById('searchSuggestions');
+let selectedSuggestionIndex = -1;
+
+// 搜索历史记录
+function getSearchHistory() {
+  return JSON.parse(localStorage.getItem('searchHistory') || '[]');
+}
+
+function addToSearchHistory(query) {
+  if (!query.trim()) return;
+  
+  let history = getSearchHistory();
+  // 移除已存在的相同查询
+  history = history.filter(item => item !== query);
+  // 添加到开头
+  history.unshift(query);
+  // 限制历史记录数量
+  history = history.slice(0, 10);
+  
+  localStorage.setItem('searchHistory', JSON.stringify(history));
+}
+
+// 获取搜索建议
+async function fetchSearchSuggestions(query) {
+  if (query.length < 2) {
+    showSearchHistory();
+    return;
+  }
+  
+  try {
+    const response = await fetch(`/api/search/suggestions?q=${encodeURIComponent(query)}`);
+    const suggestions = await response.json();
+    showSearchSuggestions(suggestions);
+  } catch (error) {
+    console.error('获取搜索建议失败:', error);
+  }
+}
+
+// 显示搜索建议
+function showSearchSuggestions(suggestions) {
+  if (suggestions.length === 0) {
+    hideSuggestions();
+    return;
+  }
+  
+  const html = suggestions.map((suggestion, index) => `
+    <div class="suggestion-item px-4 py-2 hover:bg-orange-50 cursor-pointer flex items-center gap-2 ${index === selectedSuggestionIndex ? 'bg-orange-50' : ''}"
+         onclick="selectSuggestion('${suggestion.text}')">
+      <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        ${suggestion.type === 'product' ? 
+          '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>' :
+          '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>'
+        }
+      </svg>
+      <span class="flex-1">${suggestion.text}</span>
+      ${suggestion.category ? `<span class="text-xs text-gray-500">${suggestion.category}</span>` : ''}
+    </div>
+  `).join('');
+  
+  searchSuggestions.innerHTML = html;
+  searchSuggestions.classList.remove('hidden');
+}
+
+// 显示搜索历史
+function showSearchHistory() {
+  const history = getSearchHistory();
+  if (history.length === 0) {
+    hideSuggestions();
+    return;
+  }
+  
+  const html = `
+    <div class="px-4 py-2 text-xs text-gray-500 border-b">搜索历史</div>
+    ${history.map((query, index) => `
+      <div class="suggestion-item px-4 py-2 hover:bg-orange-50 cursor-pointer flex items-center gap-2 ${index === selectedSuggestionIndex ? 'bg-orange-50' : ''}"
+           onclick="selectSuggestion('${query}')">
+        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <span class="flex-1">${query}</span>
+      </div>
+    `).join('')}
+  `;
+  
+  searchSuggestions.innerHTML = html;
+  searchSuggestions.classList.remove('hidden');
+}
+
+// 隐藏搜索建议
+function hideSuggestions() {
+  searchSuggestions.classList.add('hidden');
+  selectedSuggestionIndex = -1;
+}
+
+// 选择建议
+function selectSuggestion(text) {
+  searchInput.value = text;
+  hideSuggestions();
+  addToSearchHistory(text);
+  searchInput.form.submit();
+}
+
+// 搜索输入事件
+searchInput.addEventListener('input', function() {
+  clearTimeout(searchTimeout);
+  const query = this.value.trim();
+  
+  if (query.length === 0) {
+    showSearchHistory();
+    return;
+  }
+  
+  searchTimeout = setTimeout(() => {
+    fetchSearchSuggestions(query);
+  }, 300);
+});
+
+// 搜索框获得焦点时显示建议
+searchInput.addEventListener('focus', function() {
+  const query = this.value.trim();
+  if (query.length >= 2) {
+    fetchSearchSuggestions(query);
+  } else {
+    showSearchHistory();
+  }
+});
+
+// 键盘导航
+searchInput.addEventListener('keydown', function(e) {
+  const suggestions = document.querySelectorAll('.suggestion-item');
+  
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    selectedSuggestionIndex = Math.min(selectedSuggestionIndex + 1, suggestions.length - 1);
+    updateSelectedSuggestion();
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    selectedSuggestionIndex = Math.max(selectedSuggestionIndex - 1, -1);
+    updateSelectedSuggestion();
+  } else if (e.key === 'Enter' && selectedSuggestionIndex >= 0) {
+    e.preventDefault();
+    const selectedText = suggestions[selectedSuggestionIndex].querySelector('span').textContent;
+    selectSuggestion(selectedText);
+  } else if (e.key === 'Escape') {
+    hideSuggestions();
+  }
+});
+
+// 更新选中的建议样式
+function updateSelectedSuggestion() {
+  const suggestions = document.querySelectorAll('.suggestion-item');
+  suggestions.forEach((item, index) => {
+    if (index === selectedSuggestionIndex) {
+      item.classList.add('bg-orange-50');
+    } else {
+      item.classList.remove('bg-orange-50');
+    }
+  });
+}
+
+// 点击外部隐藏建议
+document.addEventListener('click', function(e) {
+  if (!searchInput.contains(e.target) && !searchSuggestions.contains(e.target)) {
+    hideSuggestions();
+  }
+});
+
+// 表单提交时保存搜索历史
+searchInput.form.addEventListener('submit', function() {
+  const query = searchInput.value.trim();
+  if (query) {
+    addToSearchHistory(query);
+  }
+});
+
 // 添加到购物车功能
 function addToCart(productId) {
   // 获取现有购物车数据

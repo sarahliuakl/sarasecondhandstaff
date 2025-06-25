@@ -269,6 +269,42 @@ def order_query():
     return render_template("order_query.html")
 
 
+@app.route("/api/search/suggestions")
+def search_suggestions():
+    """搜索建议API"""
+    query = request.args.get('q', '').strip()
+    if not query or len(query) < 2:
+        return jsonify([])
+    
+    # 获取产品名称和分类的建议
+    suggestions = []
+    
+    # 搜索产品名称
+    products = Product.query.filter(
+        db.func.lower(Product.name).contains(query.lower())
+    ).filter(
+        Product.stock_status == Product.STATUS_AVAILABLE
+    ).limit(5).all()
+    
+    for product in products:
+        suggestions.append({
+            'text': product.name,
+            'type': 'product',
+            'category': product.category
+        })
+    
+    # 添加分类建议
+    categories = Product.CATEGORIES
+    for category_code, category_name in categories:
+        if query.lower() in category_name.lower() or query.lower() in category_code.lower():
+            suggestions.append({
+                'text': category_name,
+                'type': 'category'
+            })
+    
+    return jsonify(suggestions[:8])  # 限制最多8个建议
+
+
 @app.route("/order/search", methods=['POST'])
 def order_search():
     """订单查询处理"""

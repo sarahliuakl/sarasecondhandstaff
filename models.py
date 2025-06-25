@@ -594,13 +594,70 @@ def get_products_by_category(category=None, available_only=True):
 
 
 def search_products(keyword):
-    """搜索产品"""
-    return Product.query.filter(
-        Product.name.contains(keyword) | 
-        Product.description.contains(keyword)
-    ).filter(
-        Product.stock_status == Product.STATUS_AVAILABLE
-    ).order_by(Product.created_at.desc()).all()
+    """搜索产品 - 改进的全文搜索"""
+    if not keyword or not keyword.strip():
+        return []
+    
+    # 清理和分割关键词
+    keywords = [k.strip().lower() for k in keyword.split() if k.strip()]
+    if not keywords:
+        return []
+    
+    # 构建搜索查询
+    query = Product.query.filter(Product.stock_status == Product.STATUS_AVAILABLE)
+    
+    # 为每个关键词构建搜索条件
+    search_conditions = []
+    for kw in keywords:
+        # 搜索名称、描述、分类和规格
+        condition = (
+            db.func.lower(Product.name).contains(kw) |
+            db.func.lower(Product.description).contains(kw) |
+            db.func.lower(Product.category).contains(kw) |
+            db.func.lower(Product.condition).contains(kw) |
+            db.func.lower(Product.specifications).contains(kw)
+        )
+        search_conditions.append(condition)
+    
+    # 所有关键词都要匹配（AND逻辑）
+    if search_conditions:
+        final_condition = search_conditions[0]
+        for condition in search_conditions[1:]:
+            final_condition = final_condition & condition
+        query = query.filter(final_condition)
+    
+    # 按相关性排序：优先显示名称匹配的结果
+    results = query.all()
+    
+    # 简单的相关性排序
+    def calculate_relevance(product):
+        score = 0
+        name_lower = product.name.lower()
+        desc_lower = (product.description or '').lower()
+        
+        for kw in keywords:
+            # 名称完全匹配加分最多
+            if kw == name_lower:
+                score += 100
+            # 名称包含关键词
+            elif kw in name_lower:
+                score += 50
+            # 描述包含关键词  
+            elif kw in desc_lower:
+                score += 20
+            # 分类匹配
+            elif kw in product.category.lower():
+                score += 30
+            # 规格匹配
+            elif product.specifications and kw in product.specifications.lower():
+                score += 15
+        
+        return score
+    
+    # 按相关性分数排序
+    results.sort(key=calculate_relevance, reverse=True)
+    
+    return results
 
 
 def get_order_by_number(order_number):
