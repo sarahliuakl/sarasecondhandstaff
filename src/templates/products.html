@@ -1,0 +1,448 @@
+{% extends "base.html" %}
+{% block title %}{% if current_category %}{{ dict(categories)[current_category] }}{% elif search_term %}搜索"{{ search_term }}"的结果{% else %}全部商品{% endif %} - Sara的二手售卖{% endblock %}
+
+{% block description %}{% if current_category %}{{ dict(categories)[current_category] }}分类下的{% elif search_term %}搜索"{{ search_term }}"的{% else %}全部{% endif %}二手商品，新西兰奥克兰地区优质二手商品，品质保证，价格优惠{% endblock %}
+
+{% block keywords %}{% if current_category %}{{ dict(categories)[current_category] }},{% endif %}{% if search_term %}{{ search_term }},{% endif %}二手商品,商品列表,新西兰,奥克兰,Sara{% endblock %}
+
+{% block structured_data %}
+{{ super() }}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "{% if current_category %}{{ dict(categories)[current_category] }}{% elif search_term %}搜索结果{% else %}全部商品{% endif %}",
+  "numberOfItems": {{ products|length }},
+  "itemListElement": [
+    {% for product in products[:10] %}
+    {
+      "@type": "ListItem",
+      "position": {{ loop.index }},
+      "item": {
+        "@type": "Product",
+        "name": "{{ product.name }}",
+        "description": "{{ product.description[:100]|replace('"', '\\"') }}",
+        "offers": {
+          "@type": "Offer",
+          "priceCurrency": "NZD",
+          "price": "{{ product.price }}",
+          "availability": "{% if product.is_available() %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}"
+        }
+      }
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+{% endblock %}
+
+{% block content %}
+
+<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
+  <h2 class="text-3xl font-bold text-orange-700 mb-4 lg:mb-0">全部商品</h2>
+  
+  <!-- 搜索框 -->
+  <form method="GET" class="flex gap-2 relative">
+    <div class="relative flex-1">
+      <input type="text" name="search" id="searchInput" value="{{ search_term or '' }}" 
+             placeholder="搜索商品名称、分类、成色..." 
+             class="w-full px-4 py-2 border border-orange-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-300"
+             autocomplete="off">
+      
+      <!-- 搜索建议下拉框 -->
+      <div id="searchSuggestions" class="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-10 hidden max-h-60 overflow-y-auto">
+        <!-- 搜索建议将在这里动态显示 -->
+      </div>
+    </div>
+    
+    <button type="submit" class="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition flex items-center gap-2">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+      </svg>
+      搜索
+    </button>
+    
+    {% if search_term %}
+    <a href="{{ url_for('main.products') }}" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition flex items-center">
+      清除
+    </a>
+    {% endif %}
+  </form>
+</div>
+
+<!-- 搜索结果提示 -->
+{% if search_term %}
+<div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+  <p class="text-blue-700">
+    搜索 "{{ search_term }}" 的结果，共找到 {{ products|length }} 个商品
+  </p>
+</div>
+{% endif %}
+
+<!-- 分类导航 -->
+<div class="mb-8 flex flex-wrap gap-4">
+  <a href="{{ url_for('main.products') }}" 
+     class="px-4 py-2 rounded transition {{ 'bg-orange-500 text-white' if not current_category else 'bg-orange-100 text-orange-700 hover:bg-orange-200' }}">
+    全部 ({{ products|length }})
+  </a>
+  {% for category_code, category_name in categories %}
+  <a href="{{ url_for('products', category=category_code) }}" 
+     class="px-4 py-2 rounded transition {{ 'bg-orange-500 text-white' if current_category == category_code else 'bg-orange-100 text-orange-700 hover:bg-orange-200' }}">
+    {{ category_name }}
+  </a>
+  {% endfor %}
+</div>
+
+<!-- 商品列表 -->
+{% if products %}
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+  {% for product in products %}
+  <div class="bg-white rounded-lg shadow hover:shadow-lg transition p-4 flex flex-col">
+    <!-- 商品图片 -->
+    {% set images = product.get_images() %}
+    <a href="{{ url_for('product_detail', product_id=product.id) }}" class="block mb-3">
+      <img src="{{ images[0] if images else 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=400&q=80' }}" 
+           alt="{{ product.name }}" 
+           class="rounded h-48 w-full object-cover hover:opacity-90 transition">
+    </a>
+    
+    <!-- 商品信息 -->
+    <div class="flex-1">
+      <!-- 分类和成色标签 -->
+      <div class="flex gap-2 mb-2">
+        <span class="bg-orange-100 text-orange-600 px-2 py-1 rounded text-xs">
+          {{ product.get_category_display() }}
+        </span>
+        <span class="bg-green-100 text-green-600 px-2 py-1 rounded text-xs">
+          {{ product.condition }}
+        </span>
+        {% if not product.is_available() %}
+        <span class="bg-red-100 text-red-600 px-2 py-1 rounded text-xs">
+          已售出
+        </span>
+        {% endif %}
+      </div>
+      
+      <h4 class="font-bold text-lg mb-2 hover:text-orange-600 transition">
+        <a href="{{ url_for('product_detail', product_id=product.id) }}">{{ product.name }}</a>
+      </h4>
+      
+      <p class="text-sm text-gray-600 mb-3 line-clamp-2">
+        {{ product.description[:80] + '...' if product.description|length > 80 else product.description }}
+      </p>
+      
+      <div class="text-xl font-bold text-orange-600 mb-4">
+        NZD ${{ "%.2f"|format(product.price) }}
+      </div>
+    </div>
+    
+    <!-- 操作按钮 -->
+    {% if product.is_available() %}
+    <div class="flex gap-2">
+      <a href="{{ url_for('product_detail', product_id=product.id) }}" 
+         class="flex-1 bg-orange-500 text-white py-2 px-3 rounded text-center text-sm hover:bg-orange-600 transition">
+        查看详情
+      </a>
+      <button onclick="addToCart({{ product.id }})" 
+              class="flex-1 bg-green-500 text-white py-2 px-3 rounded text-sm hover:bg-green-600 transition">
+        加入购物车
+      </button>
+    </div>
+    {% else %}
+    <div class="bg-gray-100 text-gray-500 py-2 px-3 rounded text-center text-sm">
+      商品已售出
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-12">
+  <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.766 0-5.227-1.116-6.853-2.92L5 12l-.147.08A7.962 7.962 0 0112 21a7.962 7.962 0 016.853-8.92L19 12l-.147-.08z"></path>
+  </svg>
+  <h3 class="text-xl font-medium text-gray-700 mb-2">暂无商品</h3>
+  <p class="text-gray-500">
+    {% if search_term %}
+    没有找到匹配 "{{ search_term }}" 的商品，请尝试其他搜索词
+    {% elif current_category %}
+    该分类下暂无商品
+    {% else %}
+    暂无可售商品
+    {% endif %}
+  </p>
+  {% if search_term or current_category %}
+  <a href="{{ url_for('main.products') }}" class="inline-block mt-4 text-orange-600 hover:text-orange-700">
+    查看全部商品
+  </a>
+  {% endif %}
+</div>
+{% endif %}
+
+<!-- JavaScript -->
+<script>
+// 搜索建议功能
+let searchTimeout;
+const searchInput = document.getElementById('searchInput');
+const searchSuggestions = document.getElementById('searchSuggestions');
+let selectedSuggestionIndex = -1;
+
+// 搜索历史记录
+function getSearchHistory() {
+  return JSON.parse(localStorage.getItem('searchHistory') || '[]');
+}
+
+function addToSearchHistory(query) {
+  if (!query.trim()) return;
+  
+  let history = getSearchHistory();
+  // 移除已存在的相同查询
+  history = history.filter(item => item !== query);
+  // 添加到开头
+  history.unshift(query);
+  // 限制历史记录数量
+  history = history.slice(0, 10);
+  
+  localStorage.setItem('searchHistory', JSON.stringify(history));
+}
+
+// 获取搜索建议
+async function fetchSearchSuggestions(query) {
+  if (query.length < 2) {
+    showSearchHistory();
+    return;
+  }
+  
+  try {
+    const response = await fetch(`/api/search/suggestions?q=${encodeURIComponent(query)}`);
+    const suggestions = await response.json();
+    showSearchSuggestions(suggestions);
+  } catch (error) {
+    console.error('获取搜索建议失败:', error);
+  }
+}
+
+// 显示搜索建议
+function showSearchSuggestions(suggestions) {
+  if (suggestions.length === 0) {
+    hideSuggestions();
+    return;
+  }
+  
+  const html = suggestions.map((suggestion, index) => `
+    <div class="suggestion-item px-4 py-2 hover:bg-orange-50 cursor-pointer flex items-center gap-2 ${index === selectedSuggestionIndex ? 'bg-orange-50' : ''}"
+         onclick="selectSuggestion('${suggestion.text}')">
+      <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        ${suggestion.type === 'product' ? 
+          '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>' :
+          '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>'
+        }
+      </svg>
+      <span class="flex-1">${suggestion.text}</span>
+      ${suggestion.category ? `<span class="text-xs text-gray-500">${suggestion.category}</span>` : ''}
+    </div>
+  `).join('');
+  
+  searchSuggestions.innerHTML = html;
+  searchSuggestions.classList.remove('hidden');
+}
+
+// 显示搜索历史
+function showSearchHistory() {
+  const history = getSearchHistory();
+  if (history.length === 0) {
+    hideSuggestions();
+    return;
+  }
+  
+  const html = `
+    <div class="px-4 py-2 text-xs text-gray-500 border-b">搜索历史</div>
+    ${history.map((query, index) => `
+      <div class="suggestion-item px-4 py-2 hover:bg-orange-50 cursor-pointer flex items-center gap-2 ${index === selectedSuggestionIndex ? 'bg-orange-50' : ''}"
+           onclick="selectSuggestion('${query}')">
+        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <span class="flex-1">${query}</span>
+      </div>
+    `).join('')}
+  `;
+  
+  searchSuggestions.innerHTML = html;
+  searchSuggestions.classList.remove('hidden');
+}
+
+// 隐藏搜索建议
+function hideSuggestions() {
+  searchSuggestions.classList.add('hidden');
+  selectedSuggestionIndex = -1;
+}
+
+// 选择建议
+function selectSuggestion(text) {
+  searchInput.value = text;
+  hideSuggestions();
+  addToSearchHistory(text);
+  searchInput.form.submit();
+}
+
+// 搜索输入事件
+searchInput.addEventListener('input', function() {
+  clearTimeout(searchTimeout);
+  const query = this.value.trim();
+  
+  if (query.length === 0) {
+    showSearchHistory();
+    return;
+  }
+  
+  searchTimeout = setTimeout(() => {
+    fetchSearchSuggestions(query);
+  }, 300);
+});
+
+// 搜索框获得焦点时显示建议
+searchInput.addEventListener('focus', function() {
+  const query = this.value.trim();
+  if (query.length >= 2) {
+    fetchSearchSuggestions(query);
+  } else {
+    showSearchHistory();
+  }
+});
+
+// 键盘导航
+searchInput.addEventListener('keydown', function(e) {
+  const suggestions = document.querySelectorAll('.suggestion-item');
+  
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    selectedSuggestionIndex = Math.min(selectedSuggestionIndex + 1, suggestions.length - 1);
+    updateSelectedSuggestion();
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    selectedSuggestionIndex = Math.max(selectedSuggestionIndex - 1, -1);
+    updateSelectedSuggestion();
+  } else if (e.key === 'Enter' && selectedSuggestionIndex >= 0) {
+    e.preventDefault();
+    const selectedText = suggestions[selectedSuggestionIndex].querySelector('span').textContent;
+    selectSuggestion(selectedText);
+  } else if (e.key === 'Escape') {
+    hideSuggestions();
+  }
+});
+
+// 更新选中的建议样式
+function updateSelectedSuggestion() {
+  const suggestions = document.querySelectorAll('.suggestion-item');
+  suggestions.forEach((item, index) => {
+    if (index === selectedSuggestionIndex) {
+      item.classList.add('bg-orange-50');
+    } else {
+      item.classList.remove('bg-orange-50');
+    }
+  });
+}
+
+// 点击外部隐藏建议
+document.addEventListener('click', function(e) {
+  if (!searchInput.contains(e.target) && !searchSuggestions.contains(e.target)) {
+    hideSuggestions();
+  }
+});
+
+// 表单提交时保存搜索历史
+searchInput.form.addEventListener('submit', function() {
+  const query = searchInput.value.trim();
+  if (query) {
+    addToSearchHistory(query);
+  }
+});
+
+// 添加到购物车功能
+function addToCart(productId) {
+  // 获取现有购物车数据
+  let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+  
+  // 检查商品是否已在购物车中
+  let existingItem = cart.find(item => item.id === productId);
+  
+  if (existingItem) {
+    existingItem.quantity += 1;
+    localStorage.setItem('cart', JSON.stringify(cart));
+    showMessage('商品数量已更新！', 'success');
+    updateCartCount();
+  } else {
+    // 调用API获取商品信息并添加到购物车
+    fetch('/api/cart', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        product_id: productId,
+        quantity: 1
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        cart.push({
+          id: data.product.id,
+          name: data.product.name,
+          price: data.product.price,
+          image: data.product.image,
+          condition: data.product.condition,
+          quantity: data.quantity
+        });
+        
+        localStorage.setItem('cart', JSON.stringify(cart));
+        showMessage('商品已加入购物车！', 'success');
+        updateCartCount();
+      } else {
+        showMessage(data.message || '添加失败', 'error');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      showMessage('网络错误，请重试', 'error');
+    });
+  }
+}
+
+// 显示消息
+function showMessage(message, type = 'info') {
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
+    type === 'success' ? 'bg-green-500 text-white' : 
+    type === 'error' ? 'bg-red-500 text-white' : 
+    'bg-blue-500 text-white'
+  }`;
+  messageDiv.textContent = message;
+  
+  document.body.appendChild(messageDiv);
+  
+  setTimeout(() => {
+    document.body.removeChild(messageDiv);
+  }, 3000);
+}
+
+// 更新购物车计数
+function updateCartCount() {
+  const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+  
+  const cartCountElements = document.querySelectorAll('.cart-count');
+  cartCountElements.forEach(element => {
+    element.textContent = totalItems;
+    element.style.display = totalItems > 0 ? 'inline' : 'none';
+  });
+}
+
+// 页面加载时更新购物车计数
+document.addEventListener('DOMContentLoaded', function() {
+  updateCartCount();
+});
+</script>
+
+{% endblock %}

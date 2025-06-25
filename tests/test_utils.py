@@ -2,7 +2,7 @@
 工具函数测试
 """
 import pytest
-from utils import sanitize_user_input, validate_form_data, validate_email_address
+from src.utils import sanitize_user_input, validate_form_data, validate_email_address
 
 
 class TestSanitizeInput:

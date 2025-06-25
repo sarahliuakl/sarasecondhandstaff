@@ -3,7 +3,7 @@
 """
 import pytest
 import json
-from models import db, Product, Order, Message
+from src.models import db, Product, Order, Message
 
 
 class TestPublicViews:

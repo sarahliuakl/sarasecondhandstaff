@@ -4,26 +4,27 @@
 import pytest
 import tempfile
 import os
-from app import app
-from models import db, Product, Order, Message, Admin
+from src import create_app
+from src.models import db, Product, Order, Message, Admin
+
+@pytest.fixture
+def app():
+    db_fd, db_path = tempfile.mkstemp()
+
+    app = create_app('testing')
+
+    with app.app_context():
+        db.create_all()
+
+    yield app
+
+    os.close(db_fd)
+    os.unlink(db_path)
 
 
 @pytest.fixture
-def client():
-    """创建测试客户端"""
-    # 创建临时数据库文件
-    db_fd, app.config['DATABASE'] = tempfile.mkstemp()
-    app.config['TESTING'] = True
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{app.config["DATABASE"]}'
-    app.config['WTF_CSRF_ENABLED'] = False  # 在测试中禁用CSRF
-    
-    with app.test_client() as client:
-        with app.app_context():
-            db.create_all()
-            yield client
-    
-    os.close(db_fd)
-    os.unlink(app.config['DATABASE'])
+def client(app):
+    return app.test_client()
 
 
 @pytest.fixture

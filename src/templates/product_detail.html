@@ -1,0 +1,388 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }} - Sara的二手售卖{% endblock %}
+
+{% block description %}{{ product.description[:150] }}{% if product.description|length > 150 %}...{% endif %} - {{ product.get_category_display() }},{{ product.condition }},仅售NZD ${{ "%.2f"|format(product.price) }}{% endblock %}
+
+{% block keywords %}{{ product.name }},{{ product.get_category_display() }},{{ product.condition }},二手,新西兰,奥克兰,{{ "%.0f"|format(product.price) }}元{% endblock %}
+
+{% block og_title %}{{ product.name }} - {{ product.condition }} - NZD ${{ "%.2f"|format(product.price) }}{% endblock %}
+{% block og_description %}{{ product.description[:200] }}{% if product.description|length > 200 %}...{% endif %}{% endblock %}
+{% block og_image %}{% set images = product.get_images() %}{{ images[0] if images else url_for('static', filename='images/default-product.png', _external=True) }}{% endblock %}
+
+{% block extra_meta %}
+<meta property="product:price:amount" content="{{ product.price }}" />
+<meta property="product:price:currency" content="NZD" />
+<meta property="product:condition" content="used" />
+<meta property="product:availability" content="{% if product.is_available() %}in stock{% else %}out of stock{% endif %}" />
+{% endblock %}
+
+{% block structured_data %}
+{{ super() }}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "{{ product.name }}",
+  "description": "{{ product.description|replace('"', '\\"') }}",
+  "image": {% set images = product.get_images() %}{% if images %}{{ images|tojson }}{% else %}["{{ url_for('static', filename='images/default-product.png', _external=True) }}"]{% endif %},
+  "sku": "{{ product.id }}",
+  "category": "{{ product.get_category_display() }}",
+  "brand": {
+    "@type": "Brand",
+    "name": "{{ product.get_specifications().get('brand', 'Generic') if product.get_specifications() else 'Generic' }}"
+  },
+  "offers": {
+    "@type": "Offer",
+    "url": "{{ request.url }}",
+    "priceCurrency": "NZD",
+    "price": "{{ product.price }}",
+    "itemCondition": "https://schema.org/UsedCondition",
+    "availability": "{% if product.is_available() %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}",
+    "seller": {
+      "@type": "Person",
+      "name": "Sara"
+    }
+  },
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "4.5",
+    "reviewCount": "1"
+  }
+}
+</script>
+{% endblock %}
+
+{% block content %}
+
+<div class="max-w-6xl mx-auto">
+  <!-- 返回按钮 -->
+  <div class="mb-6">
+    <a href="{{ url_for('main.products') }}" class="inline-flex items-center text-orange-600 hover:text-orange-700 transition">
+      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+      </svg>
+      返回商品列表
+    </a>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- 左侧：商品图片 -->
+    <div class="space-y-4">
+      {% set images = product.get_images() %}
+      {% if images %}
+        <!-- 主图 -->
+        <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+          <img id="mainImage" src="{{ images[0] }}" alt="{{ product.name }}" 
+               class="w-full h-full object-cover">
+        </div>
+        
+        <!-- 缩略图 -->
+        {% if images|length > 1 %}
+        <div class="grid grid-cols-4 gap-2">
+          {% for image in images %}
+          <div class="aspect-square bg-gray-100 rounded overflow-hidden cursor-pointer hover:ring-2 hover:ring-orange-300 transition"
+               onclick="changeMainImage('{{ image }}')">
+            <img src="{{ image }}" alt="{{ product.name }}" class="w-full h-full object-cover">
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      {% else %}
+        <!-- 默认图片 -->
+        <div class="aspect-square bg-gray-200 rounded-lg flex items-center justify-center">
+          <svg class="w-24 h-24 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+          </svg>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- 右侧：商品信息 -->
+    <div class="space-y-6">
+      <!-- 基本信息 -->
+      <div>
+        <div class="flex items-center gap-2 mb-2">
+          <span class="bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-sm font-medium">
+            {{ product.get_category_display() }}
+          </span>
+          <span class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-sm font-medium">
+            {{ product.condition }}
+          </span>
+          {% if product.is_available() %}
+          <span class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm font-medium">
+            有货
+          </span>
+          {% else %}
+          <span class="bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-medium">
+            已售出
+          </span>
+          {% endif %}
+          {% if product.face_to_face_only %}
+          <span class="bg-purple-100 text-purple-600 px-3 py-1 rounded-full text-sm font-medium">
+            仅见面交易
+          </span>
+          {% endif %}
+        </div>
+        
+        <h1 class="text-3xl font-bold text-gray-900 mb-4">{{ product.name }}</h1>
+        
+        <div class="text-4xl font-bold text-orange-600 mb-6">
+          NZD ${{ "%.2f"|format(product.price) }}
+        </div>
+      </div>
+
+      <!-- 商品描述 -->
+      <div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-3">商品描述</h3>
+        <p class="text-gray-700 leading-relaxed">{{ product.description }}</p>
+      </div>
+
+      <!-- 商品规格 -->
+      {% set specs = product.get_specifications() %}
+      {% if specs %}
+      <div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-3">商品规格</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {% for key, value in specs.items() %}
+          <div class="flex justify-between py-2 px-3 bg-gray-50 rounded">
+            <span class="text-gray-600">{{ key }}:</span>
+            <span class="text-gray-900 font-medium">{{ value }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- 交付方式 -->
+      <div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-3">交付方式</h3>
+        {% if product.face_to_face_only %}
+        <!-- 仅见面交易商品 -->
+        <div class="border-2 border-purple-200 bg-purple-50 rounded-lg p-4">
+          <div class="flex items-center mb-2">
+            <svg class="w-5 h-5 text-purple-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+            <span class="font-medium text-purple-800">仅限当面交易</span>
+          </div>
+          <p class="text-sm text-purple-700">此商品仅支持当面交易，不支持邮寄服务</p>
+          <p class="text-sm text-purple-600 mt-1">奥克兰地区推荐，安全见面地点</p>
+        </div>
+        {% else %}
+        <!-- 普通商品 -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="border border-gray-200 rounded-lg p-4">
+            <div class="flex items-center mb-2">
+              <svg class="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              </svg>
+              <span class="font-medium">当面交易</span>
+            </div>
+            <p class="text-sm text-gray-600">奥克兰地区推荐，安全见面地点</p>
+          </div>
+          
+          <div class="border border-gray-200 rounded-lg p-4">
+            <div class="flex items-center mb-2">
+              <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+              </svg>
+              <span class="font-medium">邮寄</span>
+            </div>
+            <p class="text-sm text-gray-600">新西兰全国，邮费约 NZD $15</p>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- 支付方式 -->
+      <div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-3">支付方式</h3>
+        <div class="space-y-3">
+          <div class="flex items-center p-3 bg-green-50 border border-green-200 rounded-lg">
+            <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div>
+              <div class="font-medium text-green-800">ANZ银行转账（推荐）</div>
+              <div class="text-sm text-green-600">即时到账，确认后当日发货</div>
+            </div>
+          </div>
+          
+          <div class="flex items-center p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <svg class="w-5 h-5 text-yellow-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+            </svg>
+            <div>
+              <div class="font-medium text-yellow-800">跨行转账</div>
+              <div class="text-sm text-yellow-600">需提前1-2天转账，确认到账后发货</div>
+            </div>
+          </div>
+          
+          <div class="flex items-center p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <svg class="w-5 h-5 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+            </svg>
+            <div>
+              <div class="font-medium text-blue-800">当面支付</div>
+              <div class="text-sm text-blue-600">现金 / 微信 / 支付宝扫码</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 操作按钮 -->
+      {% if product.is_available() %}
+      <div class="space-y-3">
+        <button onclick="addToCart({{ product.id }})" 
+                class="w-full bg-orange-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-orange-600 transition">
+          加入购物车
+        </button>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <a href="{{ url_for('contact') }}" 
+             class="block text-center bg-gray-100 text-gray-700 py-3 px-6 rounded-lg font-medium hover:bg-gray-200 transition">
+            咨询商品
+          </a>
+          <a href="tel:0225255862" 
+             class="block text-center bg-green-100 text-green-700 py-3 px-6 rounded-lg font-medium hover:bg-green-200 transition">
+            电话联系
+          </a>
+        </div>
+      </div>
+      {% else %}
+      <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+        <p class="text-red-600 font-medium">该商品已售出</p>
+        <a href="{{ url_for('main.products') }}" class="text-red-500 hover:text-red-700 text-sm">查看其他商品</a>
+      </div>
+      {% endif %}
+
+      <!-- 安全提示 -->
+      <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div class="flex items-start">
+          <svg class="w-5 h-5 text-blue-600 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <div>
+            <h4 class="font-medium text-blue-800 mb-1">购买提示</h4>
+            <ul class="text-sm text-blue-600 space-y-1">
+              <li>• 所有商品支持2小时内回复咨询</li>
+              <li>• 当面交易地点我们会通过短信确认</li>
+              <li>• 跨行转账请提前联系确认到账时间</li>
+              <li>• 二手物品售出后不支持退货</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- JavaScript -->
+<script>
+// 切换主图
+function changeMainImage(imageSrc) {
+  document.getElementById('mainImage').src = imageSrc;
+}
+
+// 添加到购物车
+function addToCart(productId) {
+  // 获取现有购物车数据
+  let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+  
+  // 检查商品是否已在购物车中
+  let existingItem = cart.find(item => item.id === productId);
+  
+  if (existingItem) {
+    existingItem.quantity += 1;
+  } else {
+    // 调用API获取商品信息并添加到购物车
+    fetch('/api/cart', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        product_id: productId,
+        quantity: 1
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        cart.push({
+          id: data.product.id,
+          name: data.product.name,
+          price: data.product.price,
+          image: data.product.image,
+          condition: data.product.condition,
+          quantity: data.quantity,
+          face_to_face_only: data.product.face_to_face_only || false
+        });
+        
+        // 保存到localStorage
+        localStorage.setItem('cart', JSON.stringify(cart));
+        
+        // 显示成功消息
+        showMessage('商品已加入购物车！', 'success');
+        
+        // 更新购物车计数
+        updateCartCount();
+      } else {
+        showMessage(data.message || '添加失败', 'error');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      showMessage('网络错误，请重试', 'error');
+    });
+    return;
+  }
+  
+  // 保存更新后的购物车
+  localStorage.setItem('cart', JSON.stringify(cart));
+  showMessage('商品数量已更新！', 'success');
+  updateCartCount();
+}
+
+// 显示消息
+function showMessage(message, type = 'info') {
+  // 创建消息元素
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
+    type === 'success' ? 'bg-green-500 text-white' : 
+    type === 'error' ? 'bg-red-500 text-white' : 
+    'bg-blue-500 text-white'
+  }`;
+  messageDiv.textContent = message;
+  
+  document.body.appendChild(messageDiv);
+  
+  // 3秒后自动移除
+  setTimeout(() => {
+    document.body.removeChild(messageDiv);
+  }, 3000);
+}
+
+// 更新购物车计数
+function updateCartCount() {
+  const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+  
+  // 更新页面中的购物车计数显示（如果存在）
+  const cartCountElements = document.querySelectorAll('.cart-count');
+  cartCountElements.forEach(element => {
+    element.textContent = totalItems;
+    element.style.display = totalItems > 0 ? 'inline' : 'none';
+  });
+}
+
+// 页面加载时更新购物车计数
+document.addEventListener('DOMContentLoaded', function() {
+  updateCartCount();
+});
+</script>
+
+{% endblock %}

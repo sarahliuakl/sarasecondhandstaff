@@ -2,8 +2,8 @@
 模型测试
 """
 import pytest
-from models import db, Product, Order, Message, Admin
-from models import get_sales_stats, get_popular_products, get_customer_stats
+from src.models import db, Product, Order, Message, Admin
+from src.models import get_sales_stats, get_popular_products, get_customer_stats
 
 
 class TestProduct:

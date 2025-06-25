@@ -1,0 +1,377 @@
+{% extends "base.html" %}
+{% block title %}订单提交成功 - Sara的二手售卖{% endblock %}
+{% block content %}
+
+<div class="max-w-3xl mx-auto text-center">
+  <!-- 成功图标 -->
+  <div class="mb-8">
+    <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+      <svg class="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+    </div>
+    <h2 class="text-3xl font-bold text-green-700 mb-2">订单提交成功！</h2>
+    <p class="text-lg text-gray-600">感谢您的购买，我会尽快处理您的订单</p>
+    
+    <!-- 邮件确认提示 -->
+    <div class="mt-4 bg-green-50 border border-green-200 rounded-lg p-4 inline-block">
+      <div class="flex items-center text-green-700">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+        </svg>
+        <span class="text-sm font-medium">订单确认邮件已发送至 {{ order.customer_email }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 订单商品列表 -->
+  <div class="bg-white rounded-lg shadow p-6 mb-6">
+    <h3 class="text-xl font-semibold mb-4 text-center">订单商品</h3>
+    
+    <div class="space-y-4 mb-6">
+      {% for item in order.get_items_display() %}
+      <div class="flex items-center gap-4 py-4 border-b border-gray-100">
+        <div class="flex-shrink-0">
+          <img src="{{ item.image or 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=400&q=80' }}" 
+               alt="{{ item.name }}" 
+               class="w-16 h-16 object-cover rounded">
+        </div>
+        
+        <div class="flex-1">
+          <h4 class="font-semibold">{{ item.name }}</h4>
+          <p class="text-sm text-gray-600">成色：{{ item.condition }}</p>
+          <p class="text-sm text-gray-600">数量：{{ item.quantity }}</p>
+          <p class="text-sm text-gray-600">单价：NZD ${{ "%.2f"|format(item.price) }}</p>
+        </div>
+        
+        <div class="text-right">
+          <p class="font-semibold text-orange-600">NZD ${{ "%.2f"|format(item.total) }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    
+    <!-- 订单总计 -->
+    <div class="bg-gray-50 rounded p-4">
+      <div class="flex justify-between items-center mb-2">
+        <span class="text-sm">商品小计:</span>
+        <span class="font-semibold">NZD ${{ "%.2f"|format(order.get_subtotal()) }}</span>
+      </div>
+      <div class="flex justify-between items-center mb-2">
+        <span class="text-sm">邮费:</span>
+        <span class="font-semibold">
+          {% if order.get_shipping_fee() > 0 %}
+            NZD ${{ "%.2f"|format(order.get_shipping_fee()) }}
+          {% else %}
+            免费
+          {% endif %}
+        </span>
+      </div>
+      <hr class="my-2">
+      <div class="flex justify-between items-center">
+        <span class="text-lg font-bold">订单总额:</span>
+        <span class="text-xl font-bold text-orange-600">NZD ${{ "%.2f"|format(order.total_amount) }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 订单信息 -->
+  <div class="bg-white rounded-lg shadow p-6 text-left mb-8">
+    <h3 class="text-xl font-semibold mb-4 text-center">订单详情</h3>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <h4 class="font-semibold text-gray-700 mb-2">基本信息</h4>
+        <div class="space-y-1 text-sm">
+          <p><span class="font-medium">订单号:</span> #{{ order.id }}</p>
+          <p><span class="font-medium">下单时间:</span> {{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+          <p><span class="font-medium">客户姓名:</span> {{ order.customer_name }}</p>
+          <p><span class="font-medium">联系邮箱:</span> {{ order.customer_email }}</p>
+          {% if order.customer_phone %}
+          <p><span class="font-medium">联系电话:</span> {{ order.customer_phone }}</p>
+          {% endif %}
+        </div>
+      </div>
+      
+      <div>
+        <h4 class="font-semibold text-gray-700 mb-2">交付信息</h4>
+        <div class="space-y-1 text-sm">
+          <p><span class="font-medium">交付方式:</span> 
+            {% if order.delivery_method == 'pickup' %}当面交易{% else %}邮寄{% endif %}
+          </p>
+          <p><span class="font-medium">支付方式:</span>
+            {% if order.payment_method == 'anz_transfer' %}ANZ银行转账
+            {% elif order.payment_method == 'bank_transfer' %}跨行转账
+            {% elif order.payment_method == 'cash' %}现金支付
+            {% elif order.payment_method == 'wechat_alipay' %}微信/支付宝
+            {% else %}{{ order.payment_method }}{% endif %}
+          </p>
+          {% if order.customer_address %}
+          <p><span class="font-medium">邮寄地址:</span> {{ order.customer_address }}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    {% if order.notes %}
+    <div class="mt-4 pt-4 border-t border-gray-200">
+      <h4 class="font-semibold text-gray-700 mb-2">备注</h4>
+      <p class="text-sm text-gray-600">{{ order.notes }}</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- 下步操作 -->
+  <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
+    <h3 class="text-lg font-semibold text-blue-800 mb-4">接下来会发生什么？</h3>
+    <div class="text-left space-y-3 text-sm text-blue-700">
+      <div class="flex items-start">
+        <div class="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5">1</div>
+        <div>
+          <div class="font-medium">订单确认</div>
+          <div class="text-blue-600">我会在2小时内通过邮箱联系您，确认订单详情和商品可用性</div>
+        </div>
+      </div>
+      
+      <div class="flex items-start">
+        <div class="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5">2</div>
+        <div>
+          <div class="font-medium">支付安排</div>
+          <div class="text-blue-600">
+            {% if order.delivery_method == 'shipping' %}
+              {% if order.payment_method == 'anz_transfer' %}
+                我会发送ANZ银行账户信息给您，请在确认后进行转账，确认到账后安排邮寄
+              {% elif order.payment_method == 'bank_transfer' %}
+                我会发送银行账户信息给您，请在确认后进行转账，确认到账后安排邮寄
+              {% elif order.payment_method == 'wechat_alipay' %}
+                我会发送微信/支付宝收款码给您，请在确认后转账，确认到账后安排邮寄
+              {% endif %}
+            {% else %}
+              {% if order.payment_method == 'cash' %}
+                我们会安排当面交易的时间和地点，可以现金支付
+              {% elif order.payment_method == 'wechat_alipay' %}
+                我们会安排当面交易的时间和地点，可以使用微信/支付宝支付
+              {% else %}
+                我会发送银行账户信息给您，也可以选择当面交易时支付
+              {% endif %}
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      
+      <div class="flex items-start">
+        <div class="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5">3</div>
+        <div>
+          <div class="font-medium">商品交付</div>
+          <div class="text-blue-600">
+            {% if order.delivery_method == 'pickup' %}
+              确认付款后，我们会安排当面交易的具体时间和地点
+            {% else %}
+              确认付款后，我会尽快安排邮寄，并提供物流追踪信息
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 联系信息 -->
+  <div class="bg-orange-50 border border-orange-200 rounded-lg p-6 mb-8">
+    <h3 class="text-lg font-semibold text-orange-800 mb-3">联系方式</h3>
+    <div class="text-sm text-orange-700">
+      <p><strong>电话:</strong> 0225255862</p>
+      <p><strong>邮箱:</strong> haixialiu2017@gmail.com</p>
+      <p class="mt-2">如有任何问题或需要修改订单，请随时联系我</p>
+    </div>
+  </div>
+
+  <!-- 操作按钮 -->
+  <div class="flex flex-col sm:flex-row gap-4 justify-center">
+    <button onclick="printOrder()" 
+            class="bg-purple-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-600 transition">
+      打印订单
+    </button>
+    <a href="{{ url_for('main.products') }}" 
+       class="bg-orange-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-600 transition">
+      继续购物
+    </a>
+    <a href="{{ url_for('main.order_query') }}"
+       class="bg-gray-100 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-200 transition">
+      查询订单
+    </a>
+    <a href="{{ url_for('index') }}" 
+       class="bg-blue-100 text-blue-700 px-6 py-3 rounded-lg font-semibold hover:bg-blue-200 transition">
+      返回首页
+    </a>
+  </div>
+</div>
+
+<script>
+// 订单提交成功后清空购物车
+document.addEventListener('DOMContentLoaded', function() {
+  localStorage.removeItem('cart');
+  
+  // 更新购物车计数
+  const cartCountElements = document.querySelectorAll('.cart-count');
+  cartCountElements.forEach(element => {
+    element.textContent = '0';
+    element.style.display = 'none';
+  });
+});
+
+// 打印订单功能
+function printOrder() {
+  // 创建打印样式
+  const printStyles = `
+    <style>
+      @media print {
+        body * { visibility: hidden; }
+        .print-area, .print-area * { visibility: visible; }
+        .print-area { 
+          position: absolute; 
+          left: 0; 
+          top: 0; 
+          width: 100%; 
+        }
+        .no-print { display: none !important; }
+        .print-header { 
+          text-align: center; 
+          margin-bottom: 20px; 
+          border-bottom: 2px solid #333; 
+          padding-bottom: 10px; 
+        }
+        .print-content { 
+          font-size: 12px; 
+          line-height: 1.4; 
+        }
+        .print-table { 
+          width: 100%; 
+          border-collapse: collapse; 
+          margin: 10px 0; 
+        }
+        .print-table th, .print-table td { 
+          border: 1px solid #333; 
+          padding: 8px; 
+          text-align: left; 
+        }
+        .print-table th { 
+          background-color: #f0f0f0; 
+          font-weight: bold; 
+        }
+      }
+    </style>
+  `;
+  
+  // 获取订单信息
+  const orderInfo = {
+    id: '{{ order.id }}',
+    created_at: '{{ order.created_at.strftime("%Y-%m-%d %H:%M") }}',
+    customer_name: '{{ order.customer_name }}',
+    customer_email: '{{ order.customer_email }}',
+    customer_phone: '{{ order.customer_phone or "" }}',
+    delivery_method: '{% if order.delivery_method == "pickup" %}当面交易{% else %}邮寄{% endif %}',
+    payment_method: '{% if order.payment_method == "anz_transfer" %}ANZ银行转账{% elif order.payment_method == "bank_transfer" %}跨行转账{% elif order.payment_method == "cash" %}现金支付{% elif order.payment_method == "wechat_alipay" %}微信/支付宝{% else %}{{ order.payment_method }}{% endif %}',
+    customer_address: '{{ order.customer_address or "" }}',
+    total_amount: '{{ "%.2f"|format(order.total_amount) }}',
+    notes: '{{ order.notes or "" }}'
+  };
+  
+  // 获取订单商品信息
+  const orderItems = [
+    {% for item in order.get_items_display() %}
+    {
+      name: '{{ item.name|e }}',
+      price: {{ item.price }},
+      quantity: {{ item.quantity }},
+      condition: '{{ item.condition|e }}',
+      total: {{ item.total }}
+    },
+    {% endfor %}
+  ];
+  
+  // 创建商品表格
+  let itemsTableRows = '';
+  orderItems.forEach(item => {
+    itemsTableRows += `
+      <tr>
+        <td>${item.name}</td>
+        <td>${item.condition}</td>
+        <td>NZD $${item.price.toFixed(2)}</td>
+        <td>${item.quantity}</td>
+        <td>NZD $${item.total.toFixed(2)}</td>
+      </tr>
+    `;
+  });
+  
+  // 创建打印内容
+  const printContent = `
+    ${printStyles}
+    <div class="print-area">
+      <div class="print-header">
+        <h1>Sara的二手售卖 - 订单确认单</h1>
+        <p>联系电话: 0225255862 | 邮箱: haixialiu2017@gmail.com</p>
+      </div>
+      
+      <div class="print-content">
+        <h3>订单信息</h3>
+        <table class="print-table" style="margin-bottom: 20px;">
+          <tr><th>订单号</th><td>#${orderInfo.id}</td></tr>
+          <tr><th>下单时间</th><td>${orderInfo.created_at}</td></tr>
+          <tr><th>客户姓名</th><td>${orderInfo.customer_name}</td></tr>
+          <tr><th>联系邮箱</th><td>${orderInfo.customer_email}</td></tr>
+          ${orderInfo.customer_phone ? `<tr><th>联系电话</th><td>${orderInfo.customer_phone}</td></tr>` : ''}
+          <tr><th>交付方式</th><td>${orderInfo.delivery_method}</td></tr>
+          <tr><th>支付方式</th><td>${orderInfo.payment_method}</td></tr>
+          ${orderInfo.customer_address ? `<tr><th>邮寄地址</th><td>${orderInfo.customer_address}</td></tr>` : ''}
+          ${orderInfo.notes ? `<tr><th>备注</th><td>${orderInfo.notes}</td></tr>` : ''}
+        </table>
+        
+        <h3>订单商品</h3>
+        <table class="print-table" style="margin-bottom: 20px;">
+          <thead>
+            <tr>
+              <th>商品名称</th>
+              <th>成色</th>
+              <th>单价</th>
+              <th>数量</th>
+              <th>小计</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${itemsTableRows}
+          </tbody>
+        </table>
+        
+        <table class="print-table" style="margin-bottom: 20px;">
+          <tr><th>商品小计</th><td>NZD ${{ "%.2f"|format(order.get_subtotal()) }}</td></tr>
+          <tr><th>邮费</th><td>{% if order.get_shipping_fee() > 0 %}NZD ${{ "%.2f"|format(order.get_shipping_fee()) }}{% else %}免费{% endif %}</td></tr>
+          <tr style="border-top: 2px solid #333;"><th><strong>订单总额</strong></th><td><strong>NZD $${orderInfo.total_amount}</strong></td></tr>
+        </table>
+        
+        <div style="margin-top: 30px; border-top: 1px solid #ccc; padding-top: 15px;">
+          <h3>重要提醒:</h3>
+          <ul style="margin: 10px 0; padding-left: 20px;">
+            <li>请保存此订单确认单作为购买凭证</li>
+            <li>我会在2小时内通过邮箱联系您确认订单详情</li>
+            <li>如有任何问题，请联系: 0225255862</li>
+          </ul>
+        </div>
+        
+        <div style="margin-top: 20px; text-align: center; font-size: 10px; color: #666;">
+          <p>打印时间: ${new Date().toLocaleString('zh-CN')}</p>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // 创建新窗口并打印
+  const printWindow = window.open('', '_blank');
+  printWindow.document.write(printContent);
+  printWindow.document.close();
+  printWindow.focus();
+  printWindow.print();
+  printWindow.close();
+}
+</script>
+
+{% endblock %}
