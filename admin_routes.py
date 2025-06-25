@@ -9,6 +9,7 @@ from werkzeug.urls import url_parse
 from models import db, Admin, Product, Order, Message, SiteSettings
 from models import get_admin_by_username, create_admin, get_site_setting, set_site_setting
 from models import get_low_stock_products, get_out_of_stock_products, get_inventory_stats
+from models import get_sales_stats, get_monthly_sales_trend, get_popular_products, get_customer_stats
 from utils import sanitize_user_input, validate_form_data, validate_email_address
 from file_upload import upload_image, delete_image, get_image_url
 import logging
@@ -843,3 +844,91 @@ def product_inventory_update(product_id):
         db.session.rollback()
         logger.error(f'库存更新失败: {str(e)} - 管理员: {current_user.username}')
         return jsonify({'success': False, 'message': f'更新失败: {str(e)}'})
+
+
+@admin_bp.route('/analytics')
+@login_required
+def analytics():
+    """销售分析页面"""
+    try:
+        # 获取销售统计数据
+        sales_stats = get_sales_stats()
+        
+        # 获取月度销售趋势
+        monthly_trend = get_monthly_sales_trend(12)
+        
+        # 获取热门产品
+        popular_products = get_popular_products(10)
+        
+        # 获取客户统计
+        customer_stats = get_customer_stats()
+        
+        logger.info(f'销售分析页面访问 - 管理员: {current_user.username}')
+        
+        return render_template('admin/analytics.html', 
+                             sales_stats=sales_stats,
+                             monthly_trend=monthly_trend,
+                             popular_products=popular_products,
+                             customer_stats=customer_stats)
+                             
+    except Exception as e:
+        logger.error(f'销售分析页面加载失败: {str(e)} - 管理员: {current_user.username}')
+        flash(f'数据加载失败: {str(e)}', 'error')
+        return redirect(url_for('admin.dashboard'))
+
+
+@admin_bp.route('/analytics/api/sales')
+@login_required
+def analytics_api_sales():
+    """销售数据API"""
+    try:
+        # 获取日期范围参数
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+        
+        # 转换日期格式
+        from datetime import datetime
+        if start_date:
+            start_date = datetime.strptime(start_date, '%Y-%m-%d')
+        if end_date:
+            end_date = datetime.strptime(end_date, '%Y-%m-%d')
+        
+        # 获取销售统计
+        stats = get_sales_stats(start_date, end_date)
+        
+        return jsonify({
+            'success': True,
+            'data': stats
+        })
+        
+    except Exception as e:
+        logger.error(f'销售数据API错误: {str(e)} - 管理员: {current_user.username}')
+        return jsonify({
+            'success': False,
+            'message': f'数据获取失败: {str(e)}'
+        })
+
+
+@admin_bp.route('/analytics/api/trend')
+@login_required
+def analytics_api_trend():
+    """销售趋势数据API"""
+    try:
+        # 获取月份数参数
+        months = request.args.get('months', 12, type=int)
+        months = min(max(months, 1), 24)  # 限制在1-24个月之间
+        
+        # 获取趋势数据
+        trend_data = get_monthly_sales_trend(months)
+        
+        return jsonify({
+            'success': True,
+            'data': trend_data
+        })
+        
+    except Exception as e:
+        logger.error(f'销售趋势API错误: {str(e)} - 管理员: {current_user.username}')
+        return jsonify({
+            'success': False,
+            'message': f'数据获取失败: {str(e)}'
+        })

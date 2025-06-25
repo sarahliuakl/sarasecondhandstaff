@@ -711,3 +711,176 @@ def set_site_setting(key, value, description=None):
         setting = SiteSettings(key=key, value=value, description=description)
         db.session.add(setting)
     return setting
+
+
+# 销售分析相关函数
+def get_sales_stats(start_date=None, end_date=None):
+    """获取销售统计数据"""
+    from sqlalchemy import func, extract
+    
+    # 基础查询
+    query = Order.query
+    
+    # 日期过滤
+    if start_date:
+        query = query.filter(Order.created_at >= start_date)
+    if end_date:
+        query = query.filter(Order.created_at <= end_date)
+    
+    # 完成的订单
+    completed_orders = query.filter(Order.status.in_(['completed', 'paid'])).all()
+    
+    # 计算统计数据
+    total_orders = len(completed_orders)
+    total_revenue = sum(float(order.total_amount) for order in completed_orders)
+    avg_order_value = total_revenue / total_orders if total_orders > 0 else 0
+    
+    # 按状态统计
+    status_stats = {}
+    for status_code, status_name in Order.ORDER_STATUSES:
+        count = query.filter(Order.status == status_code).count()
+        status_stats[status_name] = count
+    
+    # 按分类统计销售额
+    category_stats = {}
+    for order in completed_orders:
+        items = order.get_items()
+        for item in items:
+            # 从产品获取分类信息
+            product = Product.query.get(item.get('id'))
+            if product:
+                category = product.get_category_display()
+                if category not in category_stats:
+                    category_stats[category] = {'count': 0, 'revenue': 0}
+                category_stats[category]['count'] += item.get('quantity', 1)
+                category_stats[category]['revenue'] += float(item.get('price', 0)) * item.get('quantity', 1)
+    
+    return {
+        'total_orders': total_orders,
+        'total_revenue': total_revenue,
+        'avg_order_value': avg_order_value,
+        'status_stats': status_stats,
+        'category_stats': category_stats
+    }
+
+
+def get_monthly_sales_trend(months=12):
+    """获取月度销售趋势"""
+    from sqlalchemy import func, extract
+    from datetime import datetime, timedelta
+    
+    end_date = datetime.now()
+    start_date = end_date - timedelta(days=months * 30)
+    
+    # 按月分组的订单统计
+    monthly_stats = db.session.query(
+        extract('year', Order.created_at).label('year'),
+        extract('month', Order.created_at).label('month'),
+        func.count(Order.id).label('order_count'),
+        func.sum(Order.total_amount).label('revenue')
+    ).filter(
+        Order.created_at >= start_date,
+        Order.status.in_(['completed', 'paid'])
+    ).group_by(
+        extract('year', Order.created_at),
+        extract('month', Order.created_at)
+    ).order_by(
+        extract('year', Order.created_at),
+        extract('month', Order.created_at)
+    ).all()
+    
+    # 格式化结果
+    trend_data = []
+    for stat in monthly_stats:
+        trend_data.append({
+            'year': int(stat.year),
+            'month': int(stat.month),
+            'month_name': f"{int(stat.year)}年{int(stat.month)}月",
+            'order_count': stat.order_count,
+            'revenue': float(stat.revenue) if stat.revenue else 0
+        })
+    
+    return trend_data
+
+
+def get_popular_products(limit=10):
+    """获取热门产品排行"""
+    # 从订单中统计产品销量
+    product_sales = {}
+    
+    completed_orders = Order.query.filter(Order.status.in_(['completed', 'paid'])).all()
+    
+    for order in completed_orders:
+        items = order.get_items()
+        for item in items:
+            product_id = item.get('id')
+            quantity = item.get('quantity', 1)
+            
+            if product_id not in product_sales:
+                product_sales[product_id] = {
+                    'product_id': product_id,
+                    'name': item.get('name', ''),
+                    'total_sold': 0,
+                    'total_revenue': 0
+                }
+            
+            product_sales[product_id]['total_sold'] += quantity
+            product_sales[product_id]['total_revenue'] += float(item.get('price', 0)) * quantity
+    
+    # 排序并返回前N个
+    sorted_products = sorted(
+        product_sales.values(),
+        key=lambda x: x['total_sold'],
+        reverse=True
+    )
+    
+    return sorted_products[:limit]
+
+
+def get_customer_stats():
+    """获取客户统计数据"""
+    # 按邮箱统计客户
+    customer_stats = {}
+    
+    orders = Order.query.all()
+    for order in orders:
+        email = order.customer_email
+        if email not in customer_stats:
+            customer_stats[email] = {
+                'customer_email': email,
+                'customer_name': order.customer_name,
+                'order_count': 0,
+                'total_spent': 0,
+                'first_order': order.created_at,
+                'last_order': order.created_at
+            }
+        
+        customer_stats[email]['order_count'] += 1
+        if order.status in ['completed', 'paid']:
+            customer_stats[email]['total_spent'] += float(order.total_amount)
+        
+        # 更新首次和最后订单时间
+        if order.created_at < customer_stats[email]['first_order']:
+            customer_stats[email]['first_order'] = order.created_at
+        if order.created_at > customer_stats[email]['last_order']:
+            customer_stats[email]['last_order'] = order.created_at
+    
+    # 客户分析
+    total_customers = len(customer_stats)
+    repeat_customers = len([c for c in customer_stats.values() if c['order_count'] > 1])
+    avg_orders_per_customer = sum(c['order_count'] for c in customer_stats.values()) / total_customers if total_customers > 0 else 0
+    
+    # 按消费额排序的VIP客户
+    vip_customers = sorted(
+        customer_stats.values(),
+        key=lambda x: x['total_spent'],
+        reverse=True
+    )[:10]
+    
+    return {
+        'total_customers': total_customers,
+        'repeat_customers': repeat_customers,
+        'repeat_rate': repeat_customers / total_customers * 100 if total_customers > 0 else 0,
+        'avg_orders_per_customer': avg_orders_per_customer,
+        'vip_customers': vip_customers
+    }
