@@ -31,9 +31,18 @@
         <span id="subtotal" class="text-xl font-bold text-orange-600">NZD $0.00</span>
       </div>
       
-      <div class="flex justify-between items-center mb-4">
+      <div class="flex justify-between items-center mb-4" id="shippingFeeRow">
         <span class="text-lg font-medium">预估邮费:</span>
         <span id="shippingFee" class="text-lg text-gray-600">NZD $15.00</span>
+      </div>
+      
+      <div id="faceToFaceOnlyWarning" class="hidden bg-purple-50 border border-purple-200 rounded-lg p-3 mb-4">
+        <div class="flex items-center text-purple-700">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          购物车中包含仅见面交易商品，只能选择当面交易
+        </div>
       </div>
       
       <hr class="my-4">
@@ -183,6 +192,7 @@ function createCartItemElement(item, index) {
     <div class="flex-1">
       <h4 class="font-semibold text-lg mb-1">${item.name}</h4>
       <p class="text-sm text-gray-600 mb-2">成色：${item.condition}</p>
+      ${item.face_to_face_only ? '<p class="text-xs text-purple-600 mb-2">🔒 仅见面交易</p>' : ''}
       <p class="text-lg font-bold text-orange-600">NZD $${item.price.toFixed(2)}</p>
     </div>
     
@@ -246,13 +256,35 @@ function clearCart() {
 function updateCartSummary() {
   const cart = JSON.parse(localStorage.getItem('cart') || '[]');
   let subtotal = 0;
+  let hasFaceToFaceOnlyItems = false;
   
   cart.forEach(item => {
     subtotal += item.price * item.quantity;
+    if (item.face_to_face_only) {
+      hasFaceToFaceOnlyItems = true;
+    }
   });
   
-  const shippingFee = 15.00; // 固定邮费
-  const total = subtotal + shippingFee;
+  const shippingFeeRow = document.getElementById('shippingFeeRow');
+  const faceToFaceWarning = document.getElementById('faceToFaceOnlyWarning');
+  const shippingFeeElement = document.getElementById('shippingFee');
+  
+  let shippingFee = 0;
+  let total = subtotal;
+  
+  if (hasFaceToFaceOnlyItems) {
+    // 如果有仅见面交易商品，隐藏邮费显示警告
+    shippingFeeRow.style.display = 'none';
+    faceToFaceWarning.classList.remove('hidden');
+    shippingFee = 0;
+  } else {
+    // 普通商品，显示邮费
+    shippingFeeRow.style.display = 'flex';
+    faceToFaceWarning.classList.add('hidden');
+    shippingFee = 15.00;
+    total = subtotal + shippingFee;
+    shippingFeeElement.textContent = `NZD $${shippingFee.toFixed(2)}`;
+  }
   
   document.getElementById('subtotal').textContent = `NZD $${subtotal.toFixed(2)}`;
   document.getElementById('total').textContent = `NZD $${total.toFixed(2)}`;

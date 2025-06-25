@@ -5,6 +5,8 @@ from utils import sanitize_user_input, validate_form_data, validate_email_addres
 import requests
 import datetime
 import os
+import logging
+from logging.handlers import RotatingFileHandler
 from dotenv import load_dotenv
 
 # 加载环境变量
@@ -20,6 +22,49 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'fallback-key-change-in-produ
 
 # 初始化CSRF保护
 csrf = CSRFProtect(app)
+
+# 配置日志
+def setup_logging(app):
+    """配置应用日志"""
+    if not app.debug and not app.testing:
+        # 生产环境日志配置
+        if not os.path.exists('logs'):
+            os.mkdir('logs')
+        
+        # 设置日志文件轮转
+        file_handler = RotatingFileHandler(
+            'logs/sara_shop.log', 
+            maxBytes=10240000,  # 10MB
+            backupCount=10
+        )
+        file_handler.setFormatter(logging.Formatter(
+            '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+        ))
+        file_handler.setLevel(logging.INFO)
+        app.logger.addHandler(file_handler)
+        
+        app.logger.setLevel(logging.INFO)
+        app.logger.info('Sara Shop 启动')
+    else:
+        # 开发环境日志配置
+        if not os.path.exists('logs'):
+            os.mkdir('logs')
+            
+        file_handler = RotatingFileHandler(
+            'logs/sara_shop_dev.log',
+            maxBytes=1024000,  # 1MB
+            backupCount=3
+        )
+        file_handler.setFormatter(logging.Formatter(
+            '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+        ))
+        file_handler.setLevel(logging.DEBUG)
+        app.logger.addHandler(file_handler)
+        
+        app.logger.setLevel(logging.DEBUG)
+
+# 设置日志
+setup_logging(app)
 
 # 初始化数据库
 db.init_app(app)
@@ -109,10 +154,12 @@ def contact():
         try:
             db.session.add(message)
             db.session.commit()
+            app.logger.info(f'新留言提交: {clean_data["name"]} - {clean_data["contact"]}')
             flash('留言已提交！我会在2小时内回复您。', 'success')
             return redirect(url_for('contact'))
         except Exception as e:
             db.session.rollback()
+            app.logger.error(f'留言提交失败: {str(e)}')
             flash('提交失败，请稍后重试', 'error')
             return render_template("contact.html")
     
@@ -211,6 +258,8 @@ def order_search():
     from models import get_orders_by_contact
     orders = get_orders_by_contact(clean_data['contact'])
     
+    app.logger.info(f'订单查询: {clean_data["contact"]} - 找到{len(orders)}个订单')
+    
     return render_template("order_results.html", orders=orders, contact_info=clean_data['contact'])
 
 
@@ -295,12 +344,15 @@ def order_confirm():
             db.session.add(order)
             db.session.commit()
             
+            app.logger.info(f'新订单创建: {order.order_number} - {normalized_email} - 总额: NZD ${total_amount}')
+            
             # 订单创建成功，清空购物车并跳转到成功页面
             flash('订单提交成功！我会在2小时内联系您确认详情。', 'success')
             return redirect(url_for('order_success', order_id=order.id))
             
         except Exception as e:
             db.session.rollback()
+            app.logger.error(f'订单创建失败: {str(e)} - 用户: {clean_data["customer_email"]}')
             flash('订单提交失败，请稍后重试', 'error')
             return render_template("order_confirm.html")
     
@@ -317,13 +369,24 @@ def order_success(order_id):
 # 错误处理
 @app.errorhandler(404)
 def not_found_error(error):
+    app.logger.warning(f'404错误: {request.url} - IP: {request.remote_addr}')
     return render_template('404.html'), 404
 
 
 @app.errorhandler(500)
 def internal_error(error):
     db.session.rollback()
+    app.logger.error(f'500错误: {str(error)} - URL: {request.url} - IP: {request.remote_addr}')
     return render_template('500.html'), 500
+
+
+# 请求日志记录
+@app.before_request
+def log_request_info():
+    """记录请求信息"""
+    if not app.debug:
+        # 只在生产环境记录详细请求信息
+        app.logger.debug(f'请求: {request.method} {request.url} - IP: {request.remote_addr} - UA: {request.headers.get("User-Agent")}')
 
 
 if __name__ == "__main__":

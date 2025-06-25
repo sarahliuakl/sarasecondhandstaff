@@ -22,6 +22,7 @@ class Product(db.Model):
     category = db.Column(db.String(50), nullable=False)
     condition = db.Column(db.String(20), nullable=False)
     stock_status = db.Column(db.String(20), default='available')
+    face_to_face_only = db.Column(db.Boolean, default=False, nullable=False)  # 是否仅支持见面交易
     images = db.Column(db.Text)  # JSON格式存储图片URL列表
     specifications = db.Column(db.Text)  # JSON格式存储商品规格
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -111,6 +112,7 @@ class Product(db.Model):
             'condition': self.condition,
             'stock_status': self.stock_status,
             'status_display': self.get_status_display(),
+            'face_to_face_only': self.face_to_face_only,
             'images': self.get_images(),
             'specifications': self.get_specifications(),
             'is_available': self.is_available(),

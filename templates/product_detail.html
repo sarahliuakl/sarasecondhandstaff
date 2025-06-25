@@ -66,6 +66,11 @@
             已售出
           </span>
           {% endif %}
+          {% if product.face_to_face_only %}
+          <span class="bg-purple-100 text-purple-600 px-3 py-1 rounded-full text-sm font-medium">
+            仅见面交易
+          </span>
+          {% endif %}
         </div>
         
         <h1 class="text-3xl font-bold text-gray-900 mb-4">{{ product.name }}</h1>
@@ -100,6 +105,21 @@
       <!-- 交付方式 -->
       <div>
         <h3 class="text-lg font-semibold text-gray-900 mb-3">交付方式</h3>
+        {% if product.face_to_face_only %}
+        <!-- 仅见面交易商品 -->
+        <div class="border-2 border-purple-200 bg-purple-50 rounded-lg p-4">
+          <div class="flex items-center mb-2">
+            <svg class="w-5 h-5 text-purple-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+            <span class="font-medium text-purple-800">仅限当面交易</span>
+          </div>
+          <p class="text-sm text-purple-700">此商品仅支持当面交易，不支持邮寄服务</p>
+          <p class="text-sm text-purple-600 mt-1">奥克兰地区推荐，安全见面地点</p>
+        </div>
+        {% else %}
+        <!-- 普通商品 -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div class="border border-gray-200 rounded-lg p-4">
             <div class="flex items-center mb-2">
@@ -122,6 +142,7 @@
             <p class="text-sm text-gray-600">新西兰全国，邮费约 NZD $15</p>
           </div>
         </div>
+        {% endif %}
       </div>
 
       <!-- 支付方式 -->
@@ -245,7 +266,8 @@ function addToCart(productId) {
           price: data.product.price,
           image: data.product.image,
           condition: data.product.condition,
-          quantity: data.quantity
+          quantity: data.quantity,
+          face_to_face_only: data.product.face_to_face_only || false
         });
         
         // 保存到localStorage
