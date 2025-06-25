@@ -34,7 +34,7 @@
     <h3 class="text-xl font-semibold mb-4">客户信息</h3>
     
     <form id="orderForm" method="post">
-      {{ csrf_token() }}
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
       <input type="hidden" id="cartData" name="cart_data" value="">
       
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

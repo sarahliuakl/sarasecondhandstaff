@@ -26,8 +26,7 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 # 初始化CSRF保护
 csrf = CSRFProtect(app)
 
-# 豁免API端点的CSRF检查
-csrf.exempt('add_to_cart')
+# 豁免API端点的CSRF检查 - 将在路由装饰器中使用@csrf.exempt
 
 # 初始化Flask-Login
 login_manager = LoginManager()
@@ -235,6 +234,7 @@ def cart():
 
 
 @app.route("/api/cart", methods=['POST'])
+@csrf.exempt
 def add_to_cart():
     """添加商品到购物车（API接口）"""
     # 对于JSON API，暂时跳过CSRF检查
