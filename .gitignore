@@ -38,6 +38,9 @@ htmlcov/
 .DS_Store
 Thumbs.db
 
+# 环境变量文件
+.env
+
 # 其他
 .idea/
 *.swp

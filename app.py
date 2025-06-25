@@ -1,8 +1,14 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask_wtf.csrf import CSRFProtect, exempt
 from models import db, Product, Order, Message, get_products_by_category, get_product_by_id
+from utils import sanitize_user_input, validate_form_data, validate_email_address
 import requests
 import datetime
 import os
+from dotenv import load_dotenv
+
+# 加载环境变量
+load_dotenv()
 
 app = Flask(__name__)
 
@@ -10,7 +16,10 @@ app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(basedir, "sara_shop.db")}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'sara-secondhand-shop-2025'
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'fallback-key-change-in-production')
+
+# 初始化CSRF保护
+csrf = CSRFProtect(app)
 
 # 初始化数据库
 db.init_app(app)
@@ -18,28 +27,29 @@ db.init_app(app)
 @app.route("/")
 def index():
     # 获取奥克兰天气
-    api_key = "dc99157b60b2a5a2194a471c839050c9"
+    api_key = os.getenv('OPENWEATHER_API_KEY')
     weather = None
-    try:
-        resp = requests.get(
-            "https://api.openweathermap.org/data/2.5/weather",
-            params={
-                "q": "Auckland,NZ",
-                "appid": api_key,
-                "units": "metric",
-                "lang": "zh_cn"
-            },
-            timeout=3
-        )
-        if resp.status_code == 200:
-            data = resp.json()
-            weather = {
-                "desc": data["weather"][0]["description"],
-                "temp": round(data["main"]["temp"]),
-                "icon": data["weather"][0]["icon"]
-            }
-    except Exception:
-        weather = None
+    if api_key:
+        try:
+            resp = requests.get(
+                "https://api.openweathermap.org/data/2.5/weather",
+                params={
+                    "q": "Auckland,NZ",
+                    "appid": api_key,
+                    "units": "metric",
+                    "lang": "zh_cn"
+                },
+                timeout=3
+            )
+            if resp.status_code == 200:
+                data = resp.json()
+                weather = {
+                    "desc": data["weather"][0]["description"],
+                    "temp": round(data["main"]["temp"]),
+                    "icon": data["weather"][0]["icon"]
+                }
+        except Exception:
+            weather = None
 
     # 当前本地时间
     local_time = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=12))).strftime("%Y-%m-%d %H:%M:%S")
@@ -71,21 +81,29 @@ def about():
 @app.route("/contact", methods=['GET', 'POST'])
 def contact():
     if request.method == 'POST':
-        # 处理留言表单提交
-        name = request.form.get('name', '').strip()
-        contact_info = request.form.get('contact', '').strip()
-        message_content = request.form.get('message', '').strip()
+        # 获取并清理用户输入
+        form_data = {
+            'name': request.form.get('name', ''),
+            'contact': request.form.get('contact', ''),
+            'message': request.form.get('message', '')
+        }
         
-        # 表单验证
-        if not all([name, contact_info, message_content]):
-            flash('请填写所有必填字段', 'error')
+        # 清理用户输入
+        clean_data = sanitize_user_input(form_data)
+        
+        # 验证表单数据
+        is_valid, errors = validate_form_data(clean_data, ['name', 'contact', 'message'])
+        
+        if not is_valid:
+            for error in errors:
+                flash(error, 'error')
             return render_template("contact.html")
         
         # 保存留言到数据库
         message = Message(
-            name=name,
-            contact=contact_info,
-            message=message_content
+            name=clean_data['name'],
+            contact=clean_data['contact'],
+            message=clean_data['message']
         )
         
         try:
@@ -145,6 +163,7 @@ def cart():
 
 
 @app.route("/api/cart", methods=['POST'])
+@csrf.exempt
 def add_to_cart():
     """添加商品到购物车（API接口）"""
     data = request.get_json()
@@ -163,7 +182,8 @@ def add_to_cart():
             'name': product.name,
             'price': float(product.price),
             'image': product.get_images()[0] if product.get_images() else '',
-            'condition': product.condition
+            'condition': product.condition,
+            'face_to_face_only': product.face_to_face_only
         },
         'quantity': quantity
     })
@@ -178,45 +198,57 @@ def order_query():
 @app.route("/order/search", methods=['POST'])
 def order_search():
     """订单查询处理"""
-    contact_info = request.form.get('contact', '').strip()
+    form_data = {'contact': request.form.get('contact', '')}
+    clean_data = sanitize_user_input(form_data)
     
-    if not contact_info:
-        flash('请输入邮箱或电话号码', 'error')
+    is_valid, errors = validate_form_data(clean_data, ['contact'])
+    
+    if not is_valid:
+        for error in errors:
+            flash(error, 'error')
         return redirect(url_for('order_query'))
     
     from models import get_orders_by_contact
-    orders = get_orders_by_contact(contact_info)
+    orders = get_orders_by_contact(clean_data['contact'])
     
-    return render_template("order_results.html", orders=orders, contact_info=contact_info)
+    return render_template("order_results.html", orders=orders, contact_info=clean_data['contact'])
 
 
 @app.route("/order/confirm", methods=['GET', 'POST'])
 def order_confirm():
     """订单确认页面"""
     if request.method == 'POST':
-        # 处理订单提交
-        customer_name = request.form.get('customer_name', '').strip()
-        customer_email = request.form.get('customer_email', '').strip()
-        customer_phone = request.form.get('customer_phone', '').strip()
-        delivery_method = request.form.get('delivery_method', '')
-        payment_method = request.form.get('payment_method', '')
-        customer_address = request.form.get('customer_address', '').strip()
-        notes = request.form.get('notes', '').strip()
+        # 获取并清理用户输入
+        form_data = {
+            'customer_name': request.form.get('customer_name', ''),
+            'customer_email': request.form.get('customer_email', ''),
+            'customer_phone': request.form.get('customer_phone', ''),
+            'delivery_method': request.form.get('delivery_method', ''),
+            'payment_method': request.form.get('payment_method', ''),
+            'customer_address': request.form.get('customer_address', ''),
+            'notes': request.form.get('notes', '')
+        }
+        
+        # 清理用户输入
+        clean_data = sanitize_user_input(form_data)
         
         # 验证必填字段
-        if not all([customer_name, customer_email, delivery_method, payment_method]):
-            flash('请填写所有必填字段', 'error')
+        required_fields = ['customer_name', 'customer_email', 'delivery_method', 'payment_method']
+        is_valid, errors = validate_form_data(clean_data, required_fields)
+        
+        if not is_valid:
+            for error in errors:
+                flash(error, 'error')
             return render_template("order_confirm.html")
         
         # 验证邮箱格式
-        import re
-        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-        if not re.match(email_pattern, customer_email):
+        is_email_valid, normalized_email = validate_email_address(clean_data['customer_email'])
+        if not is_email_valid:
             flash('请输入有效的邮箱地址', 'error')
             return render_template("order_confirm.html")
         
         # 如果选择邮寄，地址是必填的
-        if delivery_method == 'shipping' and not customer_address:
+        if clean_data['delivery_method'] == 'shipping' and not clean_data['customer_address']:
             flash('选择邮寄时必须填写详细地址', 'error')
             return render_template("order_confirm.html")
         
@@ -233,21 +265,30 @@ def order_confirm():
                 flash('购物车是空的', 'error')
                 return redirect(url_for('cart'))
             
+            # 检查是否有仅见面交易商品
+            has_face_to_face_only = any(item.get('face_to_face_only', False) for item in cart_items)
+            
+            # 如果有仅见面交易商品但选择了邮寄，返回错误
+            if has_face_to_face_only and clean_data['delivery_method'] == 'shipping':
+                flash('购物车中包含仅见面交易商品，不能选择邮寄方式', 'error')
+                return render_template("order_confirm.html")
+            
             # 计算订单总金额
             subtotal = sum(item['price'] * item['quantity'] for item in cart_items)
-            shipping_fee = 15.00 if delivery_method == 'shipping' else 0.00
+            # 如果有仅见面交易商品，邮费必须为0
+            shipping_fee = 0.00 if has_face_to_face_only else (15.00 if clean_data['delivery_method'] == 'shipping' else 0.00)
             total_amount = subtotal + shipping_fee
             
             # 创建订单
             order = Order(
-                customer_name=customer_name,
-                customer_email=customer_email,
-                customer_phone=customer_phone,
+                customer_name=clean_data['customer_name'],
+                customer_email=normalized_email,  # 使用规范化的邮箱
+                customer_phone=clean_data['customer_phone'],
                 total_amount=total_amount,
-                delivery_method=delivery_method,
-                payment_method=payment_method,
-                customer_address=customer_address,
-                notes=notes,
+                delivery_method=clean_data['delivery_method'],
+                payment_method=clean_data['payment_method'],
+                customer_address=clean_data['customer_address'],
+                notes=clean_data['notes'],
                 items=json.dumps(cart_items, ensure_ascii=False)  # 保存商品信息
             )
             

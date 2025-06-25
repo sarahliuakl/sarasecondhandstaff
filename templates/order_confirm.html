@@ -34,6 +34,7 @@
     <h3 class="text-xl font-semibold mb-4">客户信息</h3>
     
     <form id="orderForm" method="post">
+      {{ csrf_token() }}
       <input type="hidden" id="cartData" name="cart_data" value="">
       
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -73,15 +74,8 @@
             <label class="block mb-3 font-semibold text-gray-700">
               交付方式 <span class="text-red-500">*</span>
             </label>
-            <div class="space-y-2">
-              <label class="flex items-center">
-                <input type="radio" name="delivery_method" value="pickup" class="mr-2" onchange="updateShipping()" required>
-                <span class="text-gray-700">当面交易 (奥克兰地区，免邮费)</span>
-              </label>
-              <label class="flex items-center">
-                <input type="radio" name="delivery_method" value="shipping" class="mr-2" onchange="updateShipping()" required>
-                <span class="text-gray-700">邮寄 (新西兰全国，邮费 NZD $15)</span>
-              </label>
+            <div id="deliveryOptions" class="space-y-2">
+              <!-- 交付选项将通过JavaScript动态生成 -->
             </div>
           </div>
           
@@ -177,9 +171,54 @@ document.addEventListener('DOMContentLoaded', function() {
     return;
   }
   
-  // 初始化支付选项（默认当面交易）
+  // 初始化交付和支付选项
+  initializeDeliveryOptions();
   initializePaymentOptions();
 });
+
+// 初始化交付选项
+function initializeDeliveryOptions() {
+  const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+  const deliveryOptions = document.getElementById('deliveryOptions');
+  let hasFaceToFaceOnlyItems = false;
+  
+  // 检查是否有仅见面交易商品
+  cart.forEach(item => {
+    if (item.face_to_face_only) {
+      hasFaceToFaceOnlyItems = true;
+    }
+  });
+  
+  if (hasFaceToFaceOnlyItems) {
+    // 如果有仅见面交易商品，只显示当面交易选项
+    deliveryOptions.innerHTML = `
+      <label class="flex items-center">
+        <input type="radio" name="delivery_method" value="pickup" class="mr-2" onchange="updateShipping()" required checked>
+        <span class="text-gray-700">当面交易 (奥克兰地区，免邮费)</span>
+      </label>
+      <div class="mt-2 p-3 bg-purple-50 border border-purple-200 rounded text-sm text-purple-700">
+        <strong>注意：</strong>您的购物车中包含仅见面交易商品，只能选择当面交易方式
+      </div>
+    `;
+  } else {
+    // 普通商品，显示所有交付选项
+    deliveryOptions.innerHTML = `
+      <label class="flex items-center">
+        <input type="radio" name="delivery_method" value="pickup" class="mr-2" onchange="updateShipping()" required>
+        <span class="text-gray-700">当面交易 (奥克兰地区，免邮费)</span>
+      </label>
+      <label class="flex items-center">
+        <input type="radio" name="delivery_method" value="shipping" class="mr-2" onchange="updateShipping()" required>
+        <span class="text-gray-700">邮寄 (新西兰全国，邮费 NZD $15)</span>
+      </label>
+    `;
+  }
+  
+  // 如果有仅见面交易商品，自动选择当面交易并更新总计
+  if (hasFaceToFaceOnlyItems) {
+    updateShipping();
+  }
+}
 
 // 初始化支付选项
 function initializePaymentOptions() {
@@ -250,6 +289,7 @@ function createOrderItemElement(item) {
       <h4 class="font-semibold">${item.name}</h4>
       <p class="text-sm text-gray-600">成色：${item.condition}</p>
       <p class="text-sm text-gray-600">数量：${item.quantity}</p>
+      ${item.face_to_face_only ? '<p class="text-xs text-purple-600">🔒 仅见面交易</p>' : ''}
     </div>
     
     <div class="text-right">
