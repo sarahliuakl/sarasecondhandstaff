@@ -24,6 +24,13 @@ app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(basedir, "sara
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'fallback-key-change-in-production')
 
+# 文件上传配置
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB 最大请求大小
+app.config['UPLOAD_FOLDER'] = os.path.join(basedir, 'static', 'uploads')
+
+# 确保上传目录存在
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
 # 初始化CSRF保护
 csrf = CSRFProtect(app)
 

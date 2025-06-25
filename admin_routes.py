@@ -9,6 +9,7 @@ from werkzeug.urls import url_parse
 from models import db, Admin, Product, Order, Message, SiteSettings
 from models import get_admin_by_username, create_admin, get_site_setting, set_site_setting
 from utils import sanitize_user_input, validate_form_data, validate_email_address
+from file_upload import upload_image, delete_image, get_image_url
 import logging
 
 # 创建管理后台蓝图
@@ -426,11 +427,28 @@ def product_create():
                 face_to_face_only=clean_data['face_to_face_only']
             )
             
-            # 处理图片
-            images = request.form.getlist('images')
-            valid_images = [img.strip() for img in images if img.strip()]
-            if valid_images:
-                product.set_images(valid_images)
+            # 处理图片 - 支持文件上传和URL输入
+            uploaded_images = []
+            
+            # 处理文件上传
+            uploaded_files = request.files.getlist('image_files')
+            for file in uploaded_files:
+                if file and file.filename != '':
+                    success, result, thumbnail = upload_image(file)
+                    if success:
+                        uploaded_images.append(get_image_url(result))
+                        logger.info(f'图片上传成功: {result} - 管理员: {current_user.username}')
+                    else:
+                        flash(f'图片上传失败: {result}', 'error')
+            
+            # 处理URL输入
+            url_images = request.form.getlist('images')
+            valid_url_images = [img.strip() for img in url_images if img.strip()]
+            
+            # 合并所有图片
+            all_images = uploaded_images + valid_url_images
+            if all_images:
+                product.set_images(all_images)
             
             # 处理规格
             spec_keys = request.form.getlist('spec_keys')
@@ -518,10 +536,35 @@ def product_edit(product_id):
             product.stock_status = clean_data['stock_status']
             product.face_to_face_only = clean_data['face_to_face_only']
             
-            # 处理图片
-            images = request.form.getlist('images')
-            valid_images = [img.strip() for img in images if img.strip()]
-            product.set_images(valid_images)
+            # 处理图片 - 支持文件上传和URL输入
+            uploaded_images = []
+            
+            # 处理文件上传
+            uploaded_files = request.files.getlist('image_files')
+            for file in uploaded_files:
+                if file and file.filename != '':
+                    success, result, thumbnail = upload_image(file)
+                    if success:
+                        uploaded_images.append(get_image_url(result))
+                        logger.info(f'图片上传成功: {result} - 管理员: {current_user.username}')
+                    else:
+                        flash(f'图片上传失败: {result}', 'error')
+            
+            # 处理URL输入
+            url_images = request.form.getlist('images')
+            valid_url_images = [img.strip() for img in url_images if img.strip()]
+            
+            # 合并所有图片 - 保留现有图片，添加新上传的图片
+            existing_images = product.get_images()
+            all_images = existing_images + uploaded_images + valid_url_images
+            
+            # 去重并过滤空值
+            unique_images = []
+            for img in all_images:
+                if img and img not in unique_images:
+                    unique_images.append(img)
+            
+            product.set_images(unique_images)
             
             # 处理规格
             spec_keys = request.form.getlist('spec_keys')
