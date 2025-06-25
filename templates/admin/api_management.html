@@ -1,0 +1,366 @@
+{% extends "admin/base.html" %}
+{% block title %}API管理 - 管理后台{% endblock %}
+
+{% block content %}
+<div class="flex items-center mb-6">
+    <h2 class="text-2xl font-bold text-gray-900">API管理</h2>
+</div>
+
+<!-- API配置状态 -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-key text-2xl {{ 'text-green-500' if api_configured else 'text-red-500' }}"></i>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">API状态</dt>
+                        <dd class="text-lg font-medium text-gray-900">
+                            {{ '已配置' if api_configured else '未配置' }}
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-clock text-2xl text-blue-500"></i>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">速率限制</dt>
+                        <dd class="text-lg font-medium text-gray-900">100/小时</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="p-5">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-shield-alt text-2xl text-purple-500"></i>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-500 truncate">API版本</dt>
+                        <dd class="text-lg font-medium text-gray-900">v1.0.0</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- API Key管理 -->
+<div class="bg-white shadow rounded-lg mb-6">
+    <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-medium text-gray-900">API Key管理</h3>
+        <p class="mt-1 text-sm text-gray-500">生成和管理API访问密钥</p>
+    </div>
+    <div class="p-6">
+        {% if api_configured %}
+        <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-md">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-check-circle text-green-400"></i>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-green-800">API Key已配置</h3>
+                    <div class="mt-2 text-sm text-green-700">
+                        <p>API服务已启用，您可以使用配置的API Key访问API端点。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flex space-x-3">
+            <button type="button" 
+                    id="regenerateKeyBtn"
+                    class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg flex items-center">
+                <i class="fas fa-sync-alt mr-2"></i>重新生成API Key
+            </button>
+            <button type="button" 
+                    id="revokeKeyBtn"
+                    class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg flex items-center">
+                <i class="fas fa-trash mr-2"></i>撤销API Key
+            </button>
+        </div>
+        {% else %}
+        <div class="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-exclamation-triangle text-yellow-400"></i>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-yellow-800">API Key未配置</h3>
+                    <div class="mt-2 text-sm text-yellow-700">
+                        <p>您需要生成API Key才能使用API服务。API Key将被安全加密存储。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <button type="button" 
+                id="generateKeyBtn"
+                class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center">
+            <i class="fas fa-plus mr-2"></i>生成API Key
+        </button>
+        {% endif %}
+    </div>
+</div>
+
+<!-- API端点文档 -->
+<div class="bg-white shadow rounded-lg mb-6">
+    <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-medium text-gray-900">API端点</h3>
+        <p class="mt-1 text-sm text-gray-500">可用的API端点和功能</p>
+    </div>
+    <div class="p-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- 产品API -->
+            <div class="border border-gray-200 rounded-lg p-4">
+                <h4 class="text-md font-medium text-gray-900 mb-3 flex items-center">
+                    <i class="fas fa-box mr-2 text-blue-500"></i>产品API
+                </h4>
+                <ul class="space-y-2 text-sm text-gray-600">
+                    <li><code class="bg-gray-100 px-2 py-1 rounded">GET /api/v1/products</code> - 获取产品列表</li>
+                    <li><code class="bg-gray-100 px-2 py-1 rounded">GET /api/v1/products/{id}</code> - 获取产品详情</li>
+                    <li><code class="bg-gray-100 px-2 py-1 rounded">POST /api/v1/products</code> - 创建产品</li>
+                    <li><code class="bg-gray-100 px-2 py-1 rounded">PUT /api/v1/products/{id}</code> - 更新产品</li>
+                    <li><code class="bg-gray-100 px-2 py-1 rounded">DELETE /api/v1/products/{id}</code> - 删除产品</li>
+                    <li><code class="bg-gray-100 px-2 py-1 rounded">POST /api/v1/products/{id}/images</code> - 上传图片</li>
+                </ul>
+            </div>
+            
+            <!-- 分类API -->
+            <div class="border border-gray-200 rounded-lg p-4">
+                <h4 class="text-md font-medium text-gray-900 mb-3 flex items-center">
+                    <i class="fas fa-tags mr-2 text-green-500"></i>分类API
+                </h4>
+                <ul class="space-y-2 text-sm text-gray-600">
+                    <li><code class="bg-gray-100 px-2 py-1 rounded">GET /api/v1/categories</code> - 获取分类列表</li>
+                    <li><code class="bg-gray-100 px-2 py-1 rounded">GET /api/v1/categories/{id}</code> - 获取分类详情</li>
+                    <li><code class="bg-gray-100 px-2 py-1 rounded">POST /api/v1/categories</code> - 创建分类</li>
+                    <li><code class="bg-gray-100 px-2 py-1 rounded">PUT /api/v1/categories/{id}</code> - 更新分类</li>
+                    <li><code class="bg-gray-100 px-2 py-1 rounded">DELETE /api/v1/categories/{id}</code> - 删除分类</li>
+                    <li><code class="bg-gray-100 px-2 py-1 rounded">POST /api/v1/categories/batch</code> - 批量创建</li>
+                </ul>
+            </div>
+            
+            <!-- 库存API -->
+            <div class="border border-gray-200 rounded-lg p-4">
+                <h4 class="text-md font-medium text-gray-900 mb-3 flex items-center">
+                    <i class="fas fa-warehouse mr-2 text-purple-500"></i>库存API
+                </h4>
+                <ul class="space-y-2 text-sm text-gray-600">
+                    <li><code class="bg-gray-100 px-2 py-1 rounded">GET /api/v1/inventory/stats</code> - 库存统计</li>
+                    <li><code class="bg-gray-100 px-2 py-1 rounded">GET /api/v1/inventory/low-stock</code> - 低库存商品</li>
+                    <li><code class="bg-gray-100 px-2 py-1 rounded">GET /api/v1/inventory/out-of-stock</code> - 缺货商品</li>
+                    <li><code class="bg-gray-100 px-2 py-1 rounded">GET /api/v1/inventory/check/{id}</code> - 检查库存</li>
+                    <li><code class="bg-gray-100 px-2 py-1 rounded">PATCH /api/v1/products/{id}/inventory</code> - 更新库存</li>
+                    <li><code class="bg-gray-100 px-2 py-1 rounded">GET /api/v1/inventory/alerts</code> - 库存警报</li>
+                </ul>
+            </div>
+            
+            <!-- 通用API -->
+            <div class="border border-gray-200 rounded-lg p-4">
+                <h4 class="text-md font-medium text-gray-900 mb-3 flex items-center">
+                    <i class="fas fa-cog mr-2 text-gray-500"></i>通用API
+                </h4>
+                <ul class="space-y-2 text-sm text-gray-600">
+                    <li><code class="bg-gray-100 px-2 py-1 rounded">GET /api/v1/health</code> - 健康检查</li>
+                    <li><code class="bg-gray-100 px-2 py-1 rounded">GET /api/v1/info</code> - API信息</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 使用说明 -->
+<div class="bg-white shadow rounded-lg">
+    <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-medium text-gray-900">使用说明</h3>
+    </div>
+    <div class="p-6">
+        <div class="space-y-4">
+            <div>
+                <h4 class="font-medium text-gray-900 mb-2">认证方式</h4>
+                <p class="text-sm text-gray-600 mb-2">API使用API Key进行认证，您可以通过以下两种方式提供API Key：</p>
+                <ul class="text-sm text-gray-600 space-y-1 ml-4">
+                    <li>• 请求头：<code class="bg-gray-100 px-2 py-1 rounded">X-API-Key: your_api_key</code></li>
+                    <li>• 查询参数：<code class="bg-gray-100 px-2 py-1 rounded">?api_key=your_api_key</code></li>
+                </ul>
+            </div>
+            
+            <div>
+                <h4 class="font-medium text-gray-900 mb-2">速率限制</h4>
+                <p class="text-sm text-gray-600">默认每个API Key每小时限制100次请求，特殊端点可能有不同的限制。</p>
+            </div>
+            
+            <div>
+                <h4 class="font-medium text-gray-900 mb-2">响应格式</h4>
+                <p class="text-sm text-gray-600 mb-2">所有API响应都采用JSON格式，包含以下字段：</p>
+                <pre class="bg-gray-100 p-3 rounded text-sm">
+{
+    "success": true|false,
+    "data": {...},        // 成功时返回
+    "message": "...",     // 可选的消息
+    "error": "...",       // 错误时返回
+}</pre>
+            </div>
+            
+            <div>
+                <h4 class="font-medium text-gray-900 mb-2">示例请求</h4>
+                <pre class="bg-gray-100 p-3 rounded text-sm">
+curl -X GET "{{ request.url_root }}api/v1/products" \
+     -H "X-API-Key: your_api_key" \
+     -H "Content-Type: application/json"</pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- API Key显示模态框 -->
+<div id="apiKeyModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <div class="flex items-center mb-4">
+                <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
+                    <i class="fas fa-key text-green-600"></i>
+                </div>
+            </div>
+            <div class="text-center">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-2">API Key已生成</h3>
+                <p class="text-sm text-gray-500 mb-4">请安全保存此API Key，它不会再次显示：</p>
+                <div class="bg-gray-100 p-3 rounded-md mb-4">
+                    <code id="newApiKey" class="text-sm font-mono break-all"></code>
+                </div>
+                <div class="flex justify-center space-x-3">
+                    <button id="copyApiKey" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm">
+                        <i class="fas fa-copy mr-1"></i>复制
+                    </button>
+                    <button id="closeModal" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded text-sm">
+                        关闭
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('apiKeyModal');
+    const generateBtn = document.getElementById('generateKeyBtn');
+    const regenerateBtn = document.getElementById('regenerateKeyBtn');
+    const revokeBtn = document.getElementById('revokeKeyBtn');
+    const closeModalBtn = document.getElementById('closeModal');
+    const copyBtn = document.getElementById('copyApiKey');
+    const newApiKeyElement = document.getElementById('newApiKey');
+    
+    // 生成API Key
+    if (generateBtn) {
+        generateBtn.addEventListener('click', function() {
+            if (confirm('确定要生成新的API Key吗？')) {
+                generateApiKey();
+            }
+        });
+    }
+    
+    // 重新生成API Key
+    if (regenerateBtn) {
+        regenerateBtn.addEventListener('click', function() {
+            if (confirm('确定要重新生成API Key吗？这将使当前的API Key失效。')) {
+                generateApiKey();
+            }
+        });
+    }
+    
+    // 撤销API Key
+    if (revokeBtn) {
+        revokeBtn.addEventListener('click', function() {
+            if (confirm('确定要撤销API Key吗？这将禁用API访问。')) {
+                revokeApiKey();
+            }
+        });
+    }
+    
+    // 关闭模态框
+    closeModalBtn.addEventListener('click', function() {
+        modal.classList.add('hidden');
+        location.reload(); // 刷新页面显示新状态
+    });
+    
+    // 复制API Key
+    copyBtn.addEventListener('click', function() {
+        const apiKey = newApiKeyElement.textContent;
+        navigator.clipboard.writeText(apiKey).then(function() {
+            copyBtn.innerHTML = '<i class="fas fa-check mr-1"></i>已复制';
+            copyBtn.classList.remove('bg-blue-500', 'hover:bg-blue-600');
+            copyBtn.classList.add('bg-green-500');
+            setTimeout(function() {
+                copyBtn.innerHTML = '<i class="fas fa-copy mr-1"></i>复制';
+                copyBtn.classList.remove('bg-green-500');
+                copyBtn.classList.add('bg-blue-500', 'hover:bg-blue-600');
+            }, 2000);
+        });
+    });
+    
+    // 生成API Key函数
+    function generateApiKey() {
+        fetch('{{ url_for("admin.api_generate_key") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                newApiKeyElement.textContent = data.api_key;
+                modal.classList.remove('hidden');
+            } else {
+                alert('生成API Key失败: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('生成API Key时发生错误');
+        });
+    }
+    
+    // 撤销API Key函数
+    function revokeApiKey() {
+        fetch('{{ url_for("admin.api_revoke_key") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('API Key已撤销');
+                location.reload();
+            } else {
+                alert('撤销API Key失败: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('撤销API Key时发生错误');
+        });
+    }
+});
+</script>
+{% endblock %}

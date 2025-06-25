@@ -13,6 +13,7 @@ from models import get_sales_stats, get_monthly_sales_trend, get_popular_product
 from models import get_all_categories, get_category_by_id, create_category
 from utils import sanitize_user_input, validate_form_data, validate_email_address
 from file_upload import upload_image, delete_image, get_image_url
+from api_auth import APIKeyManager
 import logging
 
 # 创建管理后台蓝图
@@ -1185,4 +1186,77 @@ def categories_api_list():
         return jsonify({
             'success': False,
             'message': f'数据获取失败: {str(e)}'
+        })
+
+
+# =================
+# API管理路由
+# =================
+
+@admin_bp.route('/api-management')
+@login_required
+def api_management():
+    """API管理页面"""
+    try:
+        # 检查API Key是否已配置
+        api_configured = APIKeyManager.is_api_key_configured()
+        
+        logger.info(f'API管理页面访问 - 管理员: {current_user.username}')
+        return render_template('admin/api_management.html', api_configured=api_configured)
+        
+    except Exception as e:
+        logger.error(f'API管理页面加载失败: {str(e)} - 管理员: {current_user.username}')
+        flash(f'页面加载失败: {str(e)}', 'error')
+        return redirect(url_for('admin.dashboard'))
+
+
+@admin_bp.route('/api/generate-key', methods=['POST'])
+@login_required
+def api_generate_key():
+    """生成新的API Key"""
+    try:
+        # 生成新的API Key
+        api_key = APIKeyManager.generate_api_key()
+        
+        # 保存到数据库
+        APIKeyManager.set_api_key(api_key)
+        
+        logger.info(f'API Key生成成功 - 管理员: {current_user.username}')
+        
+        return jsonify({
+            'success': True,
+            'api_key': api_key,
+            'message': 'API Key生成成功'
+        })
+        
+    except Exception as e:
+        logger.error(f'API Key生成失败: {str(e)} - 管理员: {current_user.username}')
+        return jsonify({
+            'success': False,
+            'message': f'生成失败: {str(e)}'
+        })
+
+
+@admin_bp.route('/api/revoke-key', methods=['POST'])
+@login_required
+def api_revoke_key():
+    """撤销API Key"""
+    try:
+        # 删除API Key配置
+        set_site_setting('api_key_hash', '', 'API Key哈希值')
+        db.session.commit()
+        
+        logger.info(f'API Key撤销成功 - 管理员: {current_user.username}')
+        
+        return jsonify({
+            'success': True,
+            'message': 'API Key已撤销'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f'API Key撤销失败: {str(e)} - 管理员: {current_user.username}')
+        return jsonify({
+            'success': False,
+            'message': f'撤销失败: {str(e)}'
         })
