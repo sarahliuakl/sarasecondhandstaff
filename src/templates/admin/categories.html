@@ -56,7 +56,11 @@
                 <p class="text-sm text-gray-500">平均产品数</p>
                 <p class="text-2xl font-semibold text-gray-900">
                     {% if categories %}
-                        {{ "%.1f"|format((categories|sum(attribute='get_product_count')) / categories|length) }}
+                        {% set total_products = 0 %}
+                        {% for cat in categories %}
+                            {% set total_products = total_products + cat.get_product_count() %}
+                        {% endfor %}
+                        {{ "%.1f"|format(total_products / categories|length) }}
                     {% else %}
                         0
                     {% endif %}
