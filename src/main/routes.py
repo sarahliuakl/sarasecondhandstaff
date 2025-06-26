@@ -4,7 +4,9 @@ from ..models import Product, Order, Message
 
 @main.route('/')
 def index():
-    return render_template('index.html')
+    # 获取最新的几个产品显示在首页
+    products = Product.query.filter(Product.stock_status == 'available').order_by(Product.created_at.desc()).limit(6).all()
+    return render_template('index.html', products=products)
 
 @main.route('/products')
 def products():

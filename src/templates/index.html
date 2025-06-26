@@ -49,14 +49,14 @@
     {% for product in products %}
     <div class="bg-white rounded-lg shadow p-4 flex flex-col">
       <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="block">
-        <img src="{{ product.img }}" alt="{{ product.title }}" class="rounded mb-3 h-40 object-cover hover:opacity-90 transition cursor-pointer">
+        <img src="{{ product.get_images()[0] if product.get_images() else 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=400&q=80' }}" alt="{{ product.name }}" class="rounded mb-3 h-40 object-cover hover:opacity-90 transition cursor-pointer">
       </a>
       <div class="flex-1">
         <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="block hover:text-orange-600 transition">
-          <h4 class="font-bold text-lg mb-1">{{ product.title }}</h4>
+          <h4 class="font-bold text-lg mb-1">{{ product.name }}</h4>
         </a>
-        <p class="text-sm text-gray-600 mb-2">{{ product.desc }}</p>
-        <span class="text-orange-600 font-semibold">{{ product.price }}</span>
+        <p class="text-sm text-gray-600 mb-2">{{ product.description[:50] }}{{ '...' if product.description and product.description|length > 50 else '' }}</p>
+        <span class="text-orange-600 font-semibold">${{ product.price }}</span>
       </div>
       <div class="mt-3 flex gap-2">
         <a href="{{ url_for('main.product_detail', product_id=product.id) }}" 
