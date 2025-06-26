@@ -22,6 +22,9 @@ from . import admin
 
 
 @admin.route('/')
+def index():
+    """管理后台首页 - 重定向到仪表板"""
+    return redirect(url_for('admin.dashboard'))
 
 
 @admin.route('/login', methods=['GET', 'POST'])
@@ -941,6 +944,12 @@ def categories():
     try:
         # 获取所有分类（包括非活跃的）
         categories = get_all_categories(active_only=False)
+        # 修正脏数据，确保sort_order为int类型
+        for cat in categories:
+            try:
+                cat.sort_order = int(cat.sort_order)
+            except Exception:
+                cat.sort_order = 0
         
         logger.info(f'分类管理页面访问 - 管理员: {current_user.username}')
         return render_template('admin/categories.html', categories=categories)

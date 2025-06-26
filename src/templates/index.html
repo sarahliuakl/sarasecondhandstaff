@@ -48,11 +48,11 @@
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
     {% for product in products %}
     <div class="bg-white rounded-lg shadow p-4 flex flex-col">
-      <a href="{{ url_for('product_detail', product_id=product.id) }}" class="block">
+      <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="block">
         <img src="{{ product.img }}" alt="{{ product.title }}" class="rounded mb-3 h-40 object-cover hover:opacity-90 transition cursor-pointer">
       </a>
       <div class="flex-1">
-        <a href="{{ url_for('product_detail', product_id=product.id) }}" class="block hover:text-orange-600 transition">
+        <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="block hover:text-orange-600 transition">
           <h4 class="font-bold text-lg mb-1">{{ product.title }}</h4>
         </a>
         <p class="text-sm text-gray-600 mb-2">{{ product.desc }}</p>

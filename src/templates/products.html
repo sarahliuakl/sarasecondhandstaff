@@ -100,7 +100,7 @@
   <div class="bg-white rounded-lg shadow hover:shadow-lg transition p-4 flex flex-col">
     <!-- 商品图片 -->
     {% set images = product.get_images() %}
-    <a href="{{ url_for('product_detail', product_id=product.id) }}" class="block mb-3">
+    <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="block mb-3">
       <img src="{{ images[0] if images else 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=400&q=80' }}" 
            alt="{{ product.name }}" 
            class="rounded h-48 w-full object-cover hover:opacity-90 transition">
@@ -124,7 +124,7 @@
       </div>
       
       <h4 class="font-bold text-lg mb-2 hover:text-orange-600 transition">
-        <a href="{{ url_for('product_detail', product_id=product.id) }}">{{ product.name }}</a>
+        <a href="{{ url_for('main.product_detail', product_id=product.id) }}">{{ product.name }}</a>
       </h4>
       
       <p class="text-sm text-gray-600 mb-3 line-clamp-2">
@@ -139,7 +139,7 @@
     <!-- 操作按钮 -->
     {% if product.is_available() %}
     <div class="flex gap-2">
-      <a href="{{ url_for('product_detail', product_id=product.id) }}" 
+      <a href="{{ url_for('main.product_detail', product_id=product.id) }}" 
          class="flex-1 bg-orange-500 text-white py-2 px-3 rounded text-center text-sm hover:bg-orange-600 transition">
         查看详情
       </a>
