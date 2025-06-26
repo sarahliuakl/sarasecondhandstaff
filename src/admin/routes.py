@@ -11,6 +11,7 @@ from ..models import get_admin_by_username, create_admin, get_site_setting, set_
 from ..models import get_low_stock_products, get_out_of_stock_products, get_inventory_stats
 from ..models import get_sales_stats, get_monthly_sales_trend, get_popular_products, get_customer_stats
 from ..models import get_all_categories, get_category_by_id, create_category
+from ..models import get_api_usage_stats, get_recent_api_logs
 from ..utils import sanitize_user_input, validate_form_data, validate_email_address
 from ..file_upload import upload_image, delete_image, get_image_url
 from ..api_auth import APIKeyManager
@@ -115,12 +116,20 @@ def dashboard():
     # 获取未读留言
     unread_messages = Message.query.filter(Message.status == 'unread').limit(5).all()
     
+    # 获取API使用统计数据
+    api_stats = get_api_usage_stats()
+    
+    # 获取最近的API使用日志
+    recent_api_logs = get_recent_api_logs(10)
+    
     return render_template('admin/dashboard.html', 
                          stats=stats, 
                          recent_orders=recent_orders,
                          unread_messages=unread_messages,
                          low_stock_products=low_stock_products,
-                         out_of_stock_products=out_of_stock_products)
+                         out_of_stock_products=out_of_stock_products,
+                         api_stats=api_stats,
+                         recent_api_logs=recent_api_logs)
 
 
 @admin.route('/profile', methods=['GET', 'POST'])
@@ -1204,8 +1213,17 @@ def api_management():
         # 检查API Key是否已配置
         api_configured = APIKeyManager.is_api_key_configured()
         
+        # 获取API使用统计数据
+        api_stats = get_api_usage_stats()
+        
+        # 获取最近的API使用日志（更多条数用于详细显示）
+        recent_api_logs = get_recent_api_logs(50)
+        
         logger.info(f'API管理页面访问 - 管理员: {current_user.username}')
-        return render_template('admin/api_management.html', api_configured=api_configured)
+        return render_template('admin/api_management.html', 
+                             api_configured=api_configured,
+                             api_stats=api_stats,
+                             recent_api_logs=recent_api_logs)
         
     except Exception as e:
         logger.error(f'API管理页面加载失败: {str(e)} - 管理员: {current_user.username}')

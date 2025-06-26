@@ -1028,3 +1028,150 @@ def init_default_categories():
         db.session.rollback()
         print(f"初始化默认分类失败: {str(e)}")
         return False
+
+
+class APIUsageLog(db.Model):
+    """API使用日志模型 - 记录API请求和使用情况"""
+    __tablename__ = 'api_usage_logs'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    endpoint = db.Column(db.String(200), nullable=False)  # API端点
+    method = db.Column(db.String(10), nullable=False)  # HTTP方法
+    ip_address = db.Column(db.String(45))  # 客户端IP地址 (支持IPv6)
+    user_agent = db.Column(db.Text)  # 用户代理字符串
+    api_key_hash = db.Column(db.String(64))  # API密钥哈希(部分显示)
+    request_data = db.Column(db.Text)  # 请求数据(JSON格式)
+    response_status = db.Column(db.Integer)  # 响应状态码
+    response_size = db.Column(db.Integer)  # 响应大小(字节)
+    processing_time = db.Column(db.Float)  # 处理时间(毫秒)
+    error_message = db.Column(db.Text)  # 错误信息
+    success = db.Column(db.Boolean, default=True)  # 请求是否成功
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    
+    def to_dict(self):
+        """转换为字典格式"""
+        return {
+            'id': self.id,
+            'endpoint': self.endpoint,
+            'method': self.method,
+            'ip_address': self.ip_address,
+            'user_agent': self.user_agent,
+            'api_key_hash': self.api_key_hash,
+            'request_data': self.request_data,
+            'response_status': self.response_status,
+            'response_size': self.response_size,
+            'processing_time': self.processing_time,
+            'error_message': self.error_message,
+            'success': self.success,
+            'created_at': self.created_at.isoformat()
+        }
+    
+    @classmethod
+    def log_api_request(cls, endpoint, method, ip_address, user_agent=None, 
+                       api_key_hash=None, request_data=None, response_status=200, 
+                       response_size=0, processing_time=0.0, error_message=None, success=True):
+        """记录API请求日志"""
+        log_entry = cls(
+            endpoint=endpoint,
+            method=method,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            api_key_hash=api_key_hash,
+            request_data=json.dumps(request_data) if request_data else None,
+            response_status=response_status,
+            response_size=response_size,
+            processing_time=processing_time,
+            error_message=error_message,
+            success=success
+        )
+        
+        try:
+            db.session.add(log_entry)
+            db.session.commit()
+            return log_entry
+        except Exception as e:
+            db.session.rollback()
+            print(f"记录API日志失败: {str(e)}")
+            return None
+    
+    def __repr__(self):
+        return f'<APIUsageLog {self.method} {self.endpoint} - {self.created_at}>'
+
+
+def get_api_usage_stats():
+    """获取API使用统计数据"""
+    try:
+        # 最近30天的统计
+        from datetime import timedelta
+        thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+        
+        # 总请求数
+        total_requests = APIUsageLog.query.filter(
+            APIUsageLog.created_at >= thirty_days_ago
+        ).count()
+        
+        # 成功请求数
+        successful_requests = APIUsageLog.query.filter(
+            APIUsageLog.created_at >= thirty_days_ago,
+            APIUsageLog.success == True
+        ).count()
+        
+        # 失败请求数
+        failed_requests = total_requests - successful_requests
+        
+        # 今天的请求数
+        today = datetime.utcnow().date()
+        today_requests = APIUsageLog.query.filter(
+            db.func.date(APIUsageLog.created_at) == today
+        ).count()
+        
+        # 平均响应时间
+        avg_response_time = db.session.query(
+            db.func.avg(APIUsageLog.processing_time)
+        ).filter(
+            APIUsageLog.created_at >= thirty_days_ago,
+            APIUsageLog.success == True
+        ).scalar() or 0.0
+        
+        # 最常用的端点
+        popular_endpoints = db.session.query(
+            APIUsageLog.endpoint,
+            db.func.count(APIUsageLog.id).label('count')
+        ).filter(
+            APIUsageLog.created_at >= thirty_days_ago
+        ).group_by(APIUsageLog.endpoint).order_by(
+            db.func.count(APIUsageLog.id).desc()
+        ).limit(5).all()
+        
+        return {
+            'total_requests': total_requests,
+            'successful_requests': successful_requests,
+            'failed_requests': failed_requests,
+            'today_requests': today_requests,
+            'success_rate': (successful_requests / total_requests * 100) if total_requests > 0 else 0,
+            'avg_response_time': round(avg_response_time, 2),
+            'popular_endpoints': [{'endpoint': ep, 'count': count} for ep, count in popular_endpoints]
+        }
+    except Exception as e:
+        print(f"获取API统计数据失败: {str(e)}")
+        return {
+            'total_requests': 0,
+            'successful_requests': 0,
+            'failed_requests': 0,
+            'today_requests': 0,
+            'success_rate': 0,
+            'avg_response_time': 0,
+            'popular_endpoints': []
+        }
+
+
+def get_recent_api_logs(limit=10):
+    """获取最近的API使用日志"""
+    try:
+        logs = APIUsageLog.query.order_by(
+            APIUsageLog.created_at.desc()
+        ).limit(limit).all()
+        return logs
+    except Exception as e:
+        print(f"获取API日志失败: {str(e)}")
+        return []
