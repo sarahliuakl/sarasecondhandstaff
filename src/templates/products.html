@@ -38,131 +38,259 @@
 
 {% block content %}
 
-<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
-  <h2 class="text-3xl font-bold text-orange-700 mb-4 lg:mb-0">全部商品</h2>
-  
-  <!-- 搜索框 -->
-  <form method="GET" class="flex gap-2 relative">
-    <div class="relative flex-1">
-      <input type="text" name="search" id="searchInput" value="{{ search_term or '' }}" 
-             placeholder="搜索商品名称、分类、成色..." 
-             class="w-full px-4 py-2 border border-orange-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-300"
-             autocomplete="off">
+<!-- Page Header -->
+<div class="hero-section text-center mb-12">
+  <h2 class="section-title mb-4">🛍️ 精选二手商品</h2>
+  <p class="section-subtitle max-w-2xl mx-auto">
+    发现更多优质好物，每一件都有独特的故事等待与您相遇
+  </p>
+</div>
+
+<!-- Search and Filter Section -->
+<div class="card p-8 mb-8">
+  <form method="GET" id="searchForm" class="space-y-6">
+    <!-- Main Search Bar -->
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+      <div class="flex gap-3 relative flex-1 max-w-2xl">
+        <div class="relative flex-1">
+          <input type="text" name="search" id="searchInput" value="{{ search_term or '' }}" 
+                 placeholder="搜索商品名称、描述、分类..." 
+                 class="w-full px-4 py-3 border-2 border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-300 bg-white/50 backdrop-blur-sm"
+                 autocomplete="off">
+          
+          <!-- 搜索建议下拉框 -->
+          <div id="searchSuggestions" class="absolute top-full left-0 right-0 bg-white/95 backdrop-blur-md border border-pink-200 rounded-xl shadow-xl z-10 hidden max-h-60 overflow-y-auto mt-2">
+            <!-- 搜索建议将在这里动态显示 -->
+          </div>
+        </div>
+        
+        <button type="submit" class="btn-primary px-6 py-3 flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          搜索
+        </button>
+        
+        <button type="button" id="toggleFilters" class="bg-white/70 text-gray-700 px-4 py-3 rounded-xl hover:bg-white/90 transition border-2 border-gray-200 flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z"></path>
+          </svg>
+          筛选
+        </button>
+      </div>
       
-      <!-- 搜索建议下拉框 -->
-      <div id="searchSuggestions" class="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-10 hidden max-h-60 overflow-y-auto">
-        <!-- 搜索建议将在这里动态显示 -->
+      <div class="text-right">
+        <p class="text-gray-600 text-sm">共找到</p>
+        <p class="text-2xl font-bold bg-gradient-to-r from-pink-500 to-red-500 bg-clip-text text-transparent">{{ products|length }}</p>
+        <p class="text-gray-600 text-sm">个商品</p>
       </div>
     </div>
-    
-    <button type="submit" class="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition flex items-center gap-2">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-      </svg>
-      搜索
-    </button>
-    
-    {% if search_term %}
-    <a href="{{ url_for('main.products') }}" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition flex items-center">
-      清除
-    </a>
+
+    <!-- Advanced Filters (Initially Hidden) -->
+    <div id="advancedFilters" class="hidden grid md:grid-cols-2 lg:grid-cols-4 gap-4 p-6 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl border border-gray-200">
+      <!-- Category Filter -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">商品分类</label>
+        <select name="category" class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-300 bg-white/70">
+          <option value="">所有分类</option>
+          {% for category_code, category_name in categories %}
+          <option value="{{ category_code }}" {{ 'selected' if current_category == category_code else '' }}>{{ category_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Condition Filter -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">商品成色</label>
+        <select name="condition" class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-300 bg-white/70">
+          <option value="">所有成色</option>
+          {% for condition in conditions %}
+          <option value="{{ condition }}" {{ 'selected' if current_condition == condition else '' }}>{{ condition }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Price Range -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">价格范围 (NZD)</label>
+        <div class="flex gap-2">
+          <input type="number" name="min_price" value="{{ current_min_price or '' }}" placeholder="最低" 
+                 class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-300 bg-white/70" step="0.01">
+          <input type="number" name="max_price" value="{{ current_max_price or '' }}" placeholder="最高" 
+                 class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-300 bg-white/70" step="0.01">
+        </div>
+      </div>
+
+      <!-- Sort Options -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">排序方式</label>
+        <select name="sort" class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-300 bg-white/70">
+          <option value="newest" {{ 'selected' if current_sort == 'newest' else '' }}>最新上架</option>
+          <option value="oldest" {{ 'selected' if current_sort == 'oldest' else '' }}>最早上架</option>
+          <option value="price_asc" {{ 'selected' if current_sort == 'price_asc' else '' }}>价格从低到高</option>
+          <option value="price_desc" {{ 'selected' if current_sort == 'price_desc' else '' }}>价格从高到低</option>
+          <option value="name" {{ 'selected' if current_sort == 'name' else '' }}>商品名称</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Quick Category Filters -->
+    <div class="flex flex-wrap gap-3">
+      <a href="{{ url_for('main.products') }}" 
+         class="px-6 py-3 rounded-xl font-medium transition {{ 'btn-primary' if not current_category else 'bg-white/70 text-gray-700 hover:bg-white/90 border-2 border-pink-200' }}">
+        🏷️ 全部
+      </a>
+      {% for category_code, category_name in categories %}
+      <a href="{{ url_for('main.products', category=category_code, search=search_term) }}" 
+         class="px-6 py-3 rounded-xl font-medium transition {{ 'btn-primary' if current_category == category_code else 'bg-white/70 text-gray-700 hover:bg-white/90 border-2 border-pink-200' }}">
+        {{ category_name }}
+      </a>
+      {% endfor %}
+    </div>
+
+    <!-- Active Filters Display -->
+    {% if search_term or current_category or current_condition or current_min_price or current_max_price %}
+    <div class="flex flex-wrap gap-2 items-center">
+      <span class="text-sm font-medium text-gray-700">当前筛选：</span>
+      
+      {% if search_term %}
+      <div class="bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-700 px-3 py-1 rounded-full text-sm flex items-center gap-2">
+        <span>搜索: "{{ search_term }}"</span>
+        <a href="{{ url_for('main.products', category=current_category, condition=current_condition, min_price=current_min_price, max_price=current_max_price, sort=current_sort) }}" class="text-blue-500 hover:text-blue-700">×</a>
+      </div>
+      {% endif %}
+      
+      {% if current_category %}
+      <div class="bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 px-3 py-1 rounded-full text-sm flex items-center gap-2">
+        <span>分类: {{ dict(categories)[current_category] }}</span>
+        <a href="{{ url_for('main.products', search=search_term, condition=current_condition, min_price=current_min_price, max_price=current_max_price, sort=current_sort) }}" class="text-green-500 hover:text-green-700">×</a>
+      </div>
+      {% endif %}
+      
+      {% if current_condition %}
+      <div class="bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 px-3 py-1 rounded-full text-sm flex items-center gap-2">
+        <span>成色: {{ current_condition }}</span>
+        <a href="{{ url_for('main.products', search=search_term, category=current_category, min_price=current_min_price, max_price=current_max_price, sort=current_sort) }}" class="text-purple-500 hover:text-purple-700">×</a>
+      </div>
+      {% endif %}
+      
+      {% if current_min_price or current_max_price %}
+      <div class="bg-gradient-to-r from-yellow-100 to-orange-100 text-orange-700 px-3 py-1 rounded-full text-sm flex items-center gap-2">
+        <span>价格: {{ current_min_price or '0' }} - {{ current_max_price or '∞' }} NZD</span>
+        <a href="{{ url_for('main.products', search=search_term, category=current_category, condition=current_condition, sort=current_sort) }}" class="text-orange-500 hover:text-orange-700">×</a>
+      </div>
+      {% endif %}
+      
+      <a href="{{ url_for('main.products') }}" class="text-sm text-red-600 hover:text-red-700 font-medium">清除所有筛选</a>
+    </div>
+    {% endif %}
+
+    <!-- Search Results Info -->
+    {% if search_term or current_category or current_condition or current_min_price or current_max_price %}
+    <div class="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-xl">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+          <span class="text-white text-sm">🔍</span>
+        </div>
+        <p class="text-blue-700 font-medium">
+          {% if search_term %}
+            搜索 "{{ search_term }}" 的结果，
+          {% endif %}
+          共找到 {{ products|length }} 个商品
+          {% if current_category %}，分类：{{ dict(categories)[current_category] }}{% endif %}
+          {% if current_condition %}，成色：{{ current_condition }}{% endif %}
+        </p>
+      </div>
+    </div>
     {% endif %}
   </form>
 </div>
 
-<!-- 搜索结果提示 -->
-{% if search_term %}
-<div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-  <p class="text-blue-700">
-    搜索 "{{ search_term }}" 的结果，共找到 {{ products|length }} 个商品
-  </p>
-</div>
-{% endif %}
-
-<!-- 分类导航 -->
-<div class="mb-8 flex flex-wrap gap-4">
-  <a href="{{ url_for('main.products') }}" 
-     class="px-4 py-2 rounded transition {{ 'bg-orange-500 text-white' if not current_category else 'bg-orange-100 text-orange-700 hover:bg-orange-200' }}">
-    全部 ({{ products|length }})
-  </a>
-  {% for category_code, category_name in categories %}
-  <a href="{{ url_for('main.products', category=category_code) }}" 
-     class="px-4 py-2 rounded transition {{ 'bg-orange-500 text-white' if current_category == category_code else 'bg-orange-100 text-orange-700 hover:bg-orange-200' }}">
-    {{ category_name }}
-  </a>
-  {% endfor %}
-</div>
-
-<!-- 商品列表 -->
+<!-- Products Grid -->
 {% if products %}
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
   {% for product in products %}
-  <div class="bg-white rounded-lg shadow hover:shadow-lg transition p-4 flex flex-col">
+  <div class="product-card overflow-hidden">
     <!-- 商品图片 -->
     {% set images = product.get_images() %}
-    <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="block mb-3">
-      <img src="{{ images[0] if images else 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=400&q=80' }}" 
-           alt="{{ product.name }}" 
-           class="rounded h-48 w-full object-cover hover:opacity-90 transition">
-    </a>
-    
-    <!-- 商品信息 -->
-    <div class="flex-1">
-      <!-- 分类和成色标签 -->
-      <div class="flex gap-2 mb-2">
-        <span class="bg-orange-100 text-orange-600 px-2 py-1 rounded text-xs">
-          {{ product.get_category_display() }}
-        </span>
-        <span class="bg-green-100 text-green-600 px-2 py-1 rounded text-xs">
-          {{ product.condition }}
-        </span>
+    <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="block">
+      <div class="product-image relative overflow-hidden h-64 bg-gradient-to-br from-gray-100 to-gray-200">
+        <img src="{{ images[0] if images else 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=600&q=80' }}" 
+             alt="{{ product.name }}" 
+             class="w-full h-full object-cover transition-transform duration-300 hover:scale-105">
+        <div class="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors duration-300"></div>
+        
+        <!-- Status Badge -->
         {% if not product.is_available() %}
-        <span class="bg-red-100 text-red-600 px-2 py-1 rounded text-xs">
+        <div class="absolute top-4 left-4 bg-red-500/90 text-white text-xs font-medium px-3 py-1 rounded-full backdrop-blur-sm">
           已售出
-        </span>
+        </div>
+        {% else %}
+        <div class="absolute top-4 left-4 bg-green-500/90 text-white text-xs font-medium px-3 py-1 rounded-full backdrop-blur-sm">
+          在售
+        </div>
         {% endif %}
       </div>
+    </a>
+    
+    <div class="p-6">
+      <!-- 分类和成色标签 -->
+      <div class="flex flex-wrap gap-2 mb-3">
+        <span class="bg-gradient-to-r from-pink-100 to-purple-100 text-pink-700 px-3 py-1 rounded-full text-xs font-medium">
+          {{ product.get_category_display() }}
+        </span>
+        <span class="bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 px-3 py-1 rounded-full text-xs font-medium">
+          {{ product.condition }}
+        </span>
+      </div>
       
-      <h4 class="font-bold text-lg mb-2 hover:text-orange-600 transition">
-        <a href="{{ url_for('main.product_detail', product_id=product.id) }}">{{ product.name }}</a>
-      </h4>
+      <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="block group">
+        <h4 class="font-semibold text-xl mb-2 text-gray-800 group-hover:text-pink-600 transition-colors">
+          {{ product.name }}
+        </h4>
+      </a>
       
-      <p class="text-sm text-gray-600 mb-3 line-clamp-2">
+      <p class="text-gray-600 mb-4 leading-relaxed text-sm">
         {{ product.description[:80] + '...' if product.description|length > 80 else product.description }}
       </p>
       
-      <div class="text-xl font-bold text-orange-600 mb-4">
-        NZD ${{ "%.2f"|format(product.price) }}
+      <div class="flex items-center justify-between mb-4">
+        <span class="text-2xl font-bold bg-gradient-to-r from-pink-500 to-red-500 bg-clip-text text-transparent">
+          ${{ "%.2f"|format(product.price) }}
+        </span>
+        <span class="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+          NZD
+        </span>
       </div>
+      
+      <!-- 操作按钮 -->
+      {% if product.is_available() %}
+      <div class="flex gap-3">
+        <a href="{{ url_for('main.product_detail', product_id=product.id) }}" 
+           class="flex-1 text-center py-3 px-4 border-2 border-pink-200 text-pink-600 font-medium rounded-xl hover:bg-pink-50 transition-all duration-300">
+          查看详情
+        </a>
+        <button onclick="addToCart({{ product.id }})" 
+                class="flex-1 btn-primary text-center py-3 px-4 font-medium rounded-xl">
+          加入购物车
+        </button>
+      </div>
+      {% else %}
+      <div class="bg-gray-100 text-gray-500 py-3 px-4 rounded-xl text-center font-medium">
+        商品已售出
+      </div>
+      {% endif %}
     </div>
-    
-    <!-- 操作按钮 -->
-    {% if product.is_available() %}
-    <div class="flex gap-2">
-      <a href="{{ url_for('main.product_detail', product_id=product.id) }}" 
-         class="flex-1 bg-orange-500 text-white py-2 px-3 rounded text-center text-sm hover:bg-orange-600 transition">
-        查看详情
-      </a>
-      <button onclick="addToCart({{ product.id }})" 
-              class="flex-1 bg-green-500 text-white py-2 px-3 rounded text-sm hover:bg-green-600 transition">
-        加入购物车
-      </button>
-    </div>
-    {% else %}
-    <div class="bg-gray-100 text-gray-500 py-2 px-3 rounded text-center text-sm">
-      商品已售出
-    </div>
-    {% endif %}
   </div>
   {% endfor %}
 </div>
 {% else %}
-<div class="text-center py-12">
-  <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.766 0-5.227-1.116-6.853-2.92L5 12l-.147.08A7.962 7.962 0 0112 21a7.962 7.962 0 016.853-8.92L19 12l-.147-.08z"></path>
-  </svg>
-  <h3 class="text-xl font-medium text-gray-700 mb-2">暂无商品</h3>
-  <p class="text-gray-500">
+<div class="card text-center py-16">
+  <div class="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
+    <span class="text-gray-400 text-3xl">🔍</span>
+  </div>
+  <h3 class="text-2xl font-semibold text-gray-700 mb-4">暂无商品</h3>
+  <p class="text-gray-500 text-lg mb-6">
     {% if search_term %}
     没有找到匹配 "{{ search_term }}" 的商品，请尝试其他搜索词
     {% elif current_category %}
@@ -172,7 +300,7 @@
     {% endif %}
   </p>
   {% if search_term or current_category %}
-  <a href="{{ url_for('main.products') }}" class="inline-block mt-4 text-orange-600 hover:text-orange-700">
+  <a href="{{ url_for('main.products') }}" class="btn-secondary">
     查看全部商品
   </a>
   {% endif %}
@@ -181,6 +309,45 @@
 
 <!-- JavaScript -->
 <script>
+// Advanced Filters Toggle
+document.getElementById('toggleFilters').addEventListener('click', function() {
+  const filters = document.getElementById('advancedFilters');
+  const isHidden = filters.classList.contains('hidden');
+  
+  if (isHidden) {
+    filters.classList.remove('hidden');
+    this.innerHTML = `
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+      </svg>
+      收起筛选
+    `;
+  } else {
+    filters.classList.add('hidden');
+    this.innerHTML = `
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z"></path>
+      </svg>
+      筛选
+    `;
+  }
+});
+
+// Auto-submit filters when changed
+document.querySelectorAll('#advancedFilters select, #advancedFilters input').forEach(function(element) {
+  element.addEventListener('change', function() {
+    document.getElementById('searchForm').submit();
+  });
+});
+
+// Quick search on Enter
+document.getElementById('searchInput').addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    document.getElementById('searchForm').submit();
+  }
+});
+
 // 搜索建议功能
 let searchTimeout;
 const searchInput = document.getElementById('searchInput');
@@ -229,22 +396,69 @@ function showSearchSuggestions(suggestions) {
     return;
   }
   
-  const html = suggestions.map((suggestion, index) => `
-    <div class="suggestion-item px-4 py-2 hover:bg-orange-50 cursor-pointer flex items-center gap-2 ${index === selectedSuggestionIndex ? 'bg-orange-50' : ''}"
-         onclick="selectSuggestion('${suggestion.text}')">
-      <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        ${suggestion.type === 'product' ? 
-          '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>' :
-          '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>'
-        }
-      </svg>
-      <span class="flex-1">${suggestion.text}</span>
-      ${suggestion.category ? `<span class="text-xs text-gray-500">${suggestion.category}</span>` : ''}
-    </div>
-  `).join('');
+  const getIconAndColor = (type) => {
+    switch(type) {
+      case 'product':
+        return { icon: '📦', bg: 'bg-blue-100', text: 'text-blue-600', label: '商品' };
+      case 'category':
+        return { icon: '🏷️', bg: 'bg-green-100', text: 'text-green-600', label: '分类' };
+      case 'price_range':
+        return { icon: '💰', bg: 'bg-yellow-100', text: 'text-yellow-600', label: '价格' };
+      case 'condition':
+        return { icon: '⭐', bg: 'bg-purple-100', text: 'text-purple-600', label: '成色' };
+      default:
+        return { icon: '🔍', bg: 'bg-gray-100', text: 'text-gray-600', label: '搜索' };
+    }
+  };
+  
+  const html = suggestions.map((suggestion, index) => {
+    const { icon, bg, text, label } = getIconAndColor(suggestion.type);
+    
+    const clickAction = suggestion.filter ? 
+      `applyFilter('${suggestion.filter}')` : 
+      `selectSuggestion('${suggestion.text.replace(/'/g, "\\'")}')`;
+    
+    return `
+      <div class="suggestion-item px-4 py-3 hover:bg-pink-50 cursor-pointer flex items-center gap-3 ${index === selectedSuggestionIndex ? 'bg-pink-50' : ''} border-b border-gray-100 last:border-b-0"
+           onclick="${clickAction}">
+        <div class="w-8 h-8 rounded-full flex items-center justify-center ${bg}">
+          <span class="${text} text-sm">${icon}</span>
+        </div>
+        <div class="flex-1">
+          <div class="font-medium text-gray-800">${suggestion.text}</div>
+          <div class="flex gap-2 text-xs text-gray-500">
+            ${suggestion.category ? `<span>${suggestion.category}</span>` : ''}
+            ${suggestion.price ? `<span>${suggestion.price}</span>` : ''}
+            ${suggestion.condition ? `<span>${suggestion.condition}</span>` : ''}
+            ${suggestion.count ? `<span>${suggestion.count}个商品</span>` : ''}
+          </div>
+        </div>
+        <div class="text-xs text-gray-400">
+          ${label}
+        </div>
+      </div>
+    `;
+  }).join('');
   
   searchSuggestions.innerHTML = html;
   searchSuggestions.classList.remove('hidden');
+}
+
+// 应用过滤器建议
+function applyFilter(filterString) {
+  const currentUrl = new URL(window.location.href);
+  const params = new URLSearchParams(currentUrl.search);
+  
+  // 解析过滤器字符串
+  const filterPairs = filterString.split('&');
+  filterPairs.forEach(pair => {
+    const [key, value] = pair.split('=');
+    params.set(key, decodeURIComponent(value));
+  });
+  
+  // 重定向到新的URL
+  window.location.href = `/products?${params.toString()}`;
+  hideSuggestions();
 }
 
 // 显示搜索历史
@@ -256,14 +470,22 @@ function showSearchHistory() {
   }
   
   const html = `
-    <div class="px-4 py-2 text-xs text-gray-500 border-b">搜索历史</div>
+    <div class="px-4 py-3 text-sm font-medium text-gray-700 border-b border-gray-200 bg-gray-50">
+      <div class="flex items-center gap-2">
+        <span class="text-gray-500">🕒</span>
+        搜索历史
+      </div>
+    </div>
     ${history.map((query, index) => `
-      <div class="suggestion-item px-4 py-2 hover:bg-orange-50 cursor-pointer flex items-center gap-2 ${index === selectedSuggestionIndex ? 'bg-orange-50' : ''}"
-           onclick="selectSuggestion('${query}')">
-        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-        </svg>
-        <span class="flex-1">${query}</span>
+      <div class="suggestion-item px-4 py-3 hover:bg-pink-50 cursor-pointer flex items-center gap-3 ${index === selectedSuggestionIndex ? 'bg-pink-50' : ''} border-b border-gray-100 last:border-b-0"
+           onclick="selectSuggestion('${query.replace(/'/g, "\\'")}')">
+        <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+          <span class="text-gray-500 text-sm">🕒</span>
+        </div>
+        <div class="flex-1">
+          <div class="font-medium text-gray-800">${query}</div>
+        </div>
+        <div class="text-xs text-gray-400">历史</div>
       </div>
     `).join('')}
   `;
@@ -337,9 +559,9 @@ function updateSelectedSuggestion() {
   const suggestions = document.querySelectorAll('.suggestion-item');
   suggestions.forEach((item, index) => {
     if (index === selectedSuggestionIndex) {
-      item.classList.add('bg-orange-50');
+      item.classList.add('bg-pink-50');
     } else {
-      item.classList.remove('bg-orange-50');
+      item.classList.remove('bg-pink-50');
     }
   });
 }
@@ -413,17 +635,29 @@ function addToCart(productId) {
 // 显示消息
 function showMessage(message, type = 'info') {
   const messageDiv = document.createElement('div');
-  messageDiv.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
-    type === 'success' ? 'bg-green-500 text-white' : 
-    type === 'error' ? 'bg-red-500 text-white' : 
-    'bg-blue-500 text-white'
+  messageDiv.className = `fixed top-8 right-8 z-50 p-4 rounded-2xl shadow-2xl border transition-all duration-300 backdrop-blur-md ${
+    type === 'success' ? 'bg-green-500/90 text-white border-green-400' : 
+    type === 'error' ? 'bg-red-500/90 text-white border-red-400' : 
+    'bg-blue-500/90 text-white border-blue-400'
   }`;
+  messageDiv.style.transform = 'translateX(100%)';
   messageDiv.textContent = message;
   
   document.body.appendChild(messageDiv);
   
+  // 添加入场动画
   setTimeout(() => {
-    document.body.removeChild(messageDiv);
+    messageDiv.style.transform = 'translateX(0)';
+  }, 100);
+  
+  // 添加退场动画和移除
+  setTimeout(() => {
+    messageDiv.style.transform = 'translateX(100%)';
+    setTimeout(() => {
+      if (document.body.contains(messageDiv)) {
+        document.body.removeChild(messageDiv);
+      }
+    }, 300);
   }, 3000);
 }
 

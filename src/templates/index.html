@@ -33,43 +33,117 @@
 {% endblock %}
 
 {% block content %}
-<section class="mb-10">
-  <div class="flex flex-col md:flex-row items-center gap-8">
-    <img src="https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=400&q=80" alt="二手物品" class="rounded-lg shadow-lg w-full md:w-1/3">
-    <div>
-      <h2 class="text-3xl font-bold text-orange-700 mb-4">欢迎来到Sara的二手售卖网站</h2>
-      <p class="mb-4">我是Sara，来自奥克兰北岸，家中有多种高品质二手物品出售，欢迎新西兰各地朋友选购。支持面交与邮寄，购物体验安全、便捷、温馨。</p>
-      <a href="{{ url_for('main.products') }}" class="inline-block bg-orange-500 text-white px-6 py-2 rounded shadow hover:bg-orange-600 transition">立即选购</a>
+
+<!-- Hero Section -->
+<section class="hero-section text-center">
+  <div class="max-w-4xl mx-auto">
+    <h2 class="section-title mb-6">
+      欢迎来到Sara的精品二手世界
+    </h2>
+    <p class="section-subtitle max-w-2xl mx-auto">
+      来自奥克兰北岸的精选二手商品，每一件都经过精心挑选与保养。
+      我们致力于为您提供安全、便捷、温馨的购物体验。
+    </p>
+    <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+      <a href="{{ url_for('main.products') }}" class="btn-primary text-lg px-8 py-4">
+        🛍️ 立即选购
+      </a>
+      <a href="{{ url_for('main.info') }}" class="btn-secondary text-lg px-8 py-4">
+        ℹ️ 了解更多
+      </a>
     </div>
   </div>
 </section>
-<section>
-  <h3 class="text-xl font-semibold text-orange-700 mb-4">最新上架</h3>
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-    {% for product in products %}
-    <div class="bg-white rounded-lg shadow p-4 flex flex-col">
-      <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="block">
-        <img src="{{ product.get_images()[0] if product.get_images() else 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=400&q=80' }}" alt="{{ product.name }}" class="rounded mb-3 h-40 object-cover hover:opacity-90 transition cursor-pointer">
-      </a>
-      <div class="flex-1">
-        <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="block hover:text-orange-600 transition">
-          <h4 class="font-bold text-lg mb-1">{{ product.name }}</h4>
-        </a>
-        <p class="text-sm text-gray-600 mb-2">{{ product.description[:50] }}{{ '...' if product.description and product.description|length > 50 else '' }}</p>
-        <span class="text-orange-600 font-semibold">${{ product.price }}</span>
+
+<!-- Features Section -->
+<section class="mb-16">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <div class="card text-center p-8">
+      <div class="w-16 h-16 bg-gradient-to-br from-pink-400 to-red-400 rounded-full flex items-center justify-center mx-auto mb-4">
+        <span class="text-white text-2xl">🔍</span>
       </div>
-      <div class="mt-3 flex gap-2">
-        <a href="{{ url_for('main.product_detail', product_id=product.id) }}" 
-           class="flex-1 bg-orange-500 text-white py-1 px-2 rounded text-center text-sm hover:bg-orange-600 transition">
-          查看详情
+      <h3 class="text-xl font-semibold text-gray-800 mb-3">精心挑选</h3>
+      <p class="text-gray-600 leading-relaxed">每件商品都经过仔细检查，确保品质优良，物有所值</p>
+    </div>
+    
+    <div class="card text-center p-8">
+      <div class="w-16 h-16 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-full flex items-center justify-center mx-auto mb-4">
+        <span class="text-white text-2xl">🚚</span>
+      </div>
+      <h3 class="text-xl font-semibold text-gray-800 mb-3">灵活配送</h3>
+      <p class="text-gray-600 leading-relaxed">支持面交与邮寄，满足您的不同需求，购物更便利</p>
+    </div>
+    
+    <div class="card text-center p-8">
+      <div class="w-16 h-16 bg-gradient-to-br from-green-400 to-emerald-400 rounded-full flex items-center justify-center mx-auto mb-4">
+        <span class="text-white text-2xl">💖</span>
+      </div>
+      <h3 class="text-xl font-semibold text-gray-800 mb-3">贴心服务</h3>
+      <p class="text-gray-600 leading-relaxed">专业的售前售后服务，让您的购物体验温馨无忧</p>
+    </div>
+  </div>
+</section>
+
+<!-- Products Section -->
+<section>
+  <div class="text-center mb-12">
+    <h3 class="section-title text-3xl mb-4">✨ 最新上架精品</h3>
+    <p class="section-subtitle max-w-2xl mx-auto">
+      发现更多优质好物，每一件都有独特的故事等待与您相遇
+    </p>
+  </div>
+  
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    {% for product in products %}
+    <div class="product-card overflow-hidden">
+      <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="block">
+        <div class="product-image relative overflow-hidden h-64 bg-gradient-to-br from-gray-100 to-gray-200">
+          <img src="{{ product.get_images()[0] if product.get_images() else 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=600&q=80' }}" 
+               alt="{{ product.name }}" 
+               class="w-full h-full object-cover transition-transform duration-300 hover:scale-105">
+          <div class="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors duration-300"></div>
+        </div>
+      </a>
+      
+      <div class="p-6">
+        <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="block group">
+          <h4 class="font-semibold text-xl mb-2 text-gray-800 group-hover:text-pink-600 transition-colors">
+            {{ product.name }}
+          </h4>
         </a>
-        <button onclick="addToCart({{ product.id }})" 
-                class="flex-1 bg-green-500 text-white py-1 px-2 rounded text-sm hover:bg-green-600 transition">
-          加入购物车
-        </button>
+        
+        <p class="text-gray-600 mb-4 leading-relaxed text-sm">
+          {{ product.description[:80] }}{{ '...' if product.description and product.description|length > 80 else '' }}
+        </p>
+        
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-2xl font-bold bg-gradient-to-r from-pink-500 to-red-500 bg-clip-text text-transparent">
+            ${{ product.price }}
+          </span>
+          <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+            新品
+          </span>
+        </div>
+        
+        <div class="flex gap-3">
+          <a href="{{ url_for('main.product_detail', product_id=product.id) }}" 
+             class="flex-1 text-center py-3 px-4 border-2 border-pink-200 text-pink-600 font-medium rounded-xl hover:bg-pink-50 transition-all duration-300">
+            查看详情
+          </a>
+          <button onclick="addToCart({{ product.id }})" 
+                  class="flex-1 btn-primary text-center py-3 px-4 font-medium rounded-xl">
+            加入购物车
+          </button>
+        </div>
       </div>
     </div>
     {% endfor %}
+  </div>
+  
+  <div class="text-center mt-12">
+    <a href="{{ url_for('main.products') }}" class="btn-secondary text-lg px-8 py-4">
+      查看全部商品 →
+    </a>
   </div>
 </section>
 
@@ -129,17 +203,29 @@ function addToCart(productId) {
 // 显示消息
 function showMessage(message, type = 'info') {
   const messageDiv = document.createElement('div');
-  messageDiv.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
-    type === 'success' ? 'bg-green-500 text-white' : 
-    type === 'error' ? 'bg-red-500 text-white' : 
-    'bg-blue-500 text-white'
+  messageDiv.className = `fixed top-8 right-8 z-50 p-4 rounded-2xl shadow-2xl border transition-all duration-300 backdrop-blur-md ${
+    type === 'success' ? 'bg-green-500/90 text-white border-green-400' : 
+    type === 'error' ? 'bg-red-500/90 text-white border-red-400' : 
+    'bg-blue-500/90 text-white border-blue-400'
   }`;
+  messageDiv.style.transform = 'translateX(100%)';
   messageDiv.textContent = message;
   
   document.body.appendChild(messageDiv);
   
+  // 添加入场动画
   setTimeout(() => {
-    document.body.removeChild(messageDiv);
+    messageDiv.style.transform = 'translateX(0)';
+  }, 100);
+  
+  // 添加退场动画和移除
+  setTimeout(() => {
+    messageDiv.style.transform = 'translateX(100%)';
+    setTimeout(() => {
+      if (document.body.contains(messageDiv)) {
+        document.body.removeChild(messageDiv);
+      }
+    }, 300);
   }, 3000);
 }
 

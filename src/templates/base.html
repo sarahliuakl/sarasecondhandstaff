@@ -43,7 +43,158 @@
   <!-- Favicon -->
   <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') if url_for else '/static/favicon.ico' }}" />
   
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
   <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Custom CSS -->
+  <style>
+    :root {
+      --pastel-pink: #FFE4E1;
+      --pastel-purple: #E6E6FA;
+      --pastel-blue: #E0F6FF;
+      --pastel-green: #F0FFF0;
+      --pastel-yellow: #FFFACD;
+      --soft-gray: #F8F9FA;
+      --text-primary: #2C3E50;
+      --text-secondary: #5D6D7E;
+      --accent-primary: #FF6B6B;
+      --accent-secondary: #4ECDC4;
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, var(--pastel-pink) 0%, var(--pastel-purple) 50%, var(--pastel-blue) 100%);
+      min-height: 100vh;
+    }
+    
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+    }
+    
+    .card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      border-radius: 16px;
+      transition: all 0.3s ease;
+    }
+    
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-primary) 0%, #FF8E8E 100%);
+      border: none;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+    
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #FF5252 0%, var(--accent-primary) 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(255, 107, 107, 0.3);
+    }
+    
+    .btn-secondary {
+      background: linear-gradient(135deg, var(--accent-secondary) 0%, #7BDDD7 100%);
+      border: none;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+    
+    .btn-secondary:hover {
+      background: linear-gradient(135deg, #45B7B8 0%, var(--accent-secondary) 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(78, 205, 196, 0.3);
+    }
+    
+    .nav-link {
+      color: var(--text-primary);
+      font-weight: 500;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      position: relative;
+      padding: 8px 16px;
+      border-radius: 8px;
+    }
+    
+    .nav-link:hover {
+      background: rgba(255, 255, 255, 0.2);
+      color: var(--accent-primary);
+    }
+    
+    .product-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+      border-radius: 20px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+    
+    .product-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+    }
+    
+    .product-image {
+      border-radius: 16px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+    
+    .product-image:hover {
+      transform: scale(1.05);
+    }
+    
+    .footer-gradient {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .hero-section {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 24px;
+      padding: 3rem;
+      margin-bottom: 4rem;
+    }
+    
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      color: var(--text-primary);
+      font-size: 2.5rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    
+    .section-subtitle {
+      color: var(--text-secondary);
+      font-size: 1.125rem;
+      line-height: 1.6;
+      margin-bottom: 2rem;
+    }
+  </style>
   
   <!-- 结构化数据 -->
   {% block structured_data %}
@@ -63,45 +214,89 @@
   </script>
   {% endblock %}
 </head>
-<body class="bg-orange-50 text-gray-800">
+<body class="text-gray-800">
   <!-- Header -->
-  <header class="bg-orange-200 shadow">
-    <div class="container mx-auto flex justify-between items-center py-4 px-6">
-      <h1 class="text-2xl font-bold text-orange-700">Sara的二手售卖</h1>
-      <nav class="flex items-center space-x-6">
-        <a href="{{ url_for('main.index') }}" class="text-orange-700 font-semibold hover:underline">首页</a>
-        <a href="{{ url_for('main.products') }}" class="text-orange-700 font-semibold hover:underline">宝贝列表</a>
-        <a href="{{ url_for('main.contact') }}" class="text-orange-700 font-semibold hover:underline">联系我</a>
-        <a href="{{ url_for('main.help') }}" class="text-orange-700 font-semibold hover:underline">售卖说明</a>
-        <a href="{{ url_for('main.about') }}" class="text-orange-700 font-semibold hover:underline">关于我</a>
+  <header class="bg-white/20 backdrop-blur-md border-b border-white/20 sticky top-0 z-50">
+    <div class="container mx-auto flex justify-between items-center py-6 px-8">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center">
+          <span class="text-white font-bold text-lg">S</span>
+        </div>
+        <h1 class="hero-title text-3xl font-bold text-gray-800">Sara的二手售卖</h1>
+      </div>
+      <nav class="flex items-center space-x-2">
+        <a href="{{ url_for('main.index') }}" class="nav-link">首页</a>
+        <a href="{{ url_for('main.products') }}" class="nav-link">宝贝列表</a>
+        <a href="{{ url_for('main.info') }}" class="nav-link">售卖说明</a>
         
         <!-- 购物车 -->
-        <a href="{{ url_for('main.cart') }}" class="relative text-orange-700 font-semibold hover:underline">
+        <a href="{{ url_for('main.cart') }}" class="nav-link relative">
           购物车
-          <span class="cart-count absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center" style="display: none;">0</span>
+          <span class="cart-count absolute -top-1 -right-1 bg-gradient-to-r from-pink-500 to-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center" style="display: none;">0</span>
         </a>
         
         <!-- 订单查询 -->
-        <a href="{{ url_for('main.order_query') }}" class="text-orange-700 font-semibold hover:underline">订单查询</a>
-        
+        <a href="{{ url_for('main.order_query') }}" class="nav-link">订单查询</a>
       </nav>
     </div>
   </header>
   <!-- Main -->
-  <main class="container mx-auto px-6 py-10">
+  <main class="container mx-auto px-8 py-12">
     {% block content %}{% endblock %}
   </main>
+  
   <!-- Footer -->
-  <footer class="bg-orange-100 mt-10 py-6">
-    <div class="container mx-auto text-center text-gray-600">
-      <div class="flex flex-col md:flex-row justify-between items-center">
-        <div class="mb-2 md:mb-0">
-          © 2025 Sara的二手售卖 | 联系电话：0225255862 | 邮箱：haixialiu2017@gmail.com
+  <footer class="footer-gradient mt-16 py-12">
+    <div class="container mx-auto px-8">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+        <div class="text-center md:text-left">
+          <div class="flex items-center justify-center md:justify-start space-x-3 mb-4">
+            <div class="w-8 h-8 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center">
+              <span class="text-white font-bold">S</span>
+            </div>
+            <h3 class="hero-title text-xl font-semibold text-gray-800">Sara的二手售卖</h3>
+          </div>
+          <p class="text-gray-600 text-sm leading-relaxed">
+            新西兰奥克兰地区优质二手商品专卖店<br>
+            品质保证，价格优惠，服务贴心
+          </p>
         </div>
-        <div class="text-sm text-gray-700">
-          <span id="weather">正在获取天气...</span>
-          <span id="localtime" class="ml-2"></span>
+        
+        <div class="text-center">
+          <h4 class="font-semibold text-gray-800 mb-4">联系方式</h4>
+          <div class="space-y-2 text-sm text-gray-600">
+            <p class="flex items-center justify-center space-x-2">
+              <span>📞</span>
+              <span>0225255862</span>
+            </p>
+            <p class="flex items-center justify-center space-x-2">
+              <span>✉️</span>
+              <span>haixialiu2017@gmail.com</span>
+            </p>
+            <p class="flex items-center justify-center space-x-2">
+              <span>📍</span>
+              <span>奥克兰北岸</span>
+            </p>
+          </div>
         </div>
+        
+        <div class="text-center md:text-right">
+          <h4 class="font-semibold text-gray-800 mb-4">实时信息</h4>
+          <div class="space-y-2 text-sm text-gray-600">
+            <div class="flex items-center justify-center md:justify-end space-x-2">
+              <span>🌤️</span>
+              <span id="weather">正在获取天气...</span>
+            </div>
+            <div class="flex items-center justify-center md:justify-end space-x-2">
+              <span>⏰</span>
+              <span id="localtime"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="border-t border-white/20 pt-6 text-center text-sm text-gray-500">
+        © 2025 Sara的二手售卖 - 所有权利保留
       </div>
     </div>
   </footer>

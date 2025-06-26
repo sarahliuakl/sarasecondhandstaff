@@ -2,20 +2,26 @@
 {% block title %}购物车 - Sara的二手售卖{% endblock %}
 {% block content %}
 
-<div class="max-w-4xl mx-auto">
-  <h2 class="text-3xl font-bold text-orange-700 mb-6">我的购物车</h2>
+<div class="max-w-6xl mx-auto">
+  <!-- Page Header -->
+  <div class="hero-section text-center mb-12">
+    <h2 class="section-title mb-4">🛒 我的购物车</h2>
+    <p class="section-subtitle max-w-2xl mx-auto">
+      精心挑选的心仪商品，即将与您相遇
+    </p>
+  </div>
   
   <!-- 购物车内容容器 -->
   <div id="cartContainer">
     <!-- 空购物车提示 -->
-    <div id="emptyCart" class="text-center py-12 hidden">
-      <svg class="w-24 h-24 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 4M7 13l2.5 4m6 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"></path>
-      </svg>
-      <h3 class="text-xl font-medium text-gray-700 mb-2">购物车是空的</h3>
-      <p class="text-gray-500 mb-4">还没有添加任何商品到购物车</p>
-      <a href="{{ url_for('main.products') }}" class="inline-block bg-orange-500 text-white px-6 py-2 rounded hover:bg-orange-600 transition">
-        去购物
+    <div id="emptyCart" class="card text-center py-16 hidden">
+      <div class="w-32 h-32 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-8">
+        <span class="text-gray-400 text-5xl">🛒</span>
+      </div>
+      <h3 class="text-2xl font-semibold text-gray-700 mb-4">购物车是空的</h3>
+      <p class="text-gray-500 mb-8 text-lg">还没有添加任何商品到购物车</p>
+      <a href="{{ url_for('main.products') }}" class="btn-primary text-lg px-8 py-4">
+        🛍️ 去购物
       </a>
     </div>
 
@@ -25,47 +31,53 @@
     </div>
 
     <!-- 购物车总计 -->
-    <div id="cartSummary" class="hidden bg-gray-50 rounded-lg p-6 mt-6">
-      <div class="flex justify-between items-center mb-4">
-        <span class="text-lg font-medium">商品小计:</span>
-        <span id="subtotal" class="text-xl font-bold text-orange-600">NZD $0.00</span>
+    <div id="cartSummary" class="hidden card p-8 mt-8">
+      <div class="text-center mb-6">
+        <h3 class="text-2xl font-semibold text-gray-800">💰 订单总计</h3>
       </div>
       
-      <div class="flex justify-between items-center mb-4" id="shippingFeeRow">
-        <span class="text-lg font-medium">预估邮费:</span>
-        <span id="shippingFee" class="text-lg text-gray-600">NZD $15.00</span>
-      </div>
-      
-      <div id="faceToFaceOnlyWarning" class="hidden bg-purple-50 border border-purple-200 rounded-lg p-3 mb-4">
-        <div class="flex items-center text-purple-700">
-          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-          购物车中包含仅见面交易商品，只能选择当面交易
+      <div class="space-y-4 mb-6">
+        <div class="flex justify-between items-center p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl border border-blue-200">
+          <span class="text-lg font-medium text-gray-700">商品小计:</span>
+          <span id="subtotal" class="text-xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">NZD $0.00</span>
+        </div>
+        
+        <div class="flex justify-between items-center p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200" id="shippingFeeRow">
+          <span class="text-lg font-medium text-gray-700">预估邮费:</span>
+          <span id="shippingFee" class="text-lg font-semibold text-green-600">NZD $15.00</span>
+        </div>
+        
+        <div id="faceToFaceOnlyWarning" class="hidden bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-4">
+          <div class="flex items-center text-purple-700">
+            <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center mr-3">
+              <span class="text-white text-sm">⚠️</span>
+            </div>
+            <span class="font-medium">购物车中包含仅见面交易商品，只能选择当面交易</span>
+          </div>
         </div>
       </div>
       
-      <hr class="my-4">
-      
-      <div class="flex justify-between items-center mb-6">
-        <span class="text-xl font-bold">总计:</span>
-        <span id="total" class="text-2xl font-bold text-orange-600">NZD $0.00</span>
+      <div class="border-t-2 border-gray-200 pt-6 mb-8">
+        <div class="flex justify-between items-center p-6 bg-gradient-to-r from-pink-50 to-purple-50 rounded-2xl border-2 border-pink-200">
+          <span class="text-2xl font-bold text-gray-800">总计:</span>
+          <span id="total" class="text-3xl font-bold bg-gradient-to-r from-pink-500 to-red-500 bg-clip-text text-transparent">NZD $0.00</span>
+        </div>
       </div>
       
-      <div class="space-y-3">
+      <div class="space-y-4">
         <button onclick="proceedToCheckout()" 
-                class="w-full bg-orange-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-orange-600 transition">
-          订单确认
+                class="w-full btn-primary py-4 text-lg font-semibold">
+          🎯 订单确认
         </button>
         
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <a href="{{ url_for('main.products') }}" 
-             class="block text-center bg-gray-100 text-gray-700 py-2 px-4 rounded font-medium hover:bg-gray-200 transition">
-            继续购物
+             class="block text-center bg-white/70 text-gray-700 py-3 px-6 rounded-xl font-medium hover:bg-white/90 transition border-2 border-gray-200">
+            🛍️ 继续购物
           </a>
           <button onclick="clearCart()" 
-                  class="bg-red-100 text-red-700 py-2 px-4 rounded font-medium hover:bg-red-200 transition">
-            清空购物车
+                  class="bg-gradient-to-r from-red-100 to-pink-100 text-red-700 py-3 px-6 rounded-xl font-medium hover:from-red-200 hover:to-pink-200 transition border-2 border-red-200">
+            🗑️ 清空购物车
           </button>
         </div>
       </div>
@@ -73,69 +85,140 @@
   </div>
 
   <!-- 交付和支付说明 -->
-  <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div class="mt-12 grid grid-cols-1 lg:grid-cols-2 gap-8">
     <!-- 交付方式 -->
-    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
-      <h3 class="text-lg font-semibold text-blue-800 mb-4">交付方式</h3>
-      <div class="space-y-3">
-        <div class="flex items-start">
-          <svg class="w-5 h-5 text-blue-600 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-          </svg>
-          <div>
-            <div class="font-medium text-blue-800">当面交易</div>
-            <div class="text-sm text-blue-600">奥克兰地区推荐，免邮费</div>
+    <div class="card p-8">
+      <div class="flex items-center mb-6">
+        <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mr-4">
+          <span class="text-white text-xl">🚚</span>
+        </div>
+        <h3 class="text-2xl font-semibold text-gray-800">交付方式</h3>
+      </div>
+      
+      <div class="space-y-4">
+        <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">
+          <div class="flex items-start">
+            <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center mr-4 mt-1">
+              <span class="text-white text-lg">📍</span>
+            </div>
+            <div>
+              <div class="font-semibold text-gray-800 text-lg mb-1">当面交易</div>
+              <div class="text-green-600 font-medium">奥克兰地区推荐，免邮费</div>
+              <div class="text-sm text-gray-600 mt-2">安全便捷，当面验货</div>
+            </div>
           </div>
         </div>
         
-        <div class="flex items-start">
-          <svg class="w-5 h-5 text-blue-600 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-          </svg>
-          <div>
-            <div class="font-medium text-blue-800">邮寄</div>
-            <div class="text-sm text-blue-600">新西兰全国，邮费约 NZD $15</div>
+        <div class="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-6 border border-blue-200">
+          <div class="flex items-start">
+            <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center mr-4 mt-1">
+              <span class="text-white text-lg">📦</span>
+            </div>
+            <div>
+              <div class="font-semibold text-gray-800 text-lg mb-1">邮寄服务</div>
+              <div class="text-blue-600 font-medium">新西兰全国，邮费约 NZD $15</div>
+              <div class="text-sm text-gray-600 mt-2">快速便民，全国覆盖</div>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
     <!-- 支付方式 -->
-    <div class="bg-green-50 border border-green-200 rounded-lg p-6">
-      <h3 class="text-lg font-semibold text-green-800 mb-4">支付方式</h3>
-      <div class="space-y-2 text-sm">
-        <div class="flex items-center text-green-700">
-          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-          ANZ银行转账（推荐）
+    <div class="card p-8">
+      <div class="flex items-center mb-6">
+        <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center mr-4">
+          <span class="text-white text-xl">💳</span>
         </div>
-        <div class="flex items-center text-green-700">
-          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-          跨行转账
+        <h3 class="text-2xl font-semibold text-gray-800">支付方式</h3>
+      </div>
+      
+      <div class="grid grid-cols-2 gap-3">
+        <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200 text-center">
+          <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-2">
+            <span class="text-white text-sm">🏦</span>
+          </div>
+          <div class="font-medium text-gray-800 text-sm">ANZ银行转账</div>
+          <div class="text-xs text-green-600">推荐</div>
         </div>
-        <div class="flex items-center text-green-700">
-          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-          现金/微信/支付宝（当面）
+        
+        <div class="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-4 border border-blue-200 text-center">
+          <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-2">
+            <span class="text-white text-sm">🔄</span>
+          </div>
+          <div class="font-medium text-gray-800 text-sm">跨行转账</div>
+          <div class="text-xs text-blue-600">便捷</div>
+        </div>
+        
+        <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-200 text-center">
+          <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-2">
+            <span class="text-white text-sm">📱</span>
+          </div>
+          <div class="font-medium text-gray-800 text-sm">微信/支付宝</div>
+          <div class="text-xs text-purple-600">当面</div>
+        </div>
+        
+        <div class="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl p-4 border border-yellow-200 text-center">
+          <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center mx-auto mb-2">
+            <span class="text-white text-sm">💵</span>
+          </div>
+          <div class="font-medium text-gray-800 text-sm">现金支付</div>
+          <div class="text-xs text-yellow-600">当面</div>
         </div>
       </div>
     </div>
   </div>
 
   <!-- 购买须知 -->
-  <div class="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-    <h3 class="text-lg font-semibold text-yellow-800 mb-3">购买须知</h3>
-    <ul class="text-sm text-yellow-700 space-y-1">
-      <li>• 二手物品经当面确认后不支持退货</li>
-      <li>• 所有咨询我会在2小时内回复</li>
-      <li>• 当面交易地点会通过短信确认，保护双方隐私</li>
-      <li>• 跨行转账请提前联系确认到账时间</li>
-      <li>• 如有任何问题，请随时联系：0225255862</li>
-    </ul>
+  <div class="mt-8 card p-8">
+    <div class="flex items-center mb-6">
+      <div class="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full flex items-center justify-center mr-4">
+        <span class="text-white text-xl">📋</span>
+      </div>
+      <h3 class="text-2xl font-semibold text-gray-800">购买须知</h3>
+    </div>
+    
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="flex items-start">
+        <div class="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center mr-3 mt-1 flex-shrink-0">
+          <span class="text-white text-xs">•</span>
+        </div>
+        <span class="text-gray-700">二手物品经当面确认后不支持退货</span>
+      </div>
+      
+      <div class="flex items-start">
+        <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mr-3 mt-1 flex-shrink-0">
+          <span class="text-white text-xs">•</span>
+        </div>
+        <span class="text-gray-700">所有咨询我会在2小时内回复</span>
+      </div>
+      
+      <div class="flex items-start">
+        <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center mr-3 mt-1 flex-shrink-0">
+          <span class="text-white text-xs">•</span>
+        </div>
+        <span class="text-gray-700">当面交易地点会通过短信确认，保护双方隐私</span>
+      </div>
+      
+      <div class="flex items-start">
+        <div class="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center mr-3 mt-1 flex-shrink-0">
+          <span class="text-white text-xs">•</span>
+        </div>
+        <span class="text-gray-700">跨行转账请提前联系确认到账时间</span>
+      </div>
+    </div>
+    
+    <div class="mt-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
+      <div class="flex items-center">
+        <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center mr-3">
+          <span class="text-white text-sm">📞</span>
+        </div>
+        <div>
+          <p class="font-semibold text-gray-800">如有任何问题，请随时联系</p>
+          <p class="text-green-600 font-bold text-lg">0225255862</p>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -180,39 +263,53 @@ function displayCart() {
 // 创建购物车商品元素
 function createCartItemElement(item, index) {
   const div = document.createElement('div');
-  div.className = 'bg-white rounded-lg border border-gray-200 p-4 flex flex-col sm:flex-row gap-4';
+  div.className = 'product-card overflow-hidden p-0';
   
   div.innerHTML = `
-    <div class="flex-shrink-0">
-      <img src="${item.image || 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=400&q=80'}" 
-           alt="${item.name}" 
-           class="w-24 h-24 object-cover rounded">
-    </div>
-    
-    <div class="flex-1">
-      <h4 class="font-semibold text-lg mb-1">${item.name}</h4>
-      <p class="text-sm text-gray-600 mb-2">成色：${item.condition}</p>
-      ${item.face_to_face_only ? '<p class="text-xs text-purple-600 mb-2">🔒 仅见面交易</p>' : ''}
-      <p class="text-lg font-bold text-orange-600">NZD $${item.price.toFixed(2)}</p>
-    </div>
-    
-    <div class="flex items-center justify-between sm:flex-col sm:justify-center gap-4">
-      <div class="flex items-center border border-gray-300 rounded">
-        <button onclick="updateQuantity(${index}, ${item.quantity - 1})" 
-                class="px-3 py-1 hover:bg-gray-100 transition ${item.quantity <= 1 ? 'opacity-50 cursor-not-allowed' : ''}">
-          -
-        </button>
-        <span class="px-4 py-1 border-l border-r border-gray-300">${item.quantity}</span>
-        <button onclick="updateQuantity(${index}, ${item.quantity + 1})" 
-                class="px-3 py-1 hover:bg-gray-100 transition">
-          +
-        </button>
+    <div class="flex flex-col sm:flex-row">
+      <div class="flex-shrink-0 sm:w-32">
+        <div class="product-image relative overflow-hidden h-32 sm:h-full bg-gradient-to-br from-gray-100 to-gray-200">
+          <img src="${item.image || 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=400&q=80'}" 
+               alt="${item.name}" 
+               class="w-full h-full object-cover">
+        </div>
       </div>
       
-      <button onclick="removeFromCart(${index})" 
-              class="text-red-600 hover:text-red-700 text-sm transition">
-        删除
-      </button>
+      <div class="flex-1 p-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="flex-1">
+            <h4 class="font-semibold text-xl mb-2 text-gray-800">${item.name}</h4>
+            <div class="flex flex-wrap gap-2 mb-3">
+              <span class="bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
+                ${item.condition}
+              </span>
+              ${item.face_to_face_only ? '<span class="bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium">🔒 仅见面交易</span>' : ''}
+            </div>
+            <p class="text-2xl font-bold bg-gradient-to-r from-pink-500 to-red-500 bg-clip-text text-transparent">
+              NZD $${item.price.toFixed(2)}
+            </p>
+          </div>
+          
+          <div class="flex flex-col sm:items-end gap-4">
+            <div class="flex items-center bg-white/70 backdrop-blur-sm border-2 border-pink-200 rounded-xl overflow-hidden">
+              <button onclick="updateQuantity(${index}, ${item.quantity - 1})" 
+                      class="px-4 py-2 hover:bg-pink-50 transition ${item.quantity <= 1 ? 'opacity-50 cursor-not-allowed' : ''}">
+                <span class="text-lg font-bold">-</span>
+              </button>
+              <span class="px-6 py-2 border-l border-r border-pink-200 font-bold text-lg">${item.quantity}</span>
+              <button onclick="updateQuantity(${index}, ${item.quantity + 1})" 
+                      class="px-4 py-2 hover:bg-pink-50 transition">
+                <span class="text-lg font-bold">+</span>
+              </button>
+            </div>
+            
+            <button onclick="removeFromCart(${index})" 
+                    class="bg-gradient-to-r from-red-100 to-pink-100 text-red-700 px-6 py-2 rounded-xl font-medium hover:from-red-200 hover:to-pink-200 transition border-2 border-red-200">
+              🗑️ 删除
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   `;
   
@@ -317,17 +414,29 @@ function updateCartCount() {
 // 显示消息
 function showMessage(message, type = 'info') {
   const messageDiv = document.createElement('div');
-  messageDiv.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
-    type === 'success' ? 'bg-green-500 text-white' : 
-    type === 'error' ? 'bg-red-500 text-white' : 
-    'bg-blue-500 text-white'
+  messageDiv.className = `fixed top-8 right-8 z-50 p-4 rounded-2xl shadow-2xl border transition-all duration-300 backdrop-blur-md ${
+    type === 'success' ? 'bg-green-500/90 text-white border-green-400' : 
+    type === 'error' ? 'bg-red-500/90 text-white border-red-400' : 
+    'bg-blue-500/90 text-white border-blue-400'
   }`;
+  messageDiv.style.transform = 'translateX(100%)';
   messageDiv.textContent = message;
   
   document.body.appendChild(messageDiv);
   
+  // 添加入场动画
   setTimeout(() => {
-    document.body.removeChild(messageDiv);
+    messageDiv.style.transform = 'translateX(0)';
+  }, 100);
+  
+  // 添加退场动画和移除
+  setTimeout(() => {
+    messageDiv.style.transform = 'translateX(100%)';
+    setTimeout(() => {
+      if (document.body.contains(messageDiv)) {
+        document.body.removeChild(messageDiv);
+      }
+    }, 300);
   }, 3000);
 }
 </script>
