@@ -1,0 +1,13 @@
+src/templates/404.html
+src/templates/500.html
+src/templates/base.html
+src/templates/cart.html
+src/templates/help.html
+src/templates/index.html
+src/templates/info.html
+src/templates/order_confirm.html
+src/templates/order_query.html
+src/templates/order_results.html
+src/templates/order_success.html
+src/templates/products.html
+src/templates/product_detail.html

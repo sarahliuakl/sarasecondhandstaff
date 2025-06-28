@@ -7,11 +7,13 @@ from flask import render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.urls import url_parse
 from ..models import db, Admin, Product, Order, Message, SiteSettings, Category
+from ..models import SiteInfoSection, SiteInfoItem, SiteInfoTranslation
 from ..models import get_admin_by_username, create_admin, get_site_setting, set_site_setting
 from ..models import get_low_stock_products, get_out_of_stock_products, get_inventory_stats
 from ..models import get_sales_stats, get_monthly_sales_trend, get_popular_products, get_customer_stats
 from ..models import get_all_categories, get_category_by_id, create_category
 from ..models import get_api_usage_stats, get_recent_api_logs
+from ..models import get_site_info_sections, get_site_info_section_by_key, get_all_site_info_data
 from ..utils import sanitize_user_input, validate_form_data, validate_email_address
 from ..file_upload import upload_image, delete_image, get_image_url
 from ..api_auth import APIKeyManager
@@ -1281,3 +1283,273 @@ def api_revoke_key():
             'success': False,
             'message': f'撤销失败: {str(e)}'
         })
+
+
+# =================
+# 站点信息管理路由
+# =================
+
+@admin.route('/site-info')
+@login_required
+def site_info():
+    """站点信息管理页面"""
+    try:
+        # 获取所有站点信息部分和数据
+        sections = get_site_info_sections(active_only=False)
+        
+        logger.info(f'站点信息管理页面访问 - 管理员: {current_user.username}')
+        return render_template('admin/site_info.html', sections=sections)
+        
+    except Exception as e:
+        logger.error(f'站点信息管理页面加载失败: {str(e)} - 管理员: {current_user.username}')
+        flash(f'页面加载失败: {str(e)}', 'error')
+        return redirect(url_for('admin.dashboard'))
+
+
+@admin.route('/site-info/section/<int:section_id>')
+@login_required
+def edit_section(section_id):
+    """编辑站点信息部分"""
+    try:
+        section = SiteInfoSection.query.get_or_404(section_id)
+        items = section.get_active_items() if section else []
+        
+        return render_template('admin/site_info_section.html', 
+                             section=section, 
+                             items=items,
+                             item_types=SiteInfoItem.ITEM_TYPES)
+        
+    except Exception as e:
+        logger.error(f'编辑站点信息部分失败: {str(e)} - 管理员: {current_user.username}')
+        flash(f'加载失败: {str(e)}', 'error')
+        return redirect(url_for('admin.site_info'))
+
+
+@admin.route('/site-info/item/<int:item_id>', methods=['GET', 'POST'])
+@login_required
+def edit_item(item_id):
+    """编辑站点信息项"""
+    try:
+        item = SiteInfoItem.query.get_or_404(item_id)
+        
+        if request.method == 'POST':
+            # 获取表单数据
+            item_data = {
+                'key': request.form.get('key', '').strip(),
+                'item_type': request.form.get('item_type', ''),
+                'sort_order': int(request.form.get('sort_order', 0)),
+                'is_active': bool(request.form.get('is_active'))
+            }
+            
+            # 更新基本信息
+            item.key = item_data['key']
+            item.item_type = item_data['item_type']
+            item.sort_order = item_data['sort_order']
+            item.is_active = item_data['is_active']
+            
+            # 根据类型处理内容
+            content = {}
+            if item_data['item_type'] == 'text':
+                content['value'] = request.form.get('text_value', '')
+            elif item_data['item_type'] == 'contact':
+                content['label'] = request.form.get('contact_label', '')
+                content['value'] = request.form.get('contact_value', '')
+            elif item_data['item_type'] == 'feature':
+                content['title'] = request.form.get('feature_title', '')
+                content['description'] = request.form.get('feature_description', '')
+                content['icon'] = request.form.get('feature_icon', '')
+            elif item_data['item_type'] == 'faq':
+                content['question'] = request.form.get('faq_question', '')
+                content['answer'] = request.form.get('faq_answer', '')
+            
+            item.set_content(content)
+            
+            # 处理翻译（如果有英文内容）
+            en_content = {}
+            has_english = False
+            
+            if item_data['item_type'] == 'text':
+                en_value = request.form.get('text_value_en', '').strip()
+                if en_value:
+                    en_content['value'] = en_value
+                    has_english = True
+            elif item_data['item_type'] == 'contact':
+                en_label = request.form.get('contact_label_en', '').strip()
+                en_value = request.form.get('contact_value_en', '').strip()
+                if en_label or en_value:
+                    en_content['label'] = en_label
+                    en_content['value'] = en_value
+                    has_english = True
+            elif item_data['item_type'] == 'feature':
+                en_title = request.form.get('feature_title_en', '').strip()
+                en_description = request.form.get('feature_description_en', '').strip()
+                if en_title or en_description:
+                    en_content['title'] = en_title
+                    en_content['description'] = en_description
+                    en_content['icon'] = request.form.get('feature_icon', '')
+                    has_english = True
+            elif item_data['item_type'] == 'faq':
+                en_question = request.form.get('faq_question_en', '').strip()
+                en_answer = request.form.get('faq_answer_en', '').strip()
+                if en_question or en_answer:
+                    en_content['question'] = en_question
+                    en_content['answer'] = en_answer
+                    has_english = True
+            
+            # 保存或更新英文翻译
+            if has_english:
+                en_translation = item.get_translation('en')
+                if en_translation:
+                    en_translation.set_content(en_content)
+                else:
+                    en_translation = SiteInfoTranslation(
+                        item_id=item.id,
+                        language='en'
+                    )
+                    en_translation.set_content(en_content)
+                    db.session.add(en_translation)
+            else:
+                # 删除英文翻译（如果存在且内容为空）
+                en_translation = item.get_translation('en')
+                if en_translation:
+                    db.session.delete(en_translation)
+            
+            db.session.commit()
+            logger.info(f'站点信息项更新成功: {item.key} - 管理员: {current_user.username}')
+            flash('信息项更新成功', 'success')
+            return redirect(url_for('admin.edit_section', section_id=item.section_id))
+        
+        # GET请求 - 显示编辑表单
+        return render_template('admin/site_info_item.html', 
+                             item=item,
+                             item_types=SiteInfoItem.ITEM_TYPES)
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f'编辑站点信息项失败: {str(e)} - 管理员: {current_user.username}')
+        flash(f'操作失败: {str(e)}', 'error')
+        return redirect(url_for('admin.site_info'))
+
+
+@admin.route('/site-info/item/add/<int:section_id>', methods=['GET', 'POST'])
+@login_required
+def add_item(section_id):
+    """添加新的站点信息项"""
+    try:
+        section = SiteInfoSection.query.get_or_404(section_id)
+        
+        if request.method == 'POST':
+            # 获取表单数据
+            item_data = {
+                'key': request.form.get('key', '').strip(),
+                'item_type': request.form.get('item_type', ''),
+                'sort_order': int(request.form.get('sort_order', 0)),
+                'is_active': bool(request.form.get('is_active'))
+            }
+            
+            # 验证必填字段
+            if not item_data['key'] or not item_data['item_type']:
+                flash('标识符和类型为必填项', 'error')
+                return render_template('admin/site_info_item.html', 
+                                     section=section,
+                                     item_types=SiteInfoItem.ITEM_TYPES)
+            
+            # 检查key是否重复
+            existing_item = SiteInfoItem.query.filter(
+                SiteInfoItem.section_id == section_id,
+                SiteInfoItem.key == item_data['key']
+            ).first()
+            if existing_item:
+                flash('该标识符已存在', 'error')
+                return render_template('admin/site_info_item.html', 
+                                     section=section,
+                                     item_types=SiteInfoItem.ITEM_TYPES)
+            
+            # 创建新的信息项
+            item = SiteInfoItem(
+                section_id=section_id,
+                key=item_data['key'],
+                item_type=item_data['item_type'],
+                sort_order=item_data['sort_order'],
+                is_active=item_data['is_active']
+            )
+            
+            # 根据类型设置内容
+            content = {}
+            if item_data['item_type'] == 'text':
+                content['value'] = request.form.get('text_value', '')
+            elif item_data['item_type'] == 'contact':
+                content['label'] = request.form.get('contact_label', '')
+                content['value'] = request.form.get('contact_value', '')
+            elif item_data['item_type'] == 'feature':
+                content['title'] = request.form.get('feature_title', '')
+                content['description'] = request.form.get('feature_description', '')
+                content['icon'] = request.form.get('feature_icon', '')
+            elif item_data['item_type'] == 'faq':
+                content['question'] = request.form.get('faq_question', '')
+                content['answer'] = request.form.get('faq_answer', '')
+            
+            item.set_content(content)
+            db.session.add(item)
+            db.session.commit()
+            
+            logger.info(f'站点信息项添加成功: {item.key} - 管理员: {current_user.username}')
+            flash('信息项添加成功', 'success')
+            return redirect(url_for('admin.edit_section', section_id=section_id))
+        
+        # GET请求 - 显示添加表单
+        return render_template('admin/site_info_item.html', 
+                             section=section,
+                             item_types=SiteInfoItem.ITEM_TYPES)
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f'添加站点信息项失败: {str(e)} - 管理员: {current_user.username}')
+        flash(f'添加失败: {str(e)}', 'error')
+        return redirect(url_for('admin.site_info'))
+
+
+@admin.route('/site-info/item/delete/<int:item_id>', methods=['POST'])
+@login_required
+def delete_item(item_id):
+    """删除站点信息项"""
+    try:
+        item = SiteInfoItem.query.get_or_404(item_id)
+        section_id = item.section_id
+        
+        # 删除项目（包括相关翻译，由于cascade设置会自动删除）
+        db.session.delete(item)
+        db.session.commit()
+        
+        logger.info(f'站点信息项删除成功: {item.key} - 管理员: {current_user.username}')
+        flash('信息项删除成功', 'success')
+        
+        return jsonify({
+            'success': True,
+            'message': '删除成功'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f'删除站点信息项失败: {str(e)} - 管理员: {current_user.username}')
+        return jsonify({
+            'success': False,
+            'message': f'删除失败: {str(e)}'
+        })
+
+
+@admin.route('/site-info/preview')
+@login_required
+def preview_site_info():
+    """预览站点信息页面效果"""
+    try:
+        # 获取所有站点信息数据（中文）
+        site_info_data = get_all_site_info_data('zh')
+        
+        return render_template('admin/site_info_preview.html', 
+                             site_info_data=site_info_data)
+        
+    except Exception as e:
+        logger.error(f'预览站点信息失败: {str(e)} - 管理员: {current_user.username}')
+        flash(f'预览失败: {str(e)}', 'error')
+        return redirect(url_for('admin.site_info'))

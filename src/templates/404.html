@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}页面未找到 - Sara的二手售卖{% endblock %}
+{% block title %}{{ _('Page Not Found') }} - {{ _('Sarah\'s Garage Sale') }}{% endblock %}
 {% block content %}
 
 <div class="max-w-2xl mx-auto text-center py-16">
@@ -12,50 +12,50 @@
 
   <!-- 错误信息 -->
   <h1 class="text-6xl font-bold text-orange-600 mb-4">404</h1>
-  <h2 class="text-2xl font-semibold text-gray-800 mb-4">页面未找到</h2>
-  <p class="text-gray-600 mb-8">抱歉，您访问的页面不存在或已被移除。</p>
+  <h2 class="text-2xl font-semibold text-gray-800 mb-4">{{ _('Page Not Found') }}</h2>
+  <p class="text-gray-600 mb-8">{{ _('Sorry, the page you are looking for does not exist or has been removed.') }}</p>
 
   <!-- 导航选项 -->
   <div class="space-y-4">
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <a href="{{ url_for('main.index') }}" 
+      <a href="{{ url_for('main.index', lang=current_lang()) }}" 
          class="bg-orange-500 text-white py-3 px-6 rounded-lg hover:bg-orange-600 transition font-medium">
-        返回首页
+        {{ _('Back to Home') }}
       </a>
       
-      <a href="{{ url_for('main.products') }}" 
+      <a href="{{ url_for('main.products', lang=current_lang()) }}" 
          class="bg-orange-100 text-orange-700 py-3 px-6 rounded-lg hover:bg-orange-200 transition font-medium">
-        浏览商品
+        {{ _('Browse Products') }}
       </a>
     </div>
     
-    <a href="{{ url_for('main.contact') }}" 
+    <a href="{{ url_for('main.info', lang=current_lang()) }}" 
        class="inline-block text-orange-600 hover:text-orange-700 transition">
-      有问题？联系我们
+      {{ _('Have questions? Contact us') }}
     </a>
   </div>
 
   <!-- 热门链接 -->
   <div class="mt-12 text-left">
-    <h3 class="text-lg font-semibold text-gray-800 mb-4">您可能在寻找：</h3>
+    <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ _('You might be looking for:') }}</h3>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-      <a href="{{ url_for('main.products', category='electronics') }}" class="text-orange-600 hover:text-orange-700 transition">
-        • 电子产品
+      <a href="{{ url_for('main.products', lang=current_lang(), category='electronics') }}" class="text-orange-600 hover:text-orange-700 transition">
+        • {{ _('Electronics') }}
       </a>
-      <a href="{{ url_for('main.products', category='clothing') }}" class="text-orange-600 hover:text-orange-700 transition">
-        • 衣物
+      <a href="{{ url_for('main.products', lang=current_lang(), category='clothing') }}" class="text-orange-600 hover:text-orange-700 transition">
+        • {{ _('Clothing') }}
       </a>
-      <a href="{{ url_for('main.products', category='anime') }}" class="text-orange-600 hover:text-orange-700 transition">
-        • 动漫周边
+      <a href="{{ url_for('main.products', lang=current_lang(), category='books') }}" class="text-orange-600 hover:text-orange-700 transition">
+        • {{ _('Books') }}
       </a>
-      <a href="{{ url_for('main.cart') }}" class="text-orange-600 hover:text-orange-700 transition">
-        • 购物车
+      <a href="{{ url_for('main.cart', lang=current_lang()) }}" class="text-orange-600 hover:text-orange-700 transition">
+        • {{ _('Cart') }}
       </a>
-      <a href="{{ url_for('main.order_query') }}" class="text-orange-600 hover:text-orange-700 transition">
-        • 订单查询
+      <a href="{{ url_for('main.order_query', lang=current_lang()) }}" class="text-orange-600 hover:text-orange-700 transition">
+        • {{ _('Order Query') }}
       </a>
-      <a href="{{ url_for('main.about') }}" class="text-orange-600 hover:text-orange-700 transition">
-        • 关于我们
+      <a href="{{ url_for('main.info', lang=current_lang()) }}" class="text-orange-600 hover:text-orange-700 transition">
+        • {{ _('About Us') }}
       </a>
     </div>
   </div>

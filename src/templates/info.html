@@ -1,9 +1,9 @@
 {% extends "base.html" %}
-{% block title %}Sara小店 - 关于我、售卖说明、联系我{% endblock %}
+{% block title %}{{ _('Sarah\'s Garage Sale') }} - {{ _('About Sarah, Sale Info, Contact') }}{% endblock %}
 
-{% block description %}走进Sara小店，了解店主Sara、查看售卖说明、联系咨询。温馨个人小店，包含个人介绍、交易规则、联系方式等完整信息{% endblock %}
+{% block description %}{{ _('Welcome to Sarah\'s Garage Sale, learn about Sarah, view sale information, and contact for inquiries. Personal garage sale with honest descriptions, fair prices, and friendly service') }}{% endblock %}
 
-{% block keywords %}Sara小店,关于Sara,售卖说明,联系我,二手商品,奥克兰,个人小店,交易规则{% endblock %}
+{% block keywords %}{{ _('Sarah\'s Garage Sale,About Sarah,Sale Info,Contact,Garage Sale,Auckland,Student,Decluttering') }}{% endblock %}
 
 {% block structured_data %}
 {{ super() }}
@@ -11,13 +11,13 @@
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "name": "Sara小店",
-  "description": "Sara小店的个人介绍、售卖说明和联系方式",
+  "name": "{{ _('Sarah\'s Garage Sale') }}",
+  "description": "{{ _('Personal introduction, sale information and contact details for Sarah\'s Garage Sale') }}",
   "mainEntity": {
     "@type": "Person",
-    "name": "Sara",
-    "telephone": "0225255862",
-    "email": "haixialiu2017@gmail.com",
+    "name": "{% if site_info_data.owner_info %}{% for item in site_info_data.owner_info['items'] %}{% if item.key == 'name' %}{{ item.content.value }}{% endif %}{% endfor %}{% else %}Sarah{% endif %}",
+    "telephone": "{% if site_info_data.owner_info %}{% for item in site_info_data.owner_info['items'] %}{% if item.key == 'phone' %}{{ item.content.value }}{% endif %}{% endfor %}{% else %}0225255862{% endif %}",
+    "email": "{% if site_info_data.owner_info %}{% for item in site_info_data.owner_info['items'] %}{% if item.key == 'email' %}{{ item.content.value }}{% endif %}{% endfor %}{% else %}sarahliu.akl@gmail.com{% endif %}",
     "address": {
       "@type": "PostalAddress",
       "addressRegion": "Auckland",
@@ -32,313 +32,333 @@
 <div class="max-w-6xl mx-auto">
   <!-- Page Header -->
   <div class="hero-section text-center mb-12">
-    <h1 class="section-title mb-4">💖 Sara小店</h1>
+    <h1 class="section-title mb-4">💖 {{ _('Sarah\'s Garage Sale') }}</h1>
     <p class="section-subtitle max-w-2xl mx-auto">
-      温馨个人小店，诚信经营，用心服务每一位客户
+      {{ _('Personal garage sale with honest descriptions and friendly service') }}
     </p>
   </div>
   
   <!-- 导航锚点 -->
   <div class="card p-6 mb-12">
     <nav class="flex justify-center flex-wrap gap-4">
-      <a href="#about" class="nav-link px-6 py-3 rounded-xl font-medium">👋 关于我</a>
-      <a href="#rules" class="nav-link px-6 py-3 rounded-xl font-medium">📋 售卖说明</a>
-      <a href="#contact" class="nav-link px-6 py-3 rounded-xl font-medium">📞 联系我</a>
+      {% if site_info_data %}
+        {% for section_key, section_data in site_info_data.items() %}
+          {% if section_data.section.is_active and section_data['items'] and section_key != 'transaction_info' %}
+            <a href="#{{ section_key }}" class="nav-link px-6 py-3 rounded-xl font-medium">
+              {{ section_data.section.icon or '📄' }} {{ _(section_data.section.name) }}
+            </a>
+          {% endif %}
+        {% endfor %}
+      {% else %}
+        <!-- 默认导航（当数据库没有数据时） -->
+        <a href="#about" class="nav-link px-6 py-3 rounded-xl font-medium">👋 {{ _('About Me') }}</a>
+        <a href="#rules" class="nav-link px-6 py-3 rounded-xl font-medium">📋 {{ _('Sales Info') }}</a>
+        <a href="#contact" class="nav-link px-6 py-3 rounded-xl font-medium">📞 {{ _('Contact Me') }}</a>
+      {% endif %}
     </nav>
   </div>
 
-  <!-- 关于我部分 -->
-  <section id="about" class="mb-16">
-    <div class="text-center mb-8">
-      <h2 class="section-title text-3xl mb-4">🌟 关于Sara</h2>
-    </div>
-    
-    <div class="card p-8">
-      <div class="text-center mb-8">
-        <div class="relative inline-block mb-6">
-          <div class="w-32 h-32 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center mx-auto border-4 border-white shadow-xl">
-            <span class="text-white text-4xl font-bold">S</span>
-          </div>
-          <div class="absolute -bottom-2 -right-2 w-10 h-10 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full flex items-center justify-center">
-            <span class="text-white text-lg">💖</span>
-          </div>
-        </div>
-        <p class="text-lg text-gray-700 leading-relaxed max-w-3xl mx-auto">
-          你好，欢迎来到Sara小店！我是Sara，现居奥克兰北岸，热爱生活，喜欢分享。
-          希望通过这个温馨的小店让家中的优质二手物品找到新主人，也让更多朋友受益。
-        </p>
-      </div>
-      
-      <div class="grid md:grid-cols-2 gap-8">
-        <div class="bg-gradient-to-br from-pink-50 to-purple-50 rounded-2xl p-6 border border-pink-200">
-          <div class="flex items-center mb-4">
-            <div class="w-10 h-10 bg-gradient-to-r from-pink-500 to-red-500 rounded-full flex items-center justify-center mr-3">
-              <span class="text-white text-lg">🛡️</span>
-            </div>
-            <h3 class="text-xl font-semibold text-gray-800">交易安全与信任</h3>
-          </div>
-          <ul class="space-y-3 text-gray-700">
-            <li class="flex items-start">
-              <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">
-                <span class="text-white text-sm">✓</span>
-              </div>
-              <span>所有物品均为本人自用，实物拍摄，描述真实。</span>
-            </li>
-            <li class="flex items-start">
-              <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">
-                <span class="text-white text-sm">✓</span>
-              </div>
-              <span>支持面交与邮寄，奥克兰地区优先推荐面交。</span>
-            </li>
-            <li class="flex items-start">
-              <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">
-                <span class="text-white text-sm">✓</span>
-              </div>
-              <span>付款方式灵活，安全可靠。</span>
-            </li>
-            <li class="flex items-start">
-              <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">
-                <span class="text-white text-sm">✓</span>
-              </div>
-              <span>承诺2小时内回复所有咨询，耐心解答售后问题。</span>
-            </li>
-          </ul>
-        </div>
-        
-        <div class="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-6 border border-blue-200">
-          <div class="flex items-center mb-4">
-            <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mr-3">
-              <span class="text-white text-lg">📱</span>
-            </div>
-            <h3 class="text-xl font-semibold text-gray-800">联系方式</h3>
-          </div>
-          <div class="space-y-4">
-            <div class="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-blue-200">
-              <div class="flex items-center">
-                <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center mr-3">
-                  <span class="text-white text-sm">📞</span>
-                </div>
-                <div>
-                  <p class="font-semibold text-gray-800">电话</p>
-                  <p class="text-lg font-bold text-blue-600">0225255862</p>
-                </div>
-              </div>
-            </div>
-            <div class="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-blue-200">
-              <div class="flex items-center">
-                <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center mr-3">
-                  <span class="text-white text-sm">✉️</span>
-                </div>
-                <div>
-                  <p class="font-semibold text-gray-800">邮箱</p>
-                  <p class="text-lg font-bold text-blue-600">haixialiu2017@gmail.com</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 售卖说明部分 -->
-  <section id="rules" class="mb-16">
-    <div class="text-center mb-8">
-      <h2 class="section-title text-3xl mb-4">📋 售卖说明</h2>
-    </div>
-    
-    <div class="grid md:grid-cols-2 gap-8 mb-8">
-      <!-- 售后政策 -->
-      <div class="card p-8">
-        <div class="flex items-center mb-6">
-          <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mr-4">
-            <span class="text-white text-xl">🛡️</span>
-          </div>
-          <h3 class="text-2xl font-semibold text-gray-800">售后政策</h3>
-        </div>
-        <div class="space-y-4">
-          <div class="flex items-start">
-            <div class="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center mr-3 mt-1 flex-shrink-0">
-              <span class="text-white text-xs">•</span>
-            </div>
-            <span class="text-gray-700">二手物品经当面确认后不支持退货。</span>
-          </div>
-          <div class="flex items-start">
-            <div class="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center mr-3 mt-1 flex-shrink-0">
-              <span class="text-white text-xs">•</span>
-            </div>
-            <span class="text-gray-700">如有疑问或售后问题，可通过联系方式咨询，Sara会耐心解答。</span>
-          </div>
-          <div class="flex items-start">
-            <div class="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center mr-3 mt-1 flex-shrink-0">
-              <span class="text-white text-xs">•</span>
-            </div>
-            <span class="text-gray-700">所有商品均为实物拍摄，确保描述真实。</span>
-          </div>
-        </div>
-      </div>
-      
-      <!-- 支付方式 -->
-      <div class="card p-8">
-        <div class="flex items-center mb-6">
-          <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center mr-4">
-            <span class="text-white text-xl">💳</span>
-          </div>
-          <h3 class="text-2xl font-semibold text-gray-800">支付方式</h3>
-        </div>
-        <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">
-          <p class="text-gray-700 mb-4 font-medium">支持多种支付方式：</p>
-          <div class="grid grid-cols-2 gap-3">
-            <div class="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-green-200">
-              <div class="text-center">
-                <div class="text-lg mb-1">🏦</div>
-                <p class="text-sm font-medium">ANZ银行转账</p>
-              </div>
-            </div>
-            <div class="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-green-200">
-              <div class="text-center">
-                <div class="text-lg mb-1">🔄</div>
-                <p class="text-sm font-medium">跨行转账</p>
-              </div>
-            </div>
-            <div class="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-green-200">
-              <div class="text-center">
-                <div class="text-lg mb-1">📱</div>
-                <p class="text-sm font-medium">微信/支付宝</p>
-              </div>
-            </div>
-            <div class="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-green-200">
-              <div class="text-center">
-                <div class="text-lg mb-1">💵</div>
-                <p class="text-sm font-medium">现金支付</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- 常见问题 -->
-    <div class="card p-8">
-      <div class="flex items-center mb-6">
-        <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mr-4">
-          <span class="text-white text-xl">❓</span>
-        </div>
-        <h3 class="text-2xl font-semibold text-gray-800">常见问题</h3>
-      </div>
-      <div class="grid md:grid-cols-2 gap-6">
-        <div class="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-6 border border-blue-200">
-          <p class="font-semibold text-gray-800 mb-3 text-lg">Q: 可以邮寄到新西兰哪些城市？</p>
-          <p class="text-gray-600">A: 支持新西兰全国范围邮寄，奥克兰地区优先推荐面交。</p>
-        </div>
-        <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-200">
-          <p class="font-semibold text-gray-800 mb-3 text-lg">Q: 如何查询订单状态？</p>
-          <p class="text-gray-600">A: 可通过邮箱或电话联系Sara查询订单状态。</p>
-        </div>
-        <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">
-          <p class="font-semibold text-gray-800 mb-3 text-lg">Q: 售后如何保障？</p>
-          <p class="text-gray-600">A: 如有售后问题，Sara会在2小时内回复并协助解决。</p>
-        </div>
-        <div class="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl p-6 border border-yellow-200">
-          <p class="font-semibold text-gray-800 mb-3 text-lg">Q: 邮寄费用如何计算？</p>
-          <p class="text-gray-600">A: 邮寄费用根据物品大小重量计算，奥克兰地区建议面交。</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 联系我部分 -->
-  <section id="contact" class="mb-16">
-    <div class="text-center mb-8">
-      <h2 class="section-title text-3xl mb-4">📞 联系我</h2>
-    </div>
-    
-    <div class="grid md:grid-cols-2 gap-8">
-      <!-- 联系表单 -->
-      <div class="card p-8">
-        <div class="flex items-center mb-6">
-          <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mr-4">
-            <span class="text-white text-xl">💬</span>
-          </div>
-          <h3 class="text-2xl font-semibold text-gray-800">发送消息</h3>
-        </div>
-        
-        <p class="mb-6 text-gray-600">如需咨询商品详情、购买方式或其他问题，请填写下方表单：</p>
-        
-        <form class="space-y-6" method="post" action="{{ url_for('main.info') }}">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-          <div>
-            <label class="block mb-2 font-semibold text-gray-700" for="name">姓名</label>
-            <input class="w-full border-2 border-pink-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-300 bg-white/50 backdrop-blur-sm" 
-                   type="text" id="name" name="name" required>
-          </div>
-          <div>
-            <label class="block mb-2 font-semibold text-gray-700" for="contact">联系方式</label>
-            <input class="w-full border-2 border-pink-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-300 bg-white/50 backdrop-blur-sm" 
-                   type="text" id="contact" name="contact" placeholder="邮箱或电话" required>
-          </div>
-          <div>
-            <label class="block mb-2 font-semibold text-gray-700" for="message">留言内容</label>
-            <textarea class="w-full border-2 border-pink-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-300 bg-white/50 backdrop-blur-sm" 
-                      id="message" name="message" rows="4" required></textarea>
-          </div>
-          <button type="submit" class="w-full btn-primary py-4 font-semibold text-lg">
-            发送信息
-          </button>
-        </form>
-        <div class="mt-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
-          <p class="text-sm text-green-700 text-center font-medium">✅ 承诺2小时内回复您的问题</p>
-        </div>
-      </div>
-      
-      <!-- 快速联系 -->
-      <div class="card p-8">
-        <div class="flex items-center mb-6">
-          <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mr-4">
-            <span class="text-white text-xl">⚡</span>
-          </div>
-          <h3 class="text-2xl font-semibold text-gray-800">快速联系</h3>
-        </div>
-        
-        <p class="mb-6 text-gray-600">也可以通过以下方式直接联系我：</p>
-        
-        <div class="space-y-4">
-          <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">
-            <div class="flex items-center mb-3">
-              <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center mr-3">
-                <span class="text-white text-lg">📞</span>
-              </div>
-              <span class="font-semibold text-gray-800 text-lg">电话咨询</span>
-            </div>
-            <p class="text-green-700 font-bold text-xl mb-1">0225255862</p>
-            <p class="text-gray-600 text-sm">工作时间：9:00-21:00</p>
+  {% if site_info_data %}
+    <!-- 动态生成的内容部分 -->
+    {% for section_key, section_data in site_info_data.items() %}
+      {% if section_data.section.is_active and section_data['items'] and section_key != 'transaction_info' %}
+        <section id="{{ section_key }}" class="mb-16">
+          <div class="text-center mb-8">
+            <h2 class="section-title text-3xl mb-4">{{ section_data.section.icon or '📄' }} {{ _(section_data.section.name) }}</h2>
           </div>
           
-          <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-200">
-            <div class="flex items-center mb-3">
-              <div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center mr-3">
-                <span class="text-white text-lg">✉️</span>
+          {% if section_key == 'owner_info' %}
+            <!-- 店主信息特殊布局 -->
+            <div class="card p-8">
+              <div class="text-center mb-8">
+                <div class="relative inline-block mb-6">
+                  <div class="w-32 h-32 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center mx-auto border-4 border-white shadow-xl">
+                    <span class="text-white text-4xl font-bold">
+                      {% for item in section_data['items'] %}
+                        {% if item.key == 'name' %}{{ item.content.value[0]|upper }}{% endif %}
+                      {% endfor %}
+                    </span>
+                  </div>
+                  <div class="absolute -bottom-2 -right-2 w-10 h-10 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full flex items-center justify-center">
+                    <span class="text-white text-lg">💖</span>
+                  </div>
+                </div>
+                {% for item in section_data['items'] %}
+                  {% if item.key == 'introduction' %}
+                    <p class="text-lg text-gray-700 leading-relaxed max-w-3xl mx-auto">
+                      {{ item.content.value }}
+                    </p>
+                  {% endif %}
+                {% endfor %}
               </div>
-              <span class="font-semibold text-gray-800 text-lg">邮箱联系</span>
-            </div>
-            <p class="text-purple-700 font-bold text-lg mb-1">haixialiu2017@gmail.com</p>
-            <p class="text-gray-600 text-sm">24小时内回复</p>
-          </div>
-          
-          <div class="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-6 border border-blue-200">
-            <div class="flex items-center mb-3">
-              <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center mr-3">
-                <span class="text-white text-lg">📍</span>
+              
+              <!-- 联系信息网格 -->
+              <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-gradient-to-br from-pink-50 to-purple-50 rounded-2xl p-6 border border-pink-200">
+                  <div class="flex items-center mb-4">
+                    <div class="w-10 h-10 bg-gradient-to-r from-pink-500 to-red-500 rounded-full flex items-center justify-center mr-3">
+                      <span class="text-white text-lg">🛡️</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800">{{ _('Transaction Security and Trust') }}</h3>
+                  </div>
+                  <!-- 店主特色服务 -->
+                  <ul class="space-y-3 text-gray-700">
+                    <li class="flex items-start">
+                      <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">
+                        <span class="text-white text-sm">✓</span>
+                      </div>
+                      <span>{{ _('Authentic photos and detailed descriptions') }}</span>
+                    </li>
+                    <li class="flex items-start">
+                      <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">
+                        <span class="text-white text-sm">✓</span>
+                      </div>
+                      <span>{{ _('Face-to-face and postal delivery options') }}</span>
+                    </li>
+                    <li class="flex items-start">
+                      <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">
+                        <span class="text-white text-sm">✓</span>
+                      </div>
+                      <span>{{ _('Quick response within 2 hours') }}</span>
+                    </li>
+                  </ul>
+                </div>
+                
+                <div class="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-6 border border-blue-200">
+                  <div class="flex items-center mb-4">
+                    <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mr-3">
+                      <span class="text-white text-lg">📱</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800">{{ _('Contact Information') }}</h3>
+                  </div>
+                  <div class="space-y-4">
+                    {% for item in section_data['items'] %}
+                      {% if item.key in ['phone', 'email'] %}
+                        <div class="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-blue-200">
+                          <div class="flex items-center">
+                            <div class="w-8 h-8 bg-{% if item.key == 'phone' %}green{% else %}purple{% endif %}-500 rounded-full flex items-center justify-center mr-3">
+                              <span class="text-white text-sm">{% if item.key == 'phone' %}📞{% else %}✉️{% endif %}</span>
+                            </div>
+                            <div>
+                              <p class="font-semibold text-gray-800">{{ _(item.content.label or item.key|title) }}</p>
+                              <p class="text-lg font-bold text-blue-600">{{ item.content.value }}</p>
+                            </div>
+                          </div>
+                        </div>
+                      {% endif %}
+                    {% endfor %}
+                  </div>
+                </div>
               </div>
-              <span class="font-semibold text-gray-800 text-lg">服务区域</span>
             </div>
-            <p class="text-blue-700 font-bold text-lg mb-1">奥克兰北岸</p>
-            <p class="text-gray-600 text-sm">推荐面交，全新西兰邮寄</p>
-          </div>
-        </div>
-      </div>
+            
+          {% elif section_key == 'policies' %}
+            <!-- 合并的政策和交易信息部分 -->
+            {% set transaction_section = site_info_data.get('transaction_info') %}
+            <div class="card p-8">
+              <div class="text-center mb-8">
+                <div class="flex items-center justify-center mb-4">
+                  <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mr-4">
+                    <span class="text-white text-xl">🛡️</span>
+                  </div>
+                  <h3 class="text-2xl font-semibold text-gray-800">{{ _('After-sales Policy & Transaction Info') }}</h3>
+                </div>
+              </div>
+              
+              <!-- 政策内容 -->
+              <div class="mb-8">
+                <h4 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                  <span class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mr-3">
+                    <span class="text-purple-600 text-sm">📋</span>
+                  </span>
+                  {{ _('Trading Policies') }}
+                </h4>
+                <div class="space-y-4">
+                  {% for item in section_data['items'] %}
+                    {% if item.item_type == 'text' %}
+                      <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-200">
+                        <div class="text-gray-700 whitespace-pre-line">{{ item.content.value|safe }}</div>
+                      </div>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+              </div>
+              
+              <!-- 支付方式 -->
+              {% if transaction_section and transaction_section.section.is_active %}
+              <div class="border-t border-gray-200 pt-8">
+                <h4 class="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                  <span class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                    <span class="text-green-600 text-sm">💳</span>
+                  </span>
+                  {{ _('Payment Methods') }}
+                </h4>
+                <div class="flex flex-wrap justify-center gap-4">
+                  {% for item in transaction_section['items'] %}
+                    {% if item.item_type == 'feature' %}
+                      <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200 hover:shadow-lg transition-shadow duration-300 min-w-[140px]">
+                        <div class="text-center">
+                          <div class="text-2xl mb-2">{{ item.content.icon or '💳' }}</div>
+                          <p class="font-semibold text-gray-800 text-sm">{{ item.content.title }}</p>
+                        </div>
+                      </div>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+                <div class="mt-4 text-center">
+                  <p class="text-sm text-gray-500">{{ _('All payments are processed securely') }}</p>
+                </div>
+              </div>
+              {% endif %}
+            </div>
+            
+          {% elif section_key == 'transaction_info' %}
+            <!-- 交易须知部分已合并到policies，跳过单独显示 -->
+            
+          {% elif section_key == 'faq' %}
+            <!-- 常见问题部分 -->
+            <div class="card p-8">
+              <div class="flex items-center mb-6">
+                <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mr-4">
+                  <span class="text-white text-xl">❓</span>
+                </div>
+                <h3 class="text-2xl font-semibold text-gray-800">{{ _('Frequently Asked Questions') }}</h3>
+              </div>
+              <div class="grid md:grid-cols-2 gap-6">
+                {% for item in section_data['items'] %}
+                  {% if item.item_type == 'faq' %}
+                    <div class="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-6 border border-blue-200">
+                      <p class="font-semibold text-gray-800 mb-3 text-lg">{{ _('Q: ') }}{{ item.content.question }}</p>
+                      <p class="text-gray-600">{{ _('A: ') }}{{ item.content.answer }}</p>
+                    </div>
+                  {% endif %}
+                {% endfor %}
+              </div>
+            </div>
+            
+          {% elif section_key == 'contact_info' %}
+            <!-- 联系信息部分 -->
+            <div class="grid md:grid-cols-2 gap-8">
+              <!-- 联系表单 -->
+              <div class="card p-8">
+                <div class="flex items-center mb-6">
+                  <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mr-4">
+                    <span class="text-white text-xl">💬</span>
+                  </div>
+                  <h3 class="text-2xl font-semibold text-gray-800">{{ _('Send Message') }}</h3>
+                </div>
+                
+                <p class="mb-6 text-gray-600">{{ _('If you need to inquire about product details, purchase methods or other questions, please fill out the form below:') }}</p>
+                
+                <form class="space-y-6" method="post" action="{{ url_for('main.info', lang=current_lang()) }}">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                  <div>
+                    <label class="block mb-2 font-semibold text-gray-700" for="name">{{ _('Name') }}</label>
+                    <input class="w-full border-2 border-pink-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-300 bg-white/50 backdrop-blur-sm" 
+                           type="text" id="name" name="name" required>
+                  </div>
+                  <div>
+                    <label class="block mb-2 font-semibold text-gray-700" for="contact">{{ _('Contact Information') }}</label>
+                    <input class="w-full border-2 border-pink-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-300 bg-white/50 backdrop-blur-sm" 
+                           type="text" id="contact" name="contact" placeholder="{{ _('Email or phone') }}" required>
+                  </div>
+                  <div>
+                    <label class="block mb-2 font-semibold text-gray-700" for="message">{{ _('Message Content') }}</label>
+                    <textarea class="w-full border-2 border-pink-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-300 bg-white/50 backdrop-blur-sm" 
+                              id="message" name="message" rows="4" required></textarea>
+                  </div>
+                  <button type="submit" class="w-full btn-primary py-4 font-semibold text-lg">
+                    {{ _('Send Information') }}
+                  </button>
+                </form>
+                <div class="mt-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
+                  <p class="text-sm text-green-700 text-center font-medium">✅ {{ _('Promise to reply to your questions within 2 hours') }}</p>
+                </div>
+              </div>
+              
+              <!-- 快速联系 -->
+              <div class="card p-8">
+                <div class="flex items-center mb-6">
+                  <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mr-4">
+                    <span class="text-white text-xl">⚡</span>
+                  </div>
+                  <h3 class="text-2xl font-semibold text-gray-800">{{ _('Quick Contact') }}</h3>
+                </div>
+                
+                <p class="mb-6 text-gray-600">{{ _('You can also contact me directly through the following methods:') }}</p>
+                
+                <div class="space-y-4">
+                  {% for item in section_data['items'] %}
+                    {% if item.item_type == 'contact' %}
+                      <div class="bg-gradient-to-br from-{% if 'phone' in item.key %}green{% elif 'email' in item.key %}purple{% else %}blue{% endif %}-50 to-{% if 'phone' in item.key %}emerald{% elif 'email' in item.key %}pink{% else %}cyan{% endif %}-50 rounded-xl p-6 border border-{% if 'phone' in item.key %}green{% elif 'email' in item.key %}purple{% else %}blue{% endif %}-200">
+                        <div class="flex items-center mb-3">
+                          <div class="w-10 h-10 bg-{% if 'phone' in item.key %}green{% elif 'email' in item.key %}purple{% else %}blue{% endif %}-500 rounded-full flex items-center justify-center mr-3">
+                            <span class="text-white text-lg">
+                              {% if 'phone' in item.key %}📞
+                              {% elif 'email' in item.key %}✉️
+                              {% else %}📍{% endif %}
+                            </span>
+                          </div>
+                          <span class="font-semibold text-gray-800 text-lg">{{ item.content.label }}</span>
+                        </div>
+                        <p class="text-{% if 'phone' in item.key %}green{% elif 'email' in item.key %}purple{% else %}blue{% endif %}-700 font-bold text-xl mb-1">{{ item.content.value }}</p>
+                      </div>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+            
+          {% else %}
+            <!-- 其他部分的通用显示 -->
+            <div class="card p-8">
+              <div class="space-y-4">
+                {% for item in section_data['items'] %}
+                  <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <div class="flex items-start">
+                      <div class="flex-shrink-0 mr-3">
+                        {% if item.item_type == 'text' %}
+                          <i class="fas fa-align-left text-gray-400 mt-1"></i>
+                        {% elif item.item_type == 'contact' %}
+                          <i class="fas fa-id-card text-blue-400 mt-1"></i>
+                        {% elif item.item_type == 'feature' %}
+                          <i class="fas fa-star text-yellow-400 mt-1"></i>
+                        {% elif item.item_type == 'faq' %}
+                          <i class="fas fa-question-circle text-green-400 mt-1"></i>
+                        {% endif %}
+                      </div>
+                      <div class="flex-1">
+                        {% if item.item_type == 'text' %}
+                          <p class="text-gray-700">{{ item.content.value }}</p>
+                        {% elif item.item_type == 'contact' %}
+                          <p class="font-medium text-gray-800">{{ item.content.label }}:</p>
+                          <p class="text-gray-700">{{ item.content.value }}</p>
+                        {% elif item.item_type == 'feature' %}
+                          <h4 class="font-semibold text-gray-800 mb-1">{{ item.content.title }}</h4>
+                          <p class="text-gray-700">{{ item.content.description }}</p>
+                        {% elif item.item_type == 'faq' %}
+                          <p class="font-semibold text-gray-800 mb-2">Q: {{ item.content.question }}</p>
+                          <p class="text-gray-700">A: {{ item.content.answer }}</p>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          {% endif %}
+        </section>
+      {% endif %}
+    {% endfor %}
+    
+  {% else %}
+    <!-- 当没有动态数据时显示默认内容 -->
+    <div class="text-center py-12">
+      <i class="fas fa-info-circle text-4xl text-blue-400 mb-4"></i>
+      <h3 class="text-lg font-medium text-gray-900 mb-2">{{ _('Site information is being updated') }}</h3>
+      <p class="text-sm text-gray-500">{{ _('Please check back later for updated information') }}</p>
     </div>
-  </section>
+  {% endif %}
 </div>
 
 <!-- 显示Flash消息 -->

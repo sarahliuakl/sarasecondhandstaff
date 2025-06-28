@@ -1,13 +1,13 @@
 {% extends "base.html" %}
-{% block title %}购物车 - Sara的二手售卖{% endblock %}
+{% block title %}{{ _('Shopping Cart') }} - {{ _('Sarah\'s Garage Sale') }}{% endblock %}
 {% block content %}
 
 <div class="max-w-6xl mx-auto">
   <!-- Page Header -->
   <div class="hero-section text-center mb-12">
-    <h2 class="section-title mb-4">🛒 我的购物车</h2>
+    <h2 class="section-title mb-4">🛒 {{ _('My Shopping Cart') }}</h2>
     <p class="section-subtitle max-w-2xl mx-auto">
-      精心挑选的心仪商品，即将与您相遇
+      {{ _('Your selected garage sale items, ready for checkout') }}
     </p>
   </div>
   
@@ -18,10 +18,10 @@
       <div class="w-32 h-32 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-8">
         <span class="text-gray-400 text-5xl">🛒</span>
       </div>
-      <h3 class="text-2xl font-semibold text-gray-700 mb-4">购物车是空的</h3>
-      <p class="text-gray-500 mb-8 text-lg">还没有添加任何商品到购物车</p>
-      <a href="{{ url_for('main.products') }}" class="btn-primary text-lg px-8 py-4">
-        🛍️ 去购物
+      <h3 class="text-2xl font-semibold text-gray-700 mb-4">{{ _('Shopping cart is empty') }}</h3>
+      <p class="text-gray-500 mb-8 text-lg">{{ _('No items have been added to the cart yet') }}</p>
+      <a href="{{ url_for('main.products', lang=current_lang()) }}" class="btn-primary text-lg px-8 py-4">
+        🛍️ {{ _('Go Shopping') }}
       </a>
     </div>
 
@@ -33,17 +33,17 @@
     <!-- 购物车总计 -->
     <div id="cartSummary" class="hidden card p-8 mt-8">
       <div class="text-center mb-6">
-        <h3 class="text-2xl font-semibold text-gray-800">💰 订单总计</h3>
+        <h3 class="text-2xl font-semibold text-gray-800">💰 {{ _('Order Total') }}</h3>
       </div>
       
       <div class="space-y-4 mb-6">
         <div class="flex justify-between items-center p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl border border-blue-200">
-          <span class="text-lg font-medium text-gray-700">商品小计:</span>
+          <span class="text-lg font-medium text-gray-700">{{ _('Subtotal') }}:</span>
           <span id="subtotal" class="text-xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">NZD $0.00</span>
         </div>
         
         <div class="flex justify-between items-center p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200" id="shippingFeeRow">
-          <span class="text-lg font-medium text-gray-700">预估邮费:</span>
+          <span class="text-lg font-medium text-gray-700">{{ _('Estimated Shipping') }}:</span>
           <span id="shippingFee" class="text-lg font-semibold text-green-600">NZD $15.00</span>
         </div>
         
@@ -52,14 +52,14 @@
             <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center mr-3">
               <span class="text-white text-sm">⚠️</span>
             </div>
-            <span class="font-medium">购物车中包含仅见面交易商品，只能选择当面交易</span>
+            <span class="font-medium">{{ _('Cart contains face-to-face only items, only in-person transaction available') }}</span>
           </div>
         </div>
       </div>
       
       <div class="border-t-2 border-gray-200 pt-6 mb-8">
         <div class="flex justify-between items-center p-6 bg-gradient-to-r from-pink-50 to-purple-50 rounded-2xl border-2 border-pink-200">
-          <span class="text-2xl font-bold text-gray-800">总计:</span>
+          <span class="text-2xl font-bold text-gray-800">{{ _('Total') }}:</span>
           <span id="total" class="text-3xl font-bold bg-gradient-to-r from-pink-500 to-red-500 bg-clip-text text-transparent">NZD $0.00</span>
         </div>
       </div>
@@ -67,17 +67,17 @@
       <div class="space-y-4">
         <button onclick="proceedToCheckout()" 
                 class="w-full btn-primary py-4 text-lg font-semibold">
-          🎯 订单确认
+          🎯 {{ _('Order Confirmation') }}
         </button>
         
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <a href="{{ url_for('main.products') }}" 
+          <a href="{{ url_for('main.products', lang=current_lang()) }}" 
              class="block text-center bg-white/70 text-gray-700 py-3 px-6 rounded-xl font-medium hover:bg-white/90 transition border-2 border-gray-200">
-            🛍️ 继续购物
+            🛍️ {{ _('Continue Shopping') }}
           </a>
           <button onclick="clearCart()" 
                   class="bg-gradient-to-r from-red-100 to-pink-100 text-red-700 py-3 px-6 rounded-xl font-medium hover:from-red-200 hover:to-pink-200 transition border-2 border-red-200">
-            🗑️ 清空购物车
+            🗑️ {{ _('Clear Cart') }}
           </button>
         </div>
       </div>
@@ -92,7 +92,7 @@
         <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mr-4">
           <span class="text-white text-xl">🚚</span>
         </div>
-        <h3 class="text-2xl font-semibold text-gray-800">交付方式</h3>
+        <h3 class="text-2xl font-semibold text-gray-800">{{ _('Delivery Methods') }}</h3>
       </div>
       
       <div class="space-y-4">
@@ -102,9 +102,9 @@
               <span class="text-white text-lg">📍</span>
             </div>
             <div>
-              <div class="font-semibold text-gray-800 text-lg mb-1">当面交易</div>
-              <div class="text-green-600 font-medium">奥克兰地区推荐，免邮费</div>
-              <div class="text-sm text-gray-600 mt-2">安全便捷，当面验货</div>
+              <div class="font-semibold text-gray-800 text-lg mb-1">{{ _('Face-to-face Transaction') }}</div>
+              <div class="text-green-600 font-medium">{{ _('Recommended for Auckland area, free shipping') }}</div>
+              <div class="text-sm text-gray-600 mt-2">{{ _('Safe and convenient, inspect in person') }}</div>
             </div>
           </div>
         </div>
@@ -115,9 +115,9 @@
               <span class="text-white text-lg">📦</span>
             </div>
             <div>
-              <div class="font-semibold text-gray-800 text-lg mb-1">邮寄服务</div>
-              <div class="text-blue-600 font-medium">新西兰全国，邮费约 NZD $15</div>
-              <div class="text-sm text-gray-600 mt-2">快速便民，全国覆盖</div>
+              <div class="font-semibold text-gray-800 text-lg mb-1">{{ _('Postal Service') }}</div>
+              <div class="text-blue-600 font-medium">{{ _('New Zealand nationwide, shipping cost approx NZD $15') }}</div>
+              <div class="text-sm text-gray-600 mt-2">{{ _('Fast and convenient, nationwide coverage') }}</div>
             </div>
           </div>
         </div>
@@ -130,7 +130,7 @@
         <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center mr-4">
           <span class="text-white text-xl">💳</span>
         </div>
-        <h3 class="text-2xl font-semibold text-gray-800">支付方式</h3>
+        <h3 class="text-2xl font-semibold text-gray-800">{{ _('Payment Methods') }}</h3>
       </div>
       
       <div class="grid grid-cols-2 gap-3">
@@ -138,32 +138,32 @@
           <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-2">
             <span class="text-white text-sm">🏦</span>
           </div>
-          <div class="font-medium text-gray-800 text-sm">ANZ银行转账</div>
-          <div class="text-xs text-green-600">推荐</div>
+          <div class="font-medium text-gray-800 text-sm">{{ _('ANZ Bank Transfer') }}</div>
+          <div class="text-xs text-green-600">{{ _('Recommended') }}</div>
         </div>
         
         <div class="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-4 border border-blue-200 text-center">
           <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-2">
             <span class="text-white text-sm">🔄</span>
           </div>
-          <div class="font-medium text-gray-800 text-sm">跨行转账</div>
-          <div class="text-xs text-blue-600">便捷</div>
+          <div class="font-medium text-gray-800 text-sm">{{ _('Inter-bank Transfer') }}</div>
+          <div class="text-xs text-blue-600">{{ _('Convenient') }}</div>
         </div>
         
         <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-200 text-center">
           <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-2">
             <span class="text-white text-sm">📱</span>
           </div>
-          <div class="font-medium text-gray-800 text-sm">微信/支付宝</div>
-          <div class="text-xs text-purple-600">当面</div>
+          <div class="font-medium text-gray-800 text-sm">{{ _('WeChat/Alipay') }}</div>
+          <div class="text-xs text-purple-600">{{ _('In Person') }}</div>
         </div>
         
         <div class="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl p-4 border border-yellow-200 text-center">
           <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center mx-auto mb-2">
             <span class="text-white text-sm">💵</span>
           </div>
-          <div class="font-medium text-gray-800 text-sm">现金支付</div>
-          <div class="text-xs text-yellow-600">当面</div>
+          <div class="font-medium text-gray-800 text-sm">{{ _('Cash Payment') }}</div>
+          <div class="text-xs text-yellow-600">{{ _('In Person') }}</div>
         </div>
       </div>
     </div>
@@ -175,7 +175,7 @@
       <div class="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full flex items-center justify-center mr-4">
         <span class="text-white text-xl">📋</span>
       </div>
-      <h3 class="text-2xl font-semibold text-gray-800">购买须知</h3>
+      <h3 class="text-2xl font-semibold text-gray-800">{{ _('Purchase Notes') }}</h3>
     </div>
     
     <div class="grid md:grid-cols-2 gap-4">
@@ -183,28 +183,28 @@
         <div class="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center mr-3 mt-1 flex-shrink-0">
           <span class="text-white text-xs">•</span>
         </div>
-        <span class="text-gray-700">二手物品经当面确认后不支持退货</span>
+        <span class="text-gray-700">{{ _('Second-hand items do not support returns after face-to-face confirmation') }}</span>
       </div>
       
       <div class="flex items-start">
         <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mr-3 mt-1 flex-shrink-0">
           <span class="text-white text-xs">•</span>
         </div>
-        <span class="text-gray-700">所有咨询我会在2小时内回复</span>
+        <span class="text-gray-700">{{ _('All inquiries will be replied within 2 hours') }}</span>
       </div>
       
       <div class="flex items-start">
         <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center mr-3 mt-1 flex-shrink-0">
           <span class="text-white text-xs">•</span>
         </div>
-        <span class="text-gray-700">当面交易地点会通过短信确认，保护双方隐私</span>
+        <span class="text-gray-700">{{ _('Face-to-face transaction location will be confirmed via SMS to protect both parties\' privacy') }}</span>
       </div>
       
       <div class="flex items-start">
         <div class="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center mr-3 mt-1 flex-shrink-0">
           <span class="text-white text-xs">•</span>
         </div>
-        <span class="text-gray-700">跨行转账请提前联系确认到账时间</span>
+        <span class="text-gray-700">{{ _('Please contact in advance for inter-bank transfer to confirm arrival time') }}</span>
       </div>
     </div>
     
@@ -214,7 +214,7 @@
           <span class="text-white text-sm">📞</span>
         </div>
         <div>
-          <p class="font-semibold text-gray-800">如有任何问题，请随时联系</p>
+          <p class="font-semibold text-gray-800">{{ _('If you have any questions, please contact us anytime') }}</p>
           <p class="text-green-600 font-bold text-lg">0225255862</p>
         </div>
       </div>
@@ -283,7 +283,7 @@ function createCartItemElement(item, index) {
               <span class="bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
                 ${item.condition}
               </span>
-              ${item.face_to_face_only ? '<span class="bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium">🔒 仅见面交易</span>' : ''}
+              ${item.face_to_face_only ? '<span class="bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium">🔒 {{ _('Face-to-face only') }}</span>' : ''}
             </div>
             <p class="text-2xl font-bold bg-gradient-to-r from-pink-500 to-red-500 bg-clip-text text-transparent">
               NZD $${item.price.toFixed(2)}
@@ -305,7 +305,7 @@ function createCartItemElement(item, index) {
             
             <button onclick="removeFromCart(${index})" 
                     class="bg-gradient-to-r from-red-100 to-pink-100 text-red-700 px-6 py-2 rounded-xl font-medium hover:from-red-200 hover:to-pink-200 transition border-2 border-red-200">
-              🗑️ 删除
+              🗑️ {{ _('Delete') }}
             </button>
           </div>
         </div>
@@ -336,16 +336,16 @@ function removeFromCart(index) {
   localStorage.setItem('cart', JSON.stringify(cart));
   displayCart();
   updateCartCount();
-  showMessage('商品已从购物车移除', 'info');
+  showMessage('{{ _('Item removed from cart') }}', 'info');
 }
 
 // 清空购物车
 function clearCart() {
-  if (confirm('确定要清空购物车吗？')) {
+  if (confirm('{{ _('Are you sure you want to clear the cart?') }}')) {
     localStorage.removeItem('cart');
     displayCart();
     updateCartCount();
-    showMessage('购物车已清空', 'info');
+    showMessage('{{ _('Cart has been cleared') }}', 'info');
   }
 }
 
@@ -391,7 +391,7 @@ function updateCartSummary() {
 function proceedToCheckout() {
   const cart = JSON.parse(localStorage.getItem('cart') || '[]');
   if (cart.length === 0) {
-    showMessage('购物车是空的', 'error');
+    showMessage('{{ _('Shopping cart is empty') }}', 'error');
     return;
   }
   

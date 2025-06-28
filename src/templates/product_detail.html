@@ -1,9 +1,9 @@
 {% extends "base.html" %}
-{% block title %}{{ product.name }} - Sara的二手售卖{% endblock %}
+{% block title %}{{ product.name }} - {{ _('Sarah\'s Garage Sale') }}{% endblock %}
 
-{% block description %}{{ product.description[:150] }}{% if product.description|length > 150 %}...{% endif %} - {{ product.get_category_display() }},{{ product.condition }},仅售NZD ${{ "%.2f"|format(product.price) }}{% endblock %}
+{% block description %}{{ product.description[:150] }}{% if product.description|length > 150 %}...{% endif %} - {{ product.get_category_display() }}, {{ product.condition }}, {{ _('only') }} NZD ${{ "%.2f"|format(product.price) }}{% endblock %}
 
-{% block keywords %}{{ product.name }},{{ product.get_category_display() }},{{ product.condition }},二手,新西兰,奥克兰,{{ "%.0f"|format(product.price) }}元{% endblock %}
+{% block keywords %}{{ product.name }},{{ product.get_category_display() }},{{ product.condition }},{{ _('garage sale') }},{{ _('New Zealand') }},{{ _('Auckland') }},NZD{{ "%.0f"|format(product.price) }}{% endblock %}
 
 {% block og_title %}{{ product.name }} - {{ product.condition }} - NZD ${{ "%.2f"|format(product.price) }}{% endblock %}
 {% block og_description %}{{ product.description[:200] }}{% if product.description|length > 200 %}...{% endif %}{% endblock %}
@@ -57,11 +57,11 @@
 <div class="max-w-6xl mx-auto">
   <!-- 返回按钮 -->
   <div class="mb-6">
-    <a href="{{ url_for('main.products') }}" class="inline-flex items-center text-orange-600 hover:text-orange-700 transition">
+    <a href="{{ url_for('main.products', lang=current_lang()) }}" class="inline-flex items-center text-orange-600 hover:text-orange-700 transition">
       <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
       </svg>
-      返回商品列表
+      {{ _('Back to Product List') }}
     </a>
   </div>
 
@@ -111,16 +111,16 @@
           </span>
           {% if product.is_available() %}
           <span class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm font-medium">
-            有货
+            {{ _('In Stock') }}
           </span>
           {% else %}
           <span class="bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-medium">
-            已售出
+            {{ _('Sold Out') }}
           </span>
           {% endif %}
           {% if product.face_to_face_only %}
           <span class="bg-purple-100 text-purple-600 px-3 py-1 rounded-full text-sm font-medium">
-            仅见面交易
+            {{ _('Face-to-face only') }}
           </span>
           {% endif %}
         </div>
@@ -134,7 +134,7 @@
 
       <!-- 商品描述 -->
       <div>
-        <h3 class="text-lg font-semibold text-gray-900 mb-3">商品描述</h3>
+        <h3 class="text-lg font-semibold text-gray-900 mb-3">{{ _('Product Description') }}</h3>
         <p class="text-gray-700 leading-relaxed">{{ product.description }}</p>
       </div>
 
@@ -142,7 +142,7 @@
       {% set specs = product.get_specifications() %}
       {% if specs %}
       <div>
-        <h3 class="text-lg font-semibold text-gray-900 mb-3">商品规格</h3>
+        <h3 class="text-lg font-semibold text-gray-900 mb-3">{{ _('Product Specifications') }}</h3>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {% for key, value in specs.items() %}
           <div class="flex justify-between py-2 px-3 bg-gray-50 rounded">
@@ -156,7 +156,7 @@
 
       <!-- 交付方式 -->
       <div>
-        <h3 class="text-lg font-semibold text-gray-900 mb-3">交付方式</h3>
+        <h3 class="text-lg font-semibold text-gray-900 mb-3">{{ _('Delivery Methods') }}</h3>
         {% if product.face_to_face_only %}
         <!-- 仅见面交易商品 -->
         <div class="border-2 border-purple-200 bg-purple-50 rounded-lg p-4">
@@ -165,10 +165,10 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
             </svg>
-            <span class="font-medium text-purple-800">仅限当面交易</span>
+            <span class="font-medium text-purple-800">{{ _('Face-to-face transaction only') }}</span>
           </div>
-          <p class="text-sm text-purple-700">此商品仅支持当面交易，不支持邮寄服务</p>
-          <p class="text-sm text-purple-600 mt-1">奥克兰地区推荐，安全见面地点</p>
+          <p class="text-sm text-purple-700">{{ _('This product only supports face-to-face transactions, shipping service not available') }}</p>
+          <p class="text-sm text-purple-600 mt-1">{{ _('Recommended for Auckland area, safe meeting location') }}</p>
         </div>
         {% else %}
         <!-- 普通商品 -->
@@ -179,9 +179,9 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
               </svg>
-              <span class="font-medium">当面交易</span>
+              <span class="font-medium">{{ _('Face-to-face Transaction') }}</span>
             </div>
-            <p class="text-sm text-gray-600">奥克兰地区推荐，安全见面地点</p>
+            <p class="text-sm text-gray-600">{{ _('Recommended for Auckland area, safe meeting location') }}</p>
           </div>
           
           <div class="border border-gray-200 rounded-lg p-4">
@@ -189,9 +189,9 @@
               <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
               </svg>
-              <span class="font-medium">邮寄</span>
+              <span class="font-medium">{{ _('Shipping') }}</span>
             </div>
-            <p class="text-sm text-gray-600">新西兰全国，邮费约 NZD $15</p>
+            <p class="text-sm text-gray-600">{{ _('New Zealand nationwide, shipping cost approx NZD $15') }}</p>
           </div>
         </div>
         {% endif %}
@@ -199,15 +199,15 @@
 
       <!-- 支付方式 -->
       <div>
-        <h3 class="text-lg font-semibold text-gray-900 mb-3">支付方式</h3>
+        <h3 class="text-lg font-semibold text-gray-900 mb-3">{{ _('Payment Methods') }}</h3>
         <div class="space-y-3">
           <div class="flex items-center p-3 bg-green-50 border border-green-200 rounded-lg">
             <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
             <div>
-              <div class="font-medium text-green-800">ANZ银行转账（推荐）</div>
-              <div class="text-sm text-green-600">即时到账，确认后当日发货</div>
+              <div class="font-medium text-green-800">{{ _('ANZ Bank Transfer (Recommended)') }}</div>
+              <div class="text-sm text-green-600">{{ _('Instant arrival, shipped on the same day after confirmation') }}</div>
             </div>
           </div>
           
@@ -216,8 +216,8 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
             </svg>
             <div>
-              <div class="font-medium text-yellow-800">跨行转账</div>
-              <div class="text-sm text-yellow-600">需提前1-2天转账，确认到账后发货</div>
+              <div class="font-medium text-yellow-800">{{ _('Inter-bank Transfer') }}</div>
+              <div class="text-sm text-yellow-600">{{ _('Requires 1-2 days advance transfer, shipped after arrival confirmation') }}</div>
             </div>
           </div>
           
@@ -226,8 +226,8 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
             </svg>
             <div>
-              <div class="font-medium text-blue-800">当面支付</div>
-              <div class="text-sm text-blue-600">现金 / 微信 / 支付宝扫码</div>
+              <div class="font-medium text-blue-800">{{ _('In-person Payment') }}</div>
+              <div class="text-sm text-blue-600">{{ _('Cash / WeChat / Alipay scan') }}</div>
             </div>
           </div>
         </div>
@@ -238,24 +238,24 @@
       <div class="space-y-3">
         <button onclick="addToCart({{ product.id }})" 
                 class="w-full bg-orange-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-orange-600 transition">
-          加入购物车
+          {{ _('Add to Cart') }}
         </button>
         
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <a href="{{ url_for('main.contact') }}" 
+          <a href="{{ url_for('main.contact', lang=current_lang()) }}" 
              class="block text-center bg-gray-100 text-gray-700 py-3 px-6 rounded-lg font-medium hover:bg-gray-200 transition">
-            咨询商品
+            {{ _('Inquire About Product') }}
           </a>
           <a href="tel:0225255862" 
              class="block text-center bg-green-100 text-green-700 py-3 px-6 rounded-lg font-medium hover:bg-green-200 transition">
-            电话联系
+            {{ _('Phone Contact') }}
           </a>
         </div>
       </div>
       {% else %}
       <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
-        <p class="text-red-600 font-medium">该商品已售出</p>
-        <a href="{{ url_for('main.products') }}" class="text-red-500 hover:text-red-700 text-sm">查看其他商品</a>
+        <p class="text-red-600 font-medium">{{ _('This product is sold out') }}</p>
+        <a href="{{ url_for('main.products', lang=current_lang()) }}" class="text-red-500 hover:text-red-700 text-sm">{{ _('View Other Products') }}</a>
       </div>
       {% endif %}
 
@@ -266,12 +266,12 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
           </svg>
           <div>
-            <h4 class="font-medium text-blue-800 mb-1">购买提示</h4>
+            <h4 class="font-medium text-blue-800 mb-1">{{ _('Purchase Tips') }}</h4>
             <ul class="text-sm text-blue-600 space-y-1">
-              <li>• 所有商品支持2小时内回复咨询</li>
-              <li>• 当面交易地点我们会通过短信确认</li>
-              <li>• 跨行转账请提前联系确认到账时间</li>
-              <li>• 二手物品售出后不支持退货</li>
+              <li>• {{ _('All products support replies to inquiries within 2 hours') }}</li>
+              <li>• {{ _('Face-to-face transaction location will be confirmed via SMS') }}</li>
+              <li>• {{ _('Please contact in advance for inter-bank transfer to confirm arrival time') }}</li>
+              <li>• {{ _('Second-hand items do not support returns after sale') }}</li>
             </ul>
           </div>
         </div>
@@ -326,24 +326,24 @@ function addToCart(productId) {
         localStorage.setItem('cart', JSON.stringify(cart));
         
         // 显示成功消息
-        showMessage('商品已加入购物车！', 'success');
+        showMessage('{{ _('Product added to cart!') }}', 'success');
         
         // 更新购物车计数
         updateCartCount();
       } else {
-        showMessage(data.message || '添加失败', 'error');
+        showMessage(data.message || '{{ _('Failed to add') }}', 'error');
       }
     })
     .catch(error => {
       console.error('Error:', error);
-      showMessage('网络错误，请重试', 'error');
+      showMessage('{{ _('Network error, please try again') }}', 'error');
     });
     return;
   }
   
   // 保存更新后的购物车
   localStorage.setItem('cart', JSON.stringify(cart));
-  showMessage('商品数量已更新！', 'success');
+  showMessage('{{ _('Product quantity updated!') }}', 'success');
   updateCartCount();
 }
 

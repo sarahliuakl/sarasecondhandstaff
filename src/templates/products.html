@@ -1,9 +1,9 @@
 {% extends "base.html" %}
-{% block title %}{% if current_category %}{{ dict(categories)[current_category] }}{% elif search_term %}搜索"{{ search_term }}"的结果{% else %}全部商品{% endif %} - Sara的二手售卖{% endblock %}
+{% block title %}{% if current_category %}{{ dict(categories)[current_category] }}{% elif search_term %}{{ _('Search results for "%(search_term)s"', search_term=search_term) }}{% else %}{{ _('All Products') }}{% endif %} - {{ _('Sarah\'s Garage Sale') }}{% endblock %}
 
-{% block description %}{% if current_category %}{{ dict(categories)[current_category] }}分类下的{% elif search_term %}搜索"{{ search_term }}"的{% else %}全部{% endif %}二手商品，新西兰奥克兰地区优质二手商品，品质保证，价格优惠{% endblock %}
+{% block description %}{% if current_category %}{{ dict(categories)[current_category] }} {{ _('category') }}{% elif search_term %}{{ _('Search results for "%(search_term)s"', search_term=search_term) }}{% else %}{{ _('All') }}{% endif %} {{ _('garage sale items from Sarah in Auckland, New Zealand, honest descriptions, student-friendly prices') }}{% endblock %}
 
-{% block keywords %}{% if current_category %}{{ dict(categories)[current_category] }},{% endif %}{% if search_term %}{{ search_term }},{% endif %}二手商品,商品列表,新西兰,奥克兰,Sara{% endblock %}
+{% block keywords %}{% if current_category %}{{ dict(categories)[current_category] }},{% endif %}{% if search_term %}{{ search_term }},{% endif %}{{ _('garage sale,items,product list,New Zealand,Auckland,Sarah,student,decluttering') }}{% endblock %}
 
 {% block structured_data %}
 {{ super() }}
@@ -11,7 +11,7 @@
 {
   "@context": "https://schema.org",
   "@type": "ItemList",
-  "name": "{% if current_category %}{{ dict(categories)[current_category] }}{% elif search_term %}搜索结果{% else %}全部商品{% endif %}",
+  "name": "{% if current_category %}{{ dict(categories)[current_category] }}{% elif search_term %}{{ _('Search Results') }}{% else %}{{ _('All Products') }}{% endif %}",
   "numberOfItems": {{ products|length }},
   "itemListElement": [
     {% for product in products[:10] %}
@@ -40,9 +40,9 @@
 
 <!-- Page Header -->
 <div class="hero-section text-center mb-12">
-  <h2 class="section-title mb-4">🛍️ 精选二手商品</h2>
+  <h2 class="section-title mb-4">🛍️ {{ _('Garage Sale Items') }}</h2>
   <p class="section-subtitle max-w-2xl mx-auto">
-    发现更多优质好物，每一件都有独特的故事等待与您相遇
+    {{ _('Find great items from my personal collection - each with its own story!') }}
   </p>
 </div>
 
@@ -54,13 +54,13 @@
       <div class="flex gap-3 relative flex-1 max-w-2xl">
         <div class="relative flex-1">
           <input type="text" name="search" id="searchInput" value="{{ search_term or '' }}" 
-                 placeholder="搜索商品名称、描述、分类..." 
+                 placeholder="{{ _('Search product name, description, category...') }}" 
                  class="w-full px-4 py-3 border-2 border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-300 bg-white/50 backdrop-blur-sm"
                  autocomplete="off">
           
-          <!-- 搜索建议下拉框 -->
+          <!-- {{ _('Search suggestions dropdown') }} -->
           <div id="searchSuggestions" class="absolute top-full left-0 right-0 bg-white/95 backdrop-blur-md border border-pink-200 rounded-xl shadow-xl z-10 hidden max-h-60 overflow-y-auto mt-2">
-            <!-- 搜索建议将在这里动态显示 -->
+            <!-- {{ _('Search suggestions will be displayed here dynamically') }} -->
           </div>
         </div>
         
@@ -68,21 +68,21 @@
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
           </svg>
-          搜索
+          {{ _('Search') }}
         </button>
         
         <button type="button" id="toggleFilters" class="bg-white/70 text-gray-700 px-4 py-3 rounded-xl hover:bg-white/90 transition border-2 border-gray-200 flex items-center gap-2">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z"></path>
           </svg>
-          筛选
+          {{ _('Filter') }}
         </button>
       </div>
       
       <div class="text-right">
-        <p class="text-gray-600 text-sm">共找到</p>
+        <p class="text-gray-600 text-sm">{{ _('Found') }}</p>
         <p class="text-2xl font-bold bg-gradient-to-r from-pink-500 to-red-500 bg-clip-text text-transparent">{{ products|length }}</p>
-        <p class="text-gray-600 text-sm">个商品</p>
+        <p class="text-gray-600 text-sm">{{ _('products') }}</p>
       </div>
     </div>
 
@@ -90,9 +90,9 @@
     <div id="advancedFilters" class="hidden grid md:grid-cols-2 lg:grid-cols-4 gap-4 p-6 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl border border-gray-200">
       <!-- Category Filter -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">商品分类</label>
+        <label class="block text-sm font-medium text-gray-700 mb-2">{{ _('Product Category') }}</label>
         <select name="category" class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-300 bg-white/70">
-          <option value="">所有分类</option>
+          <option value="">{{ _('All Categories') }}</option>
           {% for category_code, category_name in categories %}
           <option value="{{ category_code }}" {{ 'selected' if current_category == category_code else '' }}>{{ category_name }}</option>
           {% endfor %}
@@ -101,9 +101,9 @@
 
       <!-- Condition Filter -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">商品成色</label>
+        <label class="block text-sm font-medium text-gray-700 mb-2">{{ _('Product Condition') }}</label>
         <select name="condition" class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-300 bg-white/70">
-          <option value="">所有成色</option>
+          <option value="">{{ _('All Conditions') }}</option>
           {% for condition in conditions %}
           <option value="{{ condition }}" {{ 'selected' if current_condition == condition else '' }}>{{ condition }}</option>
           {% endfor %}
@@ -112,36 +112,36 @@
 
       <!-- Price Range -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">价格范围 (NZD)</label>
+        <label class="block text-sm font-medium text-gray-700 mb-2">{{ _('Price Range (NZD)') }}</label>
         <div class="flex gap-2">
-          <input type="number" name="min_price" value="{{ current_min_price or '' }}" placeholder="最低" 
+          <input type="number" name="min_price" value="{{ current_min_price or '' }}" placeholder="{{ _('Min') }}" 
                  class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-300 bg-white/70" step="0.01">
-          <input type="number" name="max_price" value="{{ current_max_price or '' }}" placeholder="最高" 
+          <input type="number" name="max_price" value="{{ current_max_price or '' }}" placeholder="{{ _('Max') }}" 
                  class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-300 bg-white/70" step="0.01">
         </div>
       </div>
 
       <!-- Sort Options -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">排序方式</label>
+        <label class="block text-sm font-medium text-gray-700 mb-2">{{ _('Sort By') }}</label>
         <select name="sort" class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-300 bg-white/70">
-          <option value="newest" {{ 'selected' if current_sort == 'newest' else '' }}>最新上架</option>
-          <option value="oldest" {{ 'selected' if current_sort == 'oldest' else '' }}>最早上架</option>
-          <option value="price_asc" {{ 'selected' if current_sort == 'price_asc' else '' }}>价格从低到高</option>
-          <option value="price_desc" {{ 'selected' if current_sort == 'price_desc' else '' }}>价格从高到低</option>
-          <option value="name" {{ 'selected' if current_sort == 'name' else '' }}>商品名称</option>
+          <option value="newest" {{ 'selected' if current_sort == 'newest' else '' }}>{{ _('Newest') }}</option>
+          <option value="oldest" {{ 'selected' if current_sort == 'oldest' else '' }}>{{ _('Oldest') }}</option>
+          <option value="price_asc" {{ 'selected' if current_sort == 'price_asc' else '' }}>{{ _('Price: Low to High') }}</option>
+          <option value="price_desc" {{ 'selected' if current_sort == 'price_desc' else '' }}>{{ _('Price: High to Low') }}</option>
+          <option value="name" {{ 'selected' if current_sort == 'name' else '' }}>{{ _('Product Name') }}</option>
         </select>
       </div>
     </div>
 
     <!-- Quick Category Filters -->
     <div class="flex flex-wrap gap-3">
-      <a href="{{ url_for('main.products') }}" 
+      <a href="{{ url_for('main.products', lang=current_lang()) }}" 
          class="px-6 py-3 rounded-xl font-medium transition {{ 'btn-primary' if not current_category else 'bg-white/70 text-gray-700 hover:bg-white/90 border-2 border-pink-200' }}">
-        🏷️ 全部
+        🏷️ {{ _('All') }}
       </a>
       {% for category_code, category_name in categories %}
-      <a href="{{ url_for('main.products', category=category_code, search=search_term) }}" 
+      <a href="{{ url_for('main.products', lang=current_lang(), category=category_code, search=search_term) }}" 
          class="px-6 py-3 rounded-xl font-medium transition {{ 'btn-primary' if current_category == category_code else 'bg-white/70 text-gray-700 hover:bg-white/90 border-2 border-pink-200' }}">
         {{ category_name }}
       </a>
@@ -151,37 +151,37 @@
     <!-- Active Filters Display -->
     {% if search_term or current_category or current_condition or current_min_price or current_max_price %}
     <div class="flex flex-wrap gap-2 items-center">
-      <span class="text-sm font-medium text-gray-700">当前筛选：</span>
+      <span class="text-sm font-medium text-gray-700">{{ _('Current Filters:') }}</span>
       
       {% if search_term %}
       <div class="bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-700 px-3 py-1 rounded-full text-sm flex items-center gap-2">
-        <span>搜索: "{{ search_term }}"</span>
-        <a href="{{ url_for('main.products', category=current_category, condition=current_condition, min_price=current_min_price, max_price=current_max_price, sort=current_sort) }}" class="text-blue-500 hover:text-blue-700">×</a>
+        <span>{{ _('Search: "%(search_term)s"', search_term=search_term) }}</span>
+        <a href="{{ url_for('main.products', lang=current_lang(), category=current_category, condition=current_condition, min_price=current_min_price, max_price=current_max_price, sort=current_sort) }}" class="text-blue-500 hover:text-blue-700">×</a>
       </div>
       {% endif %}
       
       {% if current_category %}
       <div class="bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 px-3 py-1 rounded-full text-sm flex items-center gap-2">
-        <span>分类: {{ dict(categories)[current_category] }}</span>
-        <a href="{{ url_for('main.products', search=search_term, condition=current_condition, min_price=current_min_price, max_price=current_max_price, sort=current_sort) }}" class="text-green-500 hover:text-green-700">×</a>
+        <span>{{ _('Category: %(category)s', category=dict(categories)[current_category]) }}</span>
+        <a href="{{ url_for('main.products', lang=current_lang(), search=search_term, condition=current_condition, min_price=current_min_price, max_price=current_max_price, sort=current_sort) }}" class="text-green-500 hover:text-green-700">×</a>
       </div>
       {% endif %}
       
       {% if current_condition %}
       <div class="bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 px-3 py-1 rounded-full text-sm flex items-center gap-2">
-        <span>成色: {{ current_condition }}</span>
-        <a href="{{ url_for('main.products', search=search_term, category=current_category, min_price=current_min_price, max_price=current_max_price, sort=current_sort) }}" class="text-purple-500 hover:text-purple-700">×</a>
+        <span>{{ _('Condition: %(condition)s', condition=current_condition) }}</span>
+        <a href="{{ url_for('main.products', lang=current_lang(), search=search_term, category=current_category, min_price=current_min_price, max_price=current_max_price, sort=current_sort) }}" class="text-purple-500 hover:text-purple-700">×</a>
       </div>
       {% endif %}
       
       {% if current_min_price or current_max_price %}
       <div class="bg-gradient-to-r from-yellow-100 to-orange-100 text-orange-700 px-3 py-1 rounded-full text-sm flex items-center gap-2">
-        <span>价格: {{ current_min_price or '0' }} - {{ current_max_price or '∞' }} NZD</span>
-        <a href="{{ url_for('main.products', search=search_term, category=current_category, condition=current_condition, sort=current_sort) }}" class="text-orange-500 hover:text-orange-700">×</a>
+        <span>{{ _('Price: %(min)s - %(max)s NZD', min=current_min_price or '0', max=current_max_price or '∞') }}</span>
+        <a href="{{ url_for('main.products', lang=current_lang(), search=search_term, category=current_category, condition=current_condition, sort=current_sort) }}" class="text-orange-500 hover:text-orange-700">×</a>
       </div>
       {% endif %}
       
-      <a href="{{ url_for('main.products') }}" class="text-sm text-red-600 hover:text-red-700 font-medium">清除所有筛选</a>
+      <a href="{{ url_for('main.products', lang=current_lang()) }}" class="text-sm text-red-600 hover:text-red-700 font-medium">{{ _('Clear All Filters') }}</a>
     </div>
     {% endif %}
 
@@ -194,11 +194,11 @@
         </div>
         <p class="text-blue-700 font-medium">
           {% if search_term %}
-            搜索 "{{ search_term }}" 的结果，
+            {{ _('Search results for "%(search_term)s", ', search_term=search_term) }}
           {% endif %}
-          共找到 {{ products|length }} 个商品
-          {% if current_category %}，分类：{{ dict(categories)[current_category] }}{% endif %}
-          {% if current_condition %}，成色：{{ current_condition }}{% endif %}
+          {{ _('Found %(count)s products', count=products|length) }}
+          {% if current_category %}, {{ _('Category: %(category)s', category=dict(categories)[current_category]) }}{% endif %}
+          {% if current_condition %}, {{ _('Condition: %(condition)s', condition=current_condition) }}{% endif %}
         </p>
       </div>
     </div>
@@ -211,30 +211,30 @@
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
   {% for product in products %}
   <div class="product-card overflow-hidden">
-    <!-- 商品图片 -->
+    <!-- {{ _('Product Image') }} -->
     {% set images = product.get_images() %}
-    <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="block">
+    <a href="{{ url_for('main.product_detail', product_id=product.id, lang=current_lang()) }}" class="block">
       <div class="product-image relative overflow-hidden h-64 bg-gradient-to-br from-gray-100 to-gray-200">
         <img src="{{ images[0] if images else 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=600&q=80' }}" 
              alt="{{ product.name }}" 
              class="w-full h-full object-cover transition-transform duration-300 hover:scale-105">
         <div class="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors duration-300"></div>
         
-        <!-- Status Badge -->
+        <!-- {{ _('Status Badge') }} -->
         {% if not product.is_available() %}
         <div class="absolute top-4 left-4 bg-red-500/90 text-white text-xs font-medium px-3 py-1 rounded-full backdrop-blur-sm">
-          已售出
+          {{ _('Sold Out') }}
         </div>
         {% else %}
         <div class="absolute top-4 left-4 bg-green-500/90 text-white text-xs font-medium px-3 py-1 rounded-full backdrop-blur-sm">
-          在售
+          {{ _('Available') }}
         </div>
         {% endif %}
       </div>
     </a>
     
     <div class="p-6">
-      <!-- 分类和成色标签 -->
+      <!-- {{ _('Category and Condition Tags') }} -->
       <div class="flex flex-wrap gap-2 mb-3">
         <span class="bg-gradient-to-r from-pink-100 to-purple-100 text-pink-700 px-3 py-1 rounded-full text-xs font-medium">
           {{ product.get_category_display() }}
@@ -244,7 +244,7 @@
         </span>
       </div>
       
-      <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="block group">
+      <a href="{{ url_for('main.product_detail', product_id=product.id, lang=current_lang()) }}" class="block group">
         <h4 class="font-semibold text-xl mb-2 text-gray-800 group-hover:text-pink-600 transition-colors">
           {{ product.name }}
         </h4>
@@ -263,21 +263,21 @@
         </span>
       </div>
       
-      <!-- 操作按钮 -->
+      <!-- {{ _('Action Buttons') }} -->
       {% if product.is_available() %}
       <div class="flex gap-3">
-        <a href="{{ url_for('main.product_detail', product_id=product.id) }}" 
+        <a href="{{ url_for('main.product_detail', product_id=product.id, lang=current_lang()) }}" 
            class="flex-1 text-center py-3 px-4 border-2 border-pink-200 text-pink-600 font-medium rounded-xl hover:bg-pink-50 transition-all duration-300">
-          查看详情
+          {{ _('View Details') }}
         </a>
         <button onclick="addToCart({{ product.id }})" 
                 class="flex-1 btn-primary text-center py-3 px-4 font-medium rounded-xl">
-          加入购物车
+          {{ _('Add to Cart') }}
         </button>
       </div>
       {% else %}
       <div class="bg-gray-100 text-gray-500 py-3 px-4 rounded-xl text-center font-medium">
-        商品已售出
+        {{ _('Product Sold Out') }}
       </div>
       {% endif %}
     </div>
@@ -289,19 +289,19 @@
   <div class="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
     <span class="text-gray-400 text-3xl">🔍</span>
   </div>
-  <h3 class="text-2xl font-semibold text-gray-700 mb-4">暂无商品</h3>
+  <h3 class="text-2xl font-semibold text-gray-700 mb-4">{{ _('No Products') }}</h3>
   <p class="text-gray-500 text-lg mb-6">
     {% if search_term %}
-    没有找到匹配 "{{ search_term }}" 的商品，请尝试其他搜索词
+    {{ _('No products found matching "%(search_term)s", please try other search terms', search_term=search_term) }}
     {% elif current_category %}
-    该分类下暂无商品
+    {{ _('No products in this category') }}
     {% else %}
-    暂无可售商品
+    {{ _('No products available for sale') }}
     {% endif %}
   </p>
   {% if search_term or current_category %}
-  <a href="{{ url_for('main.products') }}" class="btn-secondary">
-    查看全部商品
+  <a href="{{ url_for('main.products', lang=current_lang()) }}" class="btn-secondary">
+    {{ _('View All Products') }}
   </a>
   {% endif %}
 </div>
@@ -320,7 +320,7 @@ document.getElementById('toggleFilters').addEventListener('click', function() {
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
       </svg>
-      收起筛选
+      {{ _('Hide Filters') }}
     `;
   } else {
     filters.classList.add('hidden');
@@ -328,7 +328,7 @@ document.getElementById('toggleFilters').addEventListener('click', function() {
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z"></path>
       </svg>
-      筛选
+      {{ _('Filter') }}
     `;
   }
 });
@@ -348,13 +348,13 @@ document.getElementById('searchInput').addEventListener('keypress', function(e) 
   }
 });
 
-// 搜索建议功能
+// Search suggestions feature
 let searchTimeout;
 const searchInput = document.getElementById('searchInput');
 const searchSuggestions = document.getElementById('searchSuggestions');
 let selectedSuggestionIndex = -1;
 
-// 搜索历史记录
+// Search history
 function getSearchHistory() {
   return JSON.parse(localStorage.getItem('searchHistory') || '[]');
 }
@@ -373,7 +373,7 @@ function addToSearchHistory(query) {
   localStorage.setItem('searchHistory', JSON.stringify(history));
 }
 
-// 获取搜索建议
+// Get search suggestions
 async function fetchSearchSuggestions(query) {
   if (query.length < 2) {
     showSearchHistory();
@@ -385,11 +385,11 @@ async function fetchSearchSuggestions(query) {
     const suggestions = await response.json();
     showSearchSuggestions(suggestions);
   } catch (error) {
-    console.error('获取搜索建议失败:', error);
+    console.error('Failed to get search suggestions:', error);
   }
 }
 
-// 显示搜索建议
+// Show search suggestions
 function showSearchSuggestions(suggestions) {
   if (suggestions.length === 0) {
     hideSuggestions();
@@ -399,15 +399,15 @@ function showSearchSuggestions(suggestions) {
   const getIconAndColor = (type) => {
     switch(type) {
       case 'product':
-        return { icon: '📦', bg: 'bg-blue-100', text: 'text-blue-600', label: '商品' };
+        return { icon: '📦', bg: 'bg-blue-100', text: 'text-blue-600', label: '{{ _("Product") }}' };
       case 'category':
-        return { icon: '🏷️', bg: 'bg-green-100', text: 'text-green-600', label: '分类' };
+        return { icon: '🏷️', bg: 'bg-green-100', text: 'text-green-600', label: '{{ _("Category") }}' };
       case 'price_range':
-        return { icon: '💰', bg: 'bg-yellow-100', text: 'text-yellow-600', label: '价格' };
+        return { icon: '💰', bg: 'bg-yellow-100', text: 'text-yellow-600', label: '{{ _("Price") }}' };
       case 'condition':
-        return { icon: '⭐', bg: 'bg-purple-100', text: 'text-purple-600', label: '成色' };
+        return { icon: '⭐', bg: 'bg-purple-100', text: 'text-purple-600', label: '{{ _("Condition") }}' };
       default:
-        return { icon: '🔍', bg: 'bg-gray-100', text: 'text-gray-600', label: '搜索' };
+        return { icon: '🔍', bg: 'bg-gray-100', text: 'text-gray-600', label: '{{ _("Search") }}';
     }
   };
   
@@ -430,7 +430,7 @@ function showSearchSuggestions(suggestions) {
             ${suggestion.category ? `<span>${suggestion.category}</span>` : ''}
             ${suggestion.price ? `<span>${suggestion.price}</span>` : ''}
             ${suggestion.condition ? `<span>${suggestion.condition}</span>` : ''}
-            ${suggestion.count ? `<span>${suggestion.count}个商品</span>` : ''}
+            ${suggestion.count ? `<span>${suggestion.count} products</span>` : ''}
           </div>
         </div>
         <div class="text-xs text-gray-400">
@@ -444,7 +444,7 @@ function showSearchSuggestions(suggestions) {
   searchSuggestions.classList.remove('hidden');
 }
 
-// 应用过滤器建议
+// Apply filter suggestions
 function applyFilter(filterString) {
   const currentUrl = new URL(window.location.href);
   const params = new URLSearchParams(currentUrl.search);
@@ -461,7 +461,7 @@ function applyFilter(filterString) {
   hideSuggestions();
 }
 
-// 显示搜索历史
+// Show search history
 function showSearchHistory() {
   const history = getSearchHistory();
   if (history.length === 0) {
@@ -473,7 +473,7 @@ function showSearchHistory() {
     <div class="px-4 py-3 text-sm font-medium text-gray-700 border-b border-gray-200 bg-gray-50">
       <div class="flex items-center gap-2">
         <span class="text-gray-500">🕒</span>
-        搜索历史
+        {{ _('Search History') }}
       </div>
     </div>
     ${history.map((query, index) => `
@@ -485,7 +485,7 @@ function showSearchHistory() {
         <div class="flex-1">
           <div class="font-medium text-gray-800">${query}</div>
         </div>
-        <div class="text-xs text-gray-400">历史</div>
+        <div class="text-xs text-gray-400">{{ _('History') }}</div>
       </div>
     `).join('')}
   `;
@@ -494,13 +494,13 @@ function showSearchHistory() {
   searchSuggestions.classList.remove('hidden');
 }
 
-// 隐藏搜索建议
+// Hide search suggestions
 function hideSuggestions() {
   searchSuggestions.classList.add('hidden');
   selectedSuggestionIndex = -1;
 }
 
-// 选择建议
+// Select suggestion
 function selectSuggestion(text) {
   searchInput.value = text;
   hideSuggestions();
@@ -508,7 +508,7 @@ function selectSuggestion(text) {
   searchInput.form.submit();
 }
 
-// 搜索输入事件
+// Search input events
 searchInput.addEventListener('input', function() {
   clearTimeout(searchTimeout);
   const query = this.value.trim();
@@ -523,7 +523,7 @@ searchInput.addEventListener('input', function() {
   }, 300);
 });
 
-// 搜索框获得焦点时显示建议
+// Show suggestions when search box gets focus
 searchInput.addEventListener('focus', function() {
   const query = this.value.trim();
   if (query.length >= 2) {
@@ -533,7 +533,7 @@ searchInput.addEventListener('focus', function() {
   }
 });
 
-// 键盘导航
+// Keyboard navigation
 searchInput.addEventListener('keydown', function(e) {
   const suggestions = document.querySelectorAll('.suggestion-item');
   
@@ -554,7 +554,7 @@ searchInput.addEventListener('keydown', function(e) {
   }
 });
 
-// 更新选中的建议样式
+// Update selected suggestion style
 function updateSelectedSuggestion() {
   const suggestions = document.querySelectorAll('.suggestion-item');
   suggestions.forEach((item, index) => {
@@ -566,14 +566,14 @@ function updateSelectedSuggestion() {
   });
 }
 
-// 点击外部隐藏建议
+// Hide suggestions when clicking outside
 document.addEventListener('click', function(e) {
   if (!searchInput.contains(e.target) && !searchSuggestions.contains(e.target)) {
     hideSuggestions();
   }
 });
 
-// 表单提交时保存搜索历史
+// Save search history when form is submitted
 searchInput.form.addEventListener('submit', function() {
   const query = searchInput.value.trim();
   if (query) {
@@ -581,21 +581,21 @@ searchInput.form.addEventListener('submit', function() {
   }
 });
 
-// 添加到购物车功能
+// Add to cart functionality
 function addToCart(productId) {
-  // 获取现有购物车数据
+  // Get existing cart data
   let cart = JSON.parse(localStorage.getItem('cart') || '[]');
   
-  // 检查商品是否已在购物车中
+  // Check if product is already in cart
   let existingItem = cart.find(item => item.id === productId);
   
   if (existingItem) {
     existingItem.quantity += 1;
     localStorage.setItem('cart', JSON.stringify(cart));
-    showMessage('商品数量已更新！', 'success');
+    showMessage('{{ _('Product quantity updated!') }}', 'success');
     updateCartCount();
   } else {
-    // 调用API获取商品信息并添加到购物车
+    // Call API to get product info and add to cart
     fetch('/api/cart', {
       method: 'POST',
       headers: {
@@ -619,20 +619,20 @@ function addToCart(productId) {
         });
         
         localStorage.setItem('cart', JSON.stringify(cart));
-        showMessage('商品已加入购物车！', 'success');
+        showMessage('{{ _('Product added to cart!') }}', 'success');
         updateCartCount();
       } else {
-        showMessage(data.message || '添加失败', 'error');
+        showMessage(data.message || '{{ _('Failed to add') }}', 'error');
       }
     })
     .catch(error => {
       console.error('Error:', error);
-      showMessage('网络错误，请重试', 'error');
+      showMessage('{{ _('Network error, please retry') }}', 'error');
     });
   }
 }
 
-// 显示消息
+// Show message
 function showMessage(message, type = 'info') {
   const messageDiv = document.createElement('div');
   messageDiv.className = `fixed top-8 right-8 z-50 p-4 rounded-2xl shadow-2xl border transition-all duration-300 backdrop-blur-md ${
@@ -645,12 +645,12 @@ function showMessage(message, type = 'info') {
   
   document.body.appendChild(messageDiv);
   
-  // 添加入场动画
+  // Add entrance animation
   setTimeout(() => {
     messageDiv.style.transform = 'translateX(0)';
   }, 100);
   
-  // 添加退场动画和移除
+  // Add exit animation and remove
   setTimeout(() => {
     messageDiv.style.transform = 'translateX(100%)';
     setTimeout(() => {
@@ -661,7 +661,7 @@ function showMessage(message, type = 'info') {
   }, 3000);
 }
 
-// 更新购物车计数
+// Update cart count
 function updateCartCount() {
   const cart = JSON.parse(localStorage.getItem('cart') || '[]');
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -673,7 +673,7 @@ function updateCartCount() {
   });
 }
 
-// 页面加载时更新购物车计数
+// Update cart count when page loads
 document.addEventListener('DOMContentLoaded', function() {
   updateCartCount();
 });

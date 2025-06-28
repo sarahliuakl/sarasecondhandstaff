@@ -46,3 +46,7 @@ Thumbs.db
 .idea/
 *.swp
 .claude
+public/*
+.firebas*
+archive/
+firebase.json

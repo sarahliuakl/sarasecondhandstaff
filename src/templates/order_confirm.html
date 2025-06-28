@@ -1,5 +1,6 @@
 {% extends "base.html" %}
-{% block title %}订单确认 - Sara的二手售卖{% endblock %}
+{% block title %}订单确认 - Sarah's Garage Sale{% endblock %}
+
 {% block content %}
 
 <div class="max-w-4xl mx-auto">
@@ -55,16 +56,19 @@
             <input class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-orange-500" 
                    type="email" id="customer_email" name="customer_email" 
                    placeholder="example@email.com" required>
+            <div id="email-feedback" class="mt-1"></div>
             <p class="text-sm text-gray-500 mt-1">用于订单确认和物流通知</p>
           </div>
           
           <div>
             <label class="block mb-1 font-semibold text-gray-700" for="customer_phone">
-              电话 (可选)
+              电话号码 (新西兰手机号)
             </label>
             <input class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-orange-500" 
                    type="tel" id="customer_phone" name="customer_phone" 
                    placeholder="021234567">
+            <div id="phone-feedback" class="mt-1"></div>
+            <p class="text-sm text-gray-500 mt-1">请输入新西兰手机号码 (如: 021234567)</p>
           </div>
         </div>
 
@@ -116,7 +120,7 @@
                 class="flex-1 bg-orange-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-orange-600 transition">
           提交订单
         </button>
-        <a href="{{ url_for('main.cart') }}"
+        <a href="{{ url_for('main.cart', lang=current_lang()) }}"
            class="flex-1 bg-gray-100 text-gray-700 py-3 px-6 rounded-lg font-semibold text-center hover:bg-gray-200 transition">
           返回购物车
         </a>
@@ -159,6 +163,10 @@
   {% endif %}
 {% endwith %}
 
+<!-- 包含验证脚本 -->
+<script src="{{ url_for('static', filename='js/toast.js') }}"></script>
+<script src="{{ url_for('static', filename='js/validation.js') }}"></script>
+
 <script>
 // 页面加载时显示订单内容
 document.addEventListener('DOMContentLoaded', function() {
@@ -167,13 +175,59 @@ document.addEventListener('DOMContentLoaded', function() {
   // 如果购物车为空，重定向回购物车页面
   const cart = JSON.parse(localStorage.getItem('cart') || '[]');
   if (cart.length === 0) {
-    window.location.href = '{{ url_for("main.cart") }}';
+    window.location.href = '{{ url_for("main.cart", lang=current_lang()) }}';
     return;
   }
   
   // 初始化交付和支付选项
   initializeDeliveryOptions();
   initializePaymentOptions();
+  
+  // 设置验证
+  const emailInput = document.getElementById('customer_email');
+  const emailFeedback = document.getElementById('email-feedback');
+  const phoneInput = document.getElementById('customer_phone');
+  const phoneFeedback = document.getElementById('phone-feedback');
+  
+  // 邮箱验证
+  emailInput.addEventListener('input', function() {
+    const email = this.value;
+    if (email.trim() === '') {
+      emailFeedback.textContent = '';
+      this.classList.remove('border-red-500', 'border-green-500');
+      this.classList.add('border-gray-300');
+    } else if (validateEmail(email)) {
+      emailFeedback.textContent = '✅ Valid email format';
+      emailFeedback.className = 'text-green-600 text-sm mt-1';
+      this.classList.remove('border-red-500', 'border-gray-300');
+      this.classList.add('border-green-500');
+    } else {
+      emailFeedback.textContent = '❌ Please enter a valid email address';
+      emailFeedback.className = 'text-red-600 text-sm mt-1';
+      this.classList.remove('border-green-500', 'border-gray-300');
+      this.classList.add('border-red-500');
+    }
+  });
+  
+  // 手机号码验证
+  phoneInput.addEventListener('input', function() {
+    const phone = this.value;
+    if (phone.trim() === '') {
+      phoneFeedback.textContent = '';
+      this.classList.remove('border-red-500', 'border-green-500');
+      this.classList.add('border-gray-300');
+    } else if (validateNZMobile(phone)) {
+      phoneFeedback.textContent = '✅ Valid NZ mobile number';
+      phoneFeedback.className = 'text-green-600 text-sm mt-1';
+      this.classList.remove('border-red-500', 'border-gray-300');
+      this.classList.add('border-green-500');
+    } else {
+      phoneFeedback.textContent = '❌ Please enter a valid New Zealand mobile number';
+      phoneFeedback.className = 'text-red-600 text-sm mt-1';
+      this.classList.remove('border-green-500', 'border-gray-300');
+      this.classList.add('border-red-500');
+    }
+  });
 });
 
 // 初始化交付选项
@@ -406,10 +460,19 @@ document.getElementById('orderForm').addEventListener('submit', function(e) {
   
   // 验证邮箱格式
   const email = document.getElementById('customer_email').value;
-  const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-  if (!emailPattern.test(email)) {
+  if (!validateEmail(email)) {
     e.preventDefault();
-    alert('请输入有效的邮箱地址');
+    showValidationError('Please enter a valid email address', 'Email Address');
+    document.getElementById('customer_email').focus();
+    return;
+  }
+  
+  // 验证手机号码格式 (如果填写了)
+  const phone = document.getElementById('customer_phone').value;
+  if (phone.trim() && !validateNZMobile(phone)) {
+    e.preventDefault();
+    showValidationError('Please enter a valid New Zealand mobile number (e.g: 021234567)', 'Phone Number');
+    document.getElementById('customer_phone').focus();
     return;
   }
   

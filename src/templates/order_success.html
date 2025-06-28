@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}订单提交成功 - Sara的二手售卖{% endblock %}
+{% block title %}订单提交成功 - Sarah's Garage Sale{% endblock %}
 {% block content %}
 
 <div class="max-w-3xl mx-auto text-center">
@@ -180,7 +180,7 @@
     <h3 class="text-lg font-semibold text-orange-800 mb-3">联系方式</h3>
     <div class="text-sm text-orange-700">
       <p><strong>电话:</strong> 0225255862</p>
-      <p><strong>邮箱:</strong> haixialiu2017@gmail.com</p>
+      <p><strong>邮箱:</strong> sarahliu.akl@gmail.com</p>
       <p class="mt-2">如有任何问题或需要修改订单，请随时联系我</p>
     </div>
   </div>
@@ -191,15 +191,15 @@
             class="bg-purple-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-600 transition">
       打印订单
     </button>
-    <a href="{{ url_for('main.products') }}" 
+    <a href="{{ url_for('main.products', lang=current_lang()) }}" 
        class="bg-orange-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-600 transition">
       继续购物
     </a>
-    <a href="{{ url_for('main.order_query') }}"
+    <a href="{{ url_for('main.order_query', lang=current_lang()) }}"
        class="bg-gray-100 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-200 transition">
       查询订单
     </a>
-    <a href="{{ url_for('main.index') }}" 
+    <a href="{{ url_for('main.index', lang=current_lang()) }}" 
        class="bg-blue-100 text-blue-700 px-6 py-3 rounded-lg font-semibold hover:bg-blue-200 transition">
       返回首页
     </a>
@@ -308,8 +308,8 @@ function printOrder() {
     ${printStyles}
     <div class="print-area">
       <div class="print-header">
-        <h1>Sara的二手售卖 - 订单确认单</h1>
-        <p>联系电话: 0225255862 | 邮箱: haixialiu2017@gmail.com</p>
+        <h1>Sarah's Garage Sale - 订单确认单</h1>
+        <p>联系电话: 0225255862 | 邮箱: sarahliu.akl@gmail.com</p>
       </div>
       
       <div class="print-content">

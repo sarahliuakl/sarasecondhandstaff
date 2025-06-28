@@ -1,0 +1,957 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-06-27 15:12+1200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/templates/base.html:6 src/templates/base.html:225
+#: src/templates/base.html:266 src/templates/base.html:308
+msgid "Sara's Second-hand Shop"
+msgstr ""
+
+#: src/templates/base.html:228
+msgid "Home"
+msgstr ""
+
+#: src/templates/base.html:229
+msgid "Products"
+msgstr ""
+
+#: src/templates/base.html:230
+msgid "Sale Info"
+msgstr ""
+
+#: src/templates/base.html:234
+msgid "Cart"
+msgstr ""
+
+#: src/templates/base.html:239 src/templates/order_query.html:2
+#: src/templates/order_query.html:8
+msgid "Order Query"
+msgstr ""
+
+#: src/templates/base.html:269
+msgid "Quality second-hand goods store in Auckland, New Zealand"
+msgstr ""
+
+#: src/templates/base.html:270
+msgid "Quality guaranteed, affordable prices, caring service"
+msgstr ""
+
+#: src/templates/base.html:275
+msgid "Contact"
+msgstr ""
+
+#: src/templates/base.html:287
+msgid "North Shore, Auckland"
+msgstr ""
+
+#: src/templates/base.html:293
+msgid "Live Info"
+msgstr ""
+
+#: src/templates/base.html:297
+msgid "Loading weather..."
+msgstr ""
+
+#: src/templates/base.html:308
+msgid "All rights reserved"
+msgstr ""
+
+#: src/templates/base.html:324
+msgid "Auckland Time"
+msgstr ""
+
+#: src/templates/base.html:335
+msgid "Auckland Weather"
+msgstr ""
+
+#: src/templates/base.html:335
+msgid "Wind"
+msgstr ""
+
+#: src/templates/cart.html:2
+msgid "Shopping Cart"
+msgstr ""
+
+#: src/templates/cart.html:2 src/templates/help.html:2
+#: src/templates/order_query.html:2 src/templates/products.html:2
+msgid "Sara's Second-hand Store"
+msgstr ""
+
+#: src/templates/cart.html:8
+msgid "My Shopping Cart"
+msgstr ""
+
+#: src/templates/cart.html:10
+msgid "Carefully selected favorite items, about to meet you"
+msgstr ""
+
+#: src/templates/cart.html:21
+msgid "Shopping cart is empty"
+msgstr ""
+
+#: src/templates/cart.html:22
+msgid "No items have been added to the cart yet"
+msgstr ""
+
+#: src/templates/cart.html:24
+msgid "Go Shopping"
+msgstr ""
+
+#: src/templates/cart.html:36
+msgid "Order Total"
+msgstr ""
+
+#: src/templates/cart.html:41
+msgid "Subtotal"
+msgstr ""
+
+#: src/templates/cart.html:46
+msgid "Estimated Shipping"
+msgstr ""
+
+#: src/templates/cart.html:55
+msgid ""
+"Cart contains face-to-face only items, only in-person transaction available"
+msgstr ""
+
+#: src/templates/cart.html:62
+msgid "Total"
+msgstr ""
+
+#: src/templates/cart.html:70
+msgid "Order Confirmation"
+msgstr ""
+
+#: src/templates/cart.html:76
+msgid "Continue Shopping"
+msgstr ""
+
+#: src/templates/cart.html:80
+msgid "Clear Cart"
+msgstr ""
+
+#: src/templates/cart.html:95 src/templates/product_detail.html:159
+msgid "Delivery Methods"
+msgstr ""
+
+#: src/templates/cart.html:105 src/templates/product_detail.html:182
+msgid "Face-to-face Transaction"
+msgstr ""
+
+#: src/templates/cart.html:106
+msgid "Recommended for Auckland area, free shipping"
+msgstr ""
+
+#: src/templates/cart.html:107
+msgid "Safe and convenient, inspect in person"
+msgstr ""
+
+#: src/templates/cart.html:118
+msgid "Postal Service"
+msgstr ""
+
+#: src/templates/cart.html:119 src/templates/product_detail.html:194
+msgid "New Zealand nationwide, shipping cost approx NZD $15"
+msgstr ""
+
+#: src/templates/cart.html:120
+msgid "Fast and convenient, nationwide coverage"
+msgstr ""
+
+#: src/templates/cart.html:133 src/templates/info.html:186
+#: src/templates/product_detail.html:202
+msgid "Payment Methods"
+msgstr ""
+
+#: src/templates/cart.html:141 src/templates/info.html:194
+msgid "ANZ Bank Transfer"
+msgstr ""
+
+#: src/templates/cart.html:142
+msgid "Recommended"
+msgstr ""
+
+#: src/templates/cart.html:149 src/templates/info.html:200
+#: src/templates/product_detail.html:219
+msgid "Inter-bank Transfer"
+msgstr ""
+
+#: src/templates/cart.html:150
+msgid "Convenient"
+msgstr ""
+
+#: src/templates/cart.html:157 src/templates/info.html:206
+msgid "WeChat/Alipay"
+msgstr ""
+
+#: src/templates/cart.html:158 src/templates/cart.html:166
+msgid "In Person"
+msgstr ""
+
+#: src/templates/cart.html:165 src/templates/info.html:212
+msgid "Cash Payment"
+msgstr ""
+
+#: src/templates/cart.html:178
+msgid "Purchase Notes"
+msgstr ""
+
+#: src/templates/cart.html:186
+msgid ""
+"Second-hand items do not support returns after face-to-face confirmation"
+msgstr ""
+
+#: src/templates/cart.html:193
+msgid "All inquiries will be replied within 2 hours"
+msgstr ""
+
+#: src/templates/cart.html:200
+msgid ""
+"Face-to-face transaction location will be confirmed via SMS to protect both "
+"parties' privacy"
+msgstr ""
+
+#: src/templates/cart.html:207 src/templates/product_detail.html:273
+msgid ""
+"Please contact in advance for inter-bank transfer to confirm arrival time"
+msgstr ""
+
+#: src/templates/cart.html:217
+msgid "If you have any questions, please contact us anytime"
+msgstr ""
+
+#: src/templates/cart.html:308
+msgid "Delete"
+msgstr ""
+
+#: src/templates/help.html:2 src/templates/help.html:4
+#: src/templates/info.html:146
+msgid "Sales Information"
+msgstr ""
+
+#: src/templates/help.html:6 src/templates/info.html:156
+msgid "After-sales Policy"
+msgstr ""
+
+#: src/templates/help.html:8 src/templates/info.html:163
+msgid ""
+"Second-hand items do not support returns after face-to-face confirmation."
+msgstr ""
+
+#: src/templates/help.html:9
+msgid ""
+"If you have any questions or after-sales issues, you can inquire through the "
+"\"Contact Me\" page, Sara will patiently answer."
+msgstr ""
+
+#: src/templates/help.html:10 src/templates/info.html:175
+msgid ""
+"All products are photographed from actual items, ensuring authentic "
+"descriptions."
+msgstr ""
+
+#: src/templates/help.html:14 src/templates/info.html:226
+#: src/templates/order_query.html:144
+msgid "Frequently Asked Questions"
+msgstr ""
+
+#: src/templates/help.html:17 src/templates/info.html:230
+msgid "Q: Which cities in New Zealand can you ship to?"
+msgstr ""
+
+#: src/templates/help.html:18 src/templates/info.html:231
+msgid ""
+"A: Supports nationwide shipping in New Zealand, Auckland area prioritizes "
+"face-to-face transactions."
+msgstr ""
+
+#: src/templates/help.html:21
+msgid "Q: What payment methods are available?"
+msgstr ""
+
+#: src/templates/help.html:22
+msgid ""
+"A: Supports ANZ bank transfer, inter-bank transfer, WeChat/Alipay scan "
+"payment and cash payment."
+msgstr ""
+
+#: src/templates/help.html:25 src/templates/info.html:234
+msgid "Q: How to check order status?"
+msgstr ""
+
+#: src/templates/help.html:26 src/templates/info.html:235
+msgid "A: You can contact Sara via email or phone to check order status."
+msgstr ""
+
+#: src/templates/help.html:29 src/templates/info.html:238
+msgid "Q: How is after-sales service guaranteed?"
+msgstr ""
+
+#: src/templates/help.html:30 src/templates/info.html:239
+msgid ""
+"A: If there are after-sales issues, Sara will reply within 2 hours and "
+"assist in resolving them."
+msgstr ""
+
+#: src/templates/index.html:2
+msgid ""
+"Sara's Second-hand Shop - Quality second-hand goods in Auckland, New Zealand"
+msgstr ""
+
+#: src/templates/index.html:4
+msgid ""
+"Sara's second-hand goods shop, quality second-hand goods store in Auckland, "
+"New Zealand. Electronics, clothing, anime merchandise, quality guaranteed, "
+"affordable prices, supports face-to-face and shipping services."
+msgstr ""
+
+#: src/templates/index.html:6
+msgid ""
+"Sara,second-hand sale,New Zealand,Auckland,second-hand goods,electronics,"
+"clothing,anime merchandise,face-to-face trading,shipping"
+msgstr ""
+
+#: src/templates/index.html:41
+msgid "Welcome to Sara's Premium Second-hand World"
+msgstr ""
+
+#: src/templates/index.html:44
+msgid ""
+"Carefully selected second-hand goods from Auckland's North Shore, each item "
+"meticulously chosen and maintained. We are committed to providing you with a "
+"safe, convenient, and warm shopping experience."
+msgstr ""
+
+#: src/templates/index.html:48
+msgid "Shop Now"
+msgstr ""
+
+#: src/templates/index.html:51
+msgid "Learn More"
+msgstr ""
+
+#: src/templates/index.html:64
+msgid "Carefully Selected"
+msgstr ""
+
+#: src/templates/index.html:65
+msgid ""
+"Every item is carefully inspected to ensure excellent quality and value for "
+"money"
+msgstr ""
+
+#: src/templates/index.html:72
+msgid "Flexible Delivery"
+msgstr ""
+
+#: src/templates/index.html:73
+msgid ""
+"Supports face-to-face pickup and shipping to meet your different needs, "
+"making shopping more convenient"
+msgstr ""
+
+#: src/templates/index.html:80
+msgid "Thoughtful Service"
+msgstr ""
+
+#: src/templates/index.html:81
+msgid ""
+"Professional pre-sales and after-sales service to make your shopping "
+"experience warm and worry-free"
+msgstr ""
+
+#: src/templates/index.html:89
+msgid "Latest Premium Arrivals"
+msgstr ""
+
+#: src/templates/index.html:91 src/templates/products.html:45
+msgid ""
+"Discover more quality treasures, each with a unique story waiting to meet you"
+msgstr ""
+
+#: src/templates/index.html:123
+msgid "New"
+msgstr ""
+
+#: src/templates/index.html:130 src/templates/products.html:271
+msgid "View Details"
+msgstr ""
+
+#: src/templates/index.html:134 src/templates/products.html:275
+#: src/templates/product_detail.html:241
+msgid "Add to Cart"
+msgstr ""
+
+#: src/templates/index.html:144 src/templates/products.html:304
+msgid "View All Products"
+msgstr ""
+
+#: src/templates/info.html:2 src/templates/info.html:35
+msgid "Sara's Store"
+msgstr ""
+
+#: src/templates/info.html:2
+msgid "About Me, Sales Info, Contact Me"
+msgstr ""
+
+#: src/templates/info.html:4
+msgid ""
+"Welcome to Sara's Store, learn about owner Sara, view sales information, and "
+"contact for inquiries. Warm personal store with complete information "
+"including personal introduction, transaction rules, and contact details"
+msgstr ""
+
+#: src/templates/info.html:6
+msgid ""
+"Sara's Store,About Sara,Sales Info,Contact Me,Second-hand Items,Auckland,"
+"Personal Store,Transaction Rules"
+msgstr ""
+
+#: src/templates/info.html:37
+msgid "Warm personal store, honest business, serving every customer with care"
+msgstr ""
+
+#: src/templates/info.html:44
+msgid "About Me"
+msgstr ""
+
+#: src/templates/info.html:45
+msgid "Sales Info"
+msgstr ""
+
+#: src/templates/info.html:46 src/templates/info.html:252
+msgid "Contact Me"
+msgstr ""
+
+#: src/templates/info.html:53
+msgid "About Sara"
+msgstr ""
+
+#: src/templates/info.html:67
+msgid ""
+"Hello, welcome to Sara's Store! I'm Sara, currently living in North Shore "
+"Auckland, love life and enjoy sharing. I hope through this warm little store "
+"to help quality second-hand items from my home find new owners, and also "
+"benefit more friends."
+msgstr ""
+
+#: src/templates/info.html:77
+msgid "Transaction Security and Trust"
+msgstr ""
+
+#: src/templates/info.html:84
+msgid ""
+"All items are for personal use, photographed from actual items, with "
+"authentic descriptions."
+msgstr ""
+
+#: src/templates/info.html:90
+msgid ""
+"Support face-to-face and postal delivery, Auckland area prioritizes face-to-"
+"face transactions."
+msgstr ""
+
+#: src/templates/info.html:96
+msgid "Flexible payment methods, safe and reliable."
+msgstr ""
+
+#: src/templates/info.html:102
+msgid ""
+"Promise to reply to all inquiries within 2 hours, patiently answer after-"
+"sales questions."
+msgstr ""
+
+#: src/templates/info.html:112 src/templates/info.html:275
+msgid "Contact Information"
+msgstr ""
+
+#: src/templates/info.html:121
+msgid "Phone"
+msgstr ""
+
+#: src/templates/info.html:132
+msgid "Email"
+msgstr ""
+
+#: src/templates/info.html:169
+msgid ""
+"If you have any questions or after-sales issues, you can contact us, Sara "
+"will patiently answer."
+msgstr ""
+
+#: src/templates/info.html:189
+msgid "Support multiple payment methods:"
+msgstr ""
+
+#: src/templates/info.html:242
+msgid "Q: How is shipping cost calculated?"
+msgstr ""
+
+#: src/templates/info.html:243
+msgid ""
+"A: Shipping cost is calculated based on item size and weight, Auckland area "
+"is recommended for face-to-face transaction."
+msgstr ""
+
+#: src/templates/info.html:262
+msgid "Send Message"
+msgstr ""
+
+#: src/templates/info.html:265
+msgid ""
+"If you need to inquire about product details, purchase methods or other "
+"questions, please fill out the form below:"
+msgstr ""
+
+#: src/templates/info.html:270
+msgid "Name"
+msgstr ""
+
+#: src/templates/info.html:280
+msgid "Message Content"
+msgstr ""
+
+#: src/templates/info.html:285
+msgid "Send Information"
+msgstr ""
+
+#: src/templates/info.html:289
+msgid "Promise to reply to your questions within 2 hours"
+msgstr ""
+
+#: src/templates/info.html:299
+msgid "Quick Contact"
+msgstr ""
+
+#: src/templates/info.html:302 src/templates/order_query.html:102
+msgid "You can also contact me directly through the following methods:"
+msgstr ""
+
+#: src/templates/info.html:310
+msgid "Phone Consultation"
+msgstr ""
+
+#: src/templates/info.html:313 src/templates/order_query.html:113
+msgid "Working hours: 9:00-21:00"
+msgstr ""
+
+#: src/templates/info.html:321 src/templates/order_query.html:121
+msgid "Email Contact"
+msgstr ""
+
+#: src/templates/info.html:324 src/templates/order_query.html:123
+msgid "Reply within 24 hours"
+msgstr ""
+
+#: src/templates/info.html:332
+msgid "Service Area"
+msgstr ""
+
+#: src/templates/info.html:334
+msgid "Auckland North Shore"
+msgstr ""
+
+#: src/templates/info.html:335
+msgid "Recommended face-to-face, nationwide New Zealand shipping"
+msgstr ""
+
+#: src/templates/order_query.html:10
+msgid ""
+"Quickly check your order status and understand product delivery progress"
+msgstr ""
+
+#: src/templates/order_query.html:21
+msgid "How to Query Orders"
+msgstr ""
+
+#: src/templates/order_query.html:27
+msgid ""
+"Please enter the email address or phone number you provided when purchasing"
+msgstr ""
+
+#: src/templates/order_query.html:33
+msgid "The system will display all your orders and status information"
+msgstr ""
+
+#: src/templates/order_query.html:39
+msgid "If you have any questions, please contact Sara directly: 0225255862"
+msgstr ""
+
+#: src/templates/order_query.html:52
+msgid "Enter Your Contact Information"
+msgstr ""
+
+#: src/templates/order_query.html:59
+msgid "Email Address or Phone Number"
+msgstr ""
+
+#: src/templates/order_query.html:71
+msgid "For example:"
+msgstr ""
+
+#: src/templates/order_query.html:71
+msgid "or"
+msgstr ""
+
+#: src/templates/order_query.html:83
+msgid "Privacy Protection"
+msgstr ""
+
+#: src/templates/order_query.html:84
+msgid ""
+"To protect your privacy, please ensure you enter the actual contact "
+"information you used when purchasing."
+msgstr ""
+
+#: src/templates/order_query.html:93
+msgid "Query My Orders"
+msgstr ""
+
+#: src/templates/order_query.html:101
+msgid "Can't Find Your Order?"
+msgstr ""
+
+#: src/templates/order_query.html:111 src/templates/product_detail.html:251
+msgid "Phone Contact"
+msgstr ""
+
+#: src/templates/order_query.html:132
+msgid "Promise to reply to your inquiries within 2 hours"
+msgstr ""
+
+#: src/templates/order_query.html:133
+msgid "Business hours: Monday to Sunday 9:00-21:00"
+msgstr ""
+
+#: src/templates/order_query.html:149
+msgid "Q: Why can't I find my order?"
+msgstr ""
+
+#: src/templates/order_query.html:150
+msgid ""
+"A: Please confirm that the contact information you entered is consistent "
+"with what you provided when purchasing. If you still can't find it, there "
+"may be an error in order information entry, please contact us directly."
+msgstr ""
+
+#: src/templates/order_query.html:154
+msgid "Q: What are the order statuses?"
+msgstr ""
+
+#: src/templates/order_query.html:155
+msgid "A: Order statuses include the following:"
+msgstr ""
+
+#: src/templates/order_query.html:157
+msgid "Pending Payment"
+msgstr ""
+
+#: src/templates/order_query.html:158
+msgid "Paid"
+msgstr ""
+
+#: src/templates/order_query.html:159
+msgid "Shipped"
+msgstr ""
+
+#: src/templates/order_query.html:160
+msgid "Completed"
+msgstr ""
+
+#: src/templates/order_query.html:165
+msgid "Q: How to modify order information?"
+msgstr ""
+
+#: src/templates/order_query.html:166
+msgid ""
+"A: Please contact Sara directly to modify order information. To ensure "
+"accuracy, phone communication is recommended."
+msgstr ""
+
+#: src/templates/products.html:2 src/templates/products.html:4
+#, python-format
+msgid "Search results for \"%(search_term)s\""
+msgstr ""
+
+#: src/templates/products.html:2
+msgid "All Products"
+msgstr ""
+
+#: src/templates/products.html:4
+msgid "category"
+msgstr ""
+
+#: src/templates/products.html:4 src/templates/products.html:141
+msgid "All"
+msgstr ""
+
+#: src/templates/products.html:4
+msgid ""
+"second-hand products, quality second-hand goods in Auckland, New Zealand, "
+"quality guaranteed, affordable prices"
+msgstr ""
+
+#: src/templates/products.html:6
+msgid "second-hand goods,product list,New Zealand,Auckland,Sara"
+msgstr ""
+
+#: src/templates/products.html:43
+msgid "Selected Second-hand Products"
+msgstr ""
+
+#: src/templates/products.html:61
+msgid "Search suggestions dropdown"
+msgstr ""
+
+#: src/templates/products.html:63
+msgid "Search suggestions will be displayed here dynamically"
+msgstr ""
+
+#: src/templates/products.html:71
+msgid "Search"
+msgstr ""
+
+#: src/templates/products.html:78 src/templates/products.html:331
+msgid "Filter"
+msgstr ""
+
+#: src/templates/products.html:83
+msgid "Found"
+msgstr ""
+
+#: src/templates/products.html:85
+msgid "products"
+msgstr ""
+
+#: src/templates/products.html:93
+msgid "Product Category"
+msgstr ""
+
+#: src/templates/products.html:95
+msgid "All Categories"
+msgstr ""
+
+#: src/templates/products.html:104
+msgid "Product Condition"
+msgstr ""
+
+#: src/templates/products.html:106
+msgid "All Conditions"
+msgstr ""
+
+#: src/templates/products.html:115
+msgid "Price Range (NZD)"
+msgstr ""
+
+#: src/templates/products.html:126
+msgid "Sort By"
+msgstr ""
+
+#: src/templates/products.html:128
+msgid "Newest"
+msgstr ""
+
+#: src/templates/products.html:129
+msgid "Oldest"
+msgstr ""
+
+#: src/templates/products.html:130
+msgid "Price: Low to High"
+msgstr ""
+
+#: src/templates/products.html:131
+msgid "Price: High to Low"
+msgstr ""
+
+#: src/templates/products.html:132
+msgid "Product Name"
+msgstr ""
+
+#: src/templates/products.html:154
+msgid "Current Filters:"
+msgstr ""
+
+#: src/templates/products.html:158
+#, python-format
+msgid "Search: \"%(search_term)s\""
+msgstr ""
+
+#: src/templates/products.html:165 src/templates/products.html:200
+#, python-format
+msgid "Category: %(category)s"
+msgstr ""
+
+#: src/templates/products.html:172 src/templates/products.html:201
+#, python-format
+msgid "Condition: %(condition)s"
+msgstr ""
+
+#: src/templates/products.html:179
+#, python-format
+msgid "Price: %(min)s - %(max)s NZD"
+msgstr ""
+
+#: src/templates/products.html:184
+msgid "Clear All Filters"
+msgstr ""
+
+#: src/templates/products.html:197
+#, python-format
+msgid "Search results for \"%(search_term)s\", "
+msgstr ""
+
+#: src/templates/products.html:199
+#, python-format
+msgid "Found %(count)s products"
+msgstr ""
+
+#: src/templates/products.html:214
+msgid "Product Image"
+msgstr ""
+
+#: src/templates/products.html:223
+msgid "Status Badge"
+msgstr ""
+
+#: src/templates/products.html:226 src/templates/product_detail.html:118
+msgid "Sold Out"
+msgstr ""
+
+#: src/templates/products.html:230
+msgid "Available"
+msgstr ""
+
+#: src/templates/products.html:237
+msgid "Category and Condition Tags"
+msgstr ""
+
+#: src/templates/products.html:266
+msgid "Action Buttons"
+msgstr ""
+
+#: src/templates/products.html:280
+msgid "Product Sold Out"
+msgstr ""
+
+#: src/templates/products.html:292
+msgid "No Products"
+msgstr ""
+
+#: src/templates/products.html:295
+#, python-format
+msgid ""
+"No products found matching \"%(search_term)s\", please try other search terms"
+msgstr ""
+
+#: src/templates/products.html:297
+msgid "No products in this category"
+msgstr ""
+
+#: src/templates/products.html:299
+msgid "No products available for sale"
+msgstr ""
+
+#: src/templates/products.html:323
+msgid "Hide Filters"
+msgstr ""
+
+#: src/templates/product_detail.html:64
+msgid "Back to Product List"
+msgstr ""
+
+#: src/templates/product_detail.html:114
+msgid "In Stock"
+msgstr ""
+
+#: src/templates/product_detail.html:123
+msgid "Face-to-face only"
+msgstr ""
+
+#: src/templates/product_detail.html:137
+msgid "Product Description"
+msgstr ""
+
+#: src/templates/product_detail.html:145
+msgid "Product Specifications"
+msgstr ""
+
+#: src/templates/product_detail.html:168
+msgid "Face-to-face transaction only"
+msgstr ""
+
+#: src/templates/product_detail.html:170
+msgid ""
+"This product only supports face-to-face transactions, shipping service not "
+"available"
+msgstr ""
+
+#: src/templates/product_detail.html:171 src/templates/product_detail.html:184
+msgid "Recommended for Auckland area, safe meeting location"
+msgstr ""
+
+#: src/templates/product_detail.html:192
+msgid "Shipping"
+msgstr ""
+
+#: src/templates/product_detail.html:209
+msgid "ANZ Bank Transfer (Recommended)"
+msgstr ""
+
+#: src/templates/product_detail.html:210
+msgid "Instant arrival, shipped on the same day after confirmation"
+msgstr ""
+
+#: src/templates/product_detail.html:220
+msgid "Requires 1-2 days advance transfer, shipped after arrival confirmation"
+msgstr ""
+
+#: src/templates/product_detail.html:229
+msgid "In-person Payment"
+msgstr ""
+
+#: src/templates/product_detail.html:230
+msgid "Cash / WeChat / Alipay scan"
+msgstr ""
+
+#: src/templates/product_detail.html:247
+msgid "Inquire About Product"
+msgstr ""
+
+#: src/templates/product_detail.html:257
+msgid "This product is sold out"
+msgstr ""
+
+#: src/templates/product_detail.html:258
+msgid "View Other Products"
+msgstr ""
+
+#: src/templates/product_detail.html:269
+msgid "Purchase Tips"
+msgstr ""
+
+#: src/templates/product_detail.html:271
+msgid "All products support replies to inquiries within 2 hours"
+msgstr ""
+
+#: src/templates/product_detail.html:272
+msgid "Face-to-face transaction location will be confirmed via SMS"
+msgstr ""
+
+#: src/templates/product_detail.html:274
+msgid "Second-hand items do not support returns after sale"
+msgstr ""

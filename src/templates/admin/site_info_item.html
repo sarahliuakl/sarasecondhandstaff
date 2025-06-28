@@ -1,0 +1,343 @@
+{% extends "admin/base.html" %}
+
+{% block title %}
+    {% if item %}编辑信息项 - {{ item.key }}{% else %}添加信息项 - {{ section.name }}{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <!-- 面包屑导航 -->
+    <nav class="flex mb-8" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-1 md:space-x-3">
+            <li class="inline-flex items-center">
+                <a href="{{ url_for('admin.site_info') }}" 
+                   class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
+                    <i class="fas fa-info-circle mr-2"></i>站点信息管理
+                </a>
+            </li>
+            <li>
+                <div class="flex items-center">
+                    <i class="fas fa-chevron-right text-gray-400 mx-1"></i>
+                    <a href="{{ url_for('admin.edit_section', section_id=(item.section_id if item else section.id)) }}" 
+                       class="ml-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ml-2">
+                        {{ item.section.name if item else section.name }}
+                    </a>
+                </div>
+            </li>
+            <li>
+                <div class="flex items-center">
+                    <i class="fas fa-chevron-right text-gray-400 mx-1"></i>
+                    <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">
+                        {% if item %}编辑 {{ item.key }}{% else %}添加信息项{% endif %}
+                    </span>
+                </div>
+            </li>
+        </ol>
+    </nav>
+
+    <!-- 页面标题 -->
+    <div class="mb-8">
+        <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+            {% if item %}
+                <i class="fas fa-edit mr-3 text-blue-600"></i>编辑信息项
+            {% else %}
+                <i class="fas fa-plus mr-3 text-green-600"></i>添加信息项
+            {% endif %}
+        </h2>
+        <p class="mt-1 text-sm text-gray-500">
+            {% if item %}
+                修改信息项 "{{ item.key }}" 的内容和设置
+            {% else %}
+                在 "{{ section.name }}" 部分添加新的信息项
+            {% endif %}
+        </p>
+    </div>
+
+    <!-- 主表单 -->
+    <form method="POST" class="space-y-8">
+        <div class="bg-white shadow px-4 py-5 sm:rounded-lg sm:p-6">
+            <div class="md:grid md:grid-cols-3 md:gap-6">
+                <div class="md:col-span-1">
+                    <h3 class="text-lg font-medium leading-6 text-gray-900">基本信息</h3>
+                    <p class="mt-1 text-sm text-gray-500">
+                        设置信息项的基本属性和类型
+                    </p>
+                </div>
+                <div class="mt-5 md:mt-0 md:col-span-2">
+                    <div class="grid grid-cols-6 gap-6">
+                        <!-- 标识符 -->
+                        <div class="col-span-6 sm:col-span-3">
+                            <label for="key" class="block text-sm font-medium text-gray-700">
+                                标识符 <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" 
+                                   name="key" 
+                                   id="key" 
+                                   value="{{ item.key if item else '' }}"
+                                   required
+                                   class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                            <p class="mt-1 text-xs text-gray-500">英文字母、数字和下划线，用于程序识别</p>
+                        </div>
+
+                        <!-- 类型 -->
+                        <div class="col-span-6 sm:col-span-3">
+                            <label for="item_type" class="block text-sm font-medium text-gray-700">
+                                类型 <span class="text-red-500">*</span>
+                            </label>
+                            <select name="item_type" 
+                                    id="item_type" 
+                                    required
+                                    onchange="toggleContentFields()"
+                                    class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                <option value="">请选择类型</option>
+                                {% for type_code, type_name in item_types %}
+                                <option value="{{ type_code }}" 
+                                        {% if item and item.item_type == type_code %}selected{% endif %}>
+                                    {{ type_name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- 排序 -->
+                        <div class="col-span-6 sm:col-span-3">
+                            <label for="sort_order" class="block text-sm font-medium text-gray-700">排序权重</label>
+                            <input type="number" 
+                                   name="sort_order" 
+                                   id="sort_order" 
+                                   value="{{ item.sort_order if item else 0 }}"
+                                   class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                            <p class="mt-1 text-xs text-gray-500">数字越小排序越靠前</p>
+                        </div>
+
+                        <!-- 状态 -->
+                        <div class="col-span-6 sm:col-span-3">
+                            <label class="block text-sm font-medium text-gray-700">状态</label>
+                            <div class="mt-1">
+                                <label class="inline-flex items-center">
+                                    <input type="checkbox" 
+                                           name="is_active" 
+                                           value="1"
+                                           {% if not item or item.is_active %}checked{% endif %}
+                                           class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                    <span class="ml-2 text-sm text-gray-700">启用此信息项</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 内容设置 -->
+        <div class="bg-white shadow px-4 py-5 sm:rounded-lg sm:p-6">
+            <div class="md:grid md:grid-cols-3 md:gap-6">
+                <div class="md:col-span-1">
+                    <h3 class="text-lg font-medium leading-6 text-gray-900">内容设置</h3>
+                    <p class="mt-1 text-sm text-gray-500">
+                        根据类型设置不同的内容字段，支持中英文双语
+                    </p>
+                </div>
+                <div class="mt-5 md:mt-0 md:col-span-2">
+                    <!-- 文本类型 -->
+                    <div id="text_fields" class="content-fields" style="display: none;">
+                        <div class="space-y-4">
+                            <div>
+                                <label for="text_value" class="block text-sm font-medium text-gray-700">文本内容（中文）</label>
+                                <textarea name="text_value" 
+                                         id="text_value" 
+                                         rows="3"
+                                         class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">{{ item.get_content().get('value', '') if item else '' }}</textarea>
+                            </div>
+                            <div>
+                                <label for="text_value_en" class="block text-sm font-medium text-gray-700">文本内容（英文）</label>
+                                <textarea name="text_value_en" 
+                                         id="text_value_en" 
+                                         rows="3"
+                                         placeholder="可选，如需英文版本请填写"
+                                         class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">{{ item.get_translated_content('en').get('value', '') if item else '' }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 联系信息类型 -->
+                    <div id="contact_fields" class="content-fields" style="display: none;">
+                        <div class="space-y-4">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="contact_label" class="block text-sm font-medium text-gray-700">标签（中文）</label>
+                                    <input type="text" 
+                                           name="contact_label" 
+                                           id="contact_label" 
+                                           value="{{ item.get_content().get('label', '') if item else '' }}"
+                                           class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                </div>
+                                <div>
+                                    <label for="contact_value" class="block text-sm font-medium text-gray-700">值</label>
+                                    <input type="text" 
+                                           name="contact_value" 
+                                           id="contact_value" 
+                                           value="{{ item.get_content().get('value', '') if item else '' }}"
+                                           class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="contact_label_en" class="block text-sm font-medium text-gray-700">标签（英文）</label>
+                                    <input type="text" 
+                                           name="contact_label_en" 
+                                           id="contact_label_en" 
+                                           value="{{ item.get_translated_content('en').get('label', '') if item else '' }}"
+                                           placeholder="可选"
+                                           class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                </div>
+                                <div>
+                                    <label for="contact_value_en" class="block text-sm font-medium text-gray-700">值（英文）</label>
+                                    <input type="text" 
+                                           name="contact_value_en" 
+                                           id="contact_value_en" 
+                                           value="{{ item.get_translated_content('en').get('value', '') if item else '' }}"
+                                           placeholder="可选"
+                                           class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 功能特性类型 -->
+                    <div id="feature_fields" class="content-fields" style="display: none;">
+                        <div class="space-y-4">
+                            <div>
+                                <label for="feature_icon" class="block text-sm font-medium text-gray-700">图标</label>
+                                <input type="text" 
+                                       name="feature_icon" 
+                                       id="feature_icon" 
+                                       value="{{ item.get_content().get('icon', '') if item else '' }}"
+                                       placeholder="如：🏦 或 fas fa-bank"
+                                       class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                            </div>
+                            <div>
+                                <label for="feature_title" class="block text-sm font-medium text-gray-700">标题（中文）</label>
+                                <input type="text" 
+                                       name="feature_title" 
+                                       id="feature_title" 
+                                       value="{{ item.get_content().get('title', '') if item else '' }}"
+                                       class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                            </div>
+                            <div>
+                                <label for="feature_description" class="block text-sm font-medium text-gray-700">描述（中文）</label>
+                                <textarea name="feature_description" 
+                                         id="feature_description" 
+                                         rows="2"
+                                         class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">{{ item.get_content().get('description', '') if item else '' }}</textarea>
+                            </div>
+                            <div>
+                                <label for="feature_title_en" class="block text-sm font-medium text-gray-700">标题（英文）</label>
+                                <input type="text" 
+                                       name="feature_title_en" 
+                                       id="feature_title_en" 
+                                       value="{{ item.get_translated_content('en').get('title', '') if item else '' }}"
+                                       placeholder="可选"
+                                       class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                            </div>
+                            <div>
+                                <label for="feature_description_en" class="block text-sm font-medium text-gray-700">描述（英文）</label>
+                                <textarea name="feature_description_en" 
+                                         id="feature_description_en" 
+                                         rows="2"
+                                         placeholder="可选"
+                                         class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">{{ item.get_translated_content('en').get('description', '') if item else '' }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FAQ类型 -->
+                    <div id="faq_fields" class="content-fields" style="display: none;">
+                        <div class="space-y-4">
+                            <div>
+                                <label for="faq_question" class="block text-sm font-medium text-gray-700">问题（中文）</label>
+                                <input type="text" 
+                                       name="faq_question" 
+                                       id="faq_question" 
+                                       value="{{ item.get_content().get('question', '') if item else '' }}"
+                                       class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                            </div>
+                            <div>
+                                <label for="faq_answer" class="block text-sm font-medium text-gray-700">答案（中文）</label>
+                                <textarea name="faq_answer" 
+                                         id="faq_answer" 
+                                         rows="3"
+                                         class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">{{ item.get_content().get('answer', '') if item else '' }}</textarea>
+                            </div>
+                            <div>
+                                <label for="faq_question_en" class="block text-sm font-medium text-gray-700">问题（英文）</label>
+                                <input type="text" 
+                                       name="faq_question_en" 
+                                       id="faq_question_en" 
+                                       value="{{ item.get_translated_content('en').get('question', '') if item else '' }}"
+                                       placeholder="可选"
+                                       class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                            </div>
+                            <div>
+                                <label for="faq_answer_en" class="block text-sm font-medium text-gray-700">答案（英文）</label>
+                                <textarea name="faq_answer_en" 
+                                         id="faq_answer_en" 
+                                         rows="3"
+                                         placeholder="可选"
+                                         class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">{{ item.get_translated_content('en').get('answer', '') if item else '' }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 类型未选择时的提示 -->
+                    <div id="no_type_selected" class="text-center py-8 text-gray-500">
+                        <i class="fas fa-arrow-up text-2xl mb-2"></i>
+                        <p>请先选择信息项类型</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 操作按钮 -->
+        <div class="flex justify-end space-x-3">
+            <a href="{{ url_for('admin.edit_section', section_id=(item.section_id if item else section.id)) }}" 
+               class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                取消
+            </a>
+            <button type="submit" 
+                    class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                {% if item %}保存修改{% else %}添加信息项{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+function toggleContentFields() {
+    const itemType = document.getElementById('item_type').value;
+    const contentFields = document.querySelectorAll('.content-fields');
+    const noTypeSelected = document.getElementById('no_type_selected');
+    
+    // 隐藏所有内容字段
+    contentFields.forEach(field => {
+        field.style.display = 'none';
+    });
+    
+    if (itemType) {
+        // 显示对应类型的字段
+        const targetField = document.getElementById(itemType + '_fields');
+        if (targetField) {
+            targetField.style.display = 'block';
+        }
+        noTypeSelected.style.display = 'none';
+    } else {
+        noTypeSelected.style.display = 'block';
+    }
+}
+
+// 页面加载时根据当前类型显示对应字段
+document.addEventListener('DOMContentLoaded', function() {
+    toggleContentFields();
+});
+</script>
+{% endblock %}

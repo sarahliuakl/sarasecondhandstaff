@@ -1,9 +1,9 @@
 {% extends "base.html" %}
-{% block title %}Sara的二手售卖网站 - 新西兰奥克兰优质二手商品{% endblock %}
+{% block title %}{{ _('Sarah\'s Garage Sale - Personal garage sale in Auckland, New Zealand') }}{% endblock %}
 
-{% block description %}Sara二手商品售卖网站，新西兰奥克兰地区优质二手商品专卖店。电子产品、服装、动漫周边等，品质保证，价格优惠，支持当面交易和邮寄服务。{% endblock %}
+{% block description %}{{ _('Sarah\'s personal garage sale in Auckland, New Zealand. Electronics, clothing, books and more from student decluttering. Honest descriptions, fair prices, supports meetups and shipping.') }}{% endblock %}
 
-{% block keywords %}Sara,二手售卖,新西兰,奥克兰,二手商品,电子产品,服装,动漫周边,当面交易,邮寄{% endblock %}
+{% block keywords %}{{ _('Sarah,garage sale,New Zealand,Auckland,student,decluttering,electronics,clothing,books,meetup,shipping') }}{% endblock %}
 
 {% block structured_data %}
 {{ super() }}
@@ -11,11 +11,11 @@
 {
   "@context": "https://schema.org",
   "@type": "Store",
-  "name": "Sara的二手售卖",
-  "description": "新西兰奥克兰地区优质二手商品专卖店",
+  "name": "{{ _('Sarah\'s Garage Sale') }}",
+  "description": "{{ _('Personal garage sale in Auckland, New Zealand') }}",
   "url": "{{ request.url }}",
   "telephone": "0225255862",
-  "email": "haixialiu2017@gmail.com",
+  "email": "sarahliu.akl@gmail.com",
   "address": {
     "@type": "PostalAddress",
     "addressRegion": "Auckland",
@@ -38,18 +38,17 @@
 <section class="hero-section text-center">
   <div class="max-w-4xl mx-auto">
     <h2 class="section-title mb-6">
-      欢迎来到Sara的精品二手世界
+      {{ _('Welcome to Sarah\'s Garage Sale') }}
     </h2>
     <p class="section-subtitle max-w-2xl mx-auto">
-      来自奥克兰北岸的精选二手商品，每一件都经过精心挑选与保养。
-      我们致力于为您提供安全、便捷、温馨的购物体验。
+      {{ _('Student decluttering from Auckland\'s North Shore! Everything from tech gadgets to clothes and books. Honest descriptions, fair prices, and friendly service. Making room for 2025 upgrades!') }}
     </p>
     <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-      <a href="{{ url_for('main.products') }}" class="btn-primary text-lg px-8 py-4">
-        🛍️ 立即选购
+      <a href="{{ url_for('main.products', lang=current_lang()) }}" class="btn-primary text-lg px-8 py-4">
+        🛍️ {{ _('Shop Now') }}
       </a>
-      <a href="{{ url_for('main.info') }}" class="btn-secondary text-lg px-8 py-4">
-        ℹ️ 了解更多
+      <a href="{{ url_for('main.info', lang=current_lang()) }}" class="btn-secondary text-lg px-8 py-4">
+        ℹ️ {{ _('Learn More') }}
       </a>
     </div>
   </div>
@@ -62,24 +61,24 @@
       <div class="w-16 h-16 bg-gradient-to-br from-pink-400 to-red-400 rounded-full flex items-center justify-center mx-auto mb-4">
         <span class="text-white text-2xl">🔍</span>
       </div>
-      <h3 class="text-xl font-semibold text-gray-800 mb-3">精心挑选</h3>
-      <p class="text-gray-600 leading-relaxed">每件商品都经过仔细检查，确保品质优良，物有所值</p>
+      <h3 class="text-xl font-semibold text-gray-800 mb-3">{{ _('Carefully Selected') }}</h3>
+      <p class="text-gray-600 leading-relaxed">{{ _('Every item is carefully inspected to ensure excellent quality and value for money') }}</p>
     </div>
     
     <div class="card text-center p-8">
       <div class="w-16 h-16 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-full flex items-center justify-center mx-auto mb-4">
         <span class="text-white text-2xl">🚚</span>
       </div>
-      <h3 class="text-xl font-semibold text-gray-800 mb-3">灵活配送</h3>
-      <p class="text-gray-600 leading-relaxed">支持面交与邮寄，满足您的不同需求，购物更便利</p>
+      <h3 class="text-xl font-semibold text-gray-800 mb-3">{{ _('Flexible Delivery') }}</h3>
+      <p class="text-gray-600 leading-relaxed">{{ _('Supports face-to-face pickup and shipping to meet your different needs, making shopping more convenient') }}</p>
     </div>
     
     <div class="card text-center p-8">
       <div class="w-16 h-16 bg-gradient-to-br from-green-400 to-emerald-400 rounded-full flex items-center justify-center mx-auto mb-4">
         <span class="text-white text-2xl">💖</span>
       </div>
-      <h3 class="text-xl font-semibold text-gray-800 mb-3">贴心服务</h3>
-      <p class="text-gray-600 leading-relaxed">专业的售前售后服务，让您的购物体验温馨无忧</p>
+      <h3 class="text-xl font-semibold text-gray-800 mb-3">{{ _('Thoughtful Service') }}</h3>
+      <p class="text-gray-600 leading-relaxed">{{ _('Professional pre-sales and after-sales service to make your shopping experience warm and worry-free') }}</p>
     </div>
   </div>
 </section>
@@ -87,16 +86,16 @@
 <!-- Products Section -->
 <section>
   <div class="text-center mb-12">
-    <h3 class="section-title text-3xl mb-4">✨ 最新上架精品</h3>
+    <h3 class="section-title text-3xl mb-4">✨ {{ _('Latest Premium Arrivals') }}</h3>
     <p class="section-subtitle max-w-2xl mx-auto">
-      发现更多优质好物，每一件都有独特的故事等待与您相遇
+      {{ _('Discover more quality treasures, each with a unique story waiting to meet you') }}
     </p>
   </div>
   
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
     {% for product in products %}
     <div class="product-card overflow-hidden">
-      <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="block">
+      <a href="{{ url_for('main.product_detail', product_id=product.id, lang=current_lang()) }}" class="block">
         <div class="product-image relative overflow-hidden h-64 bg-gradient-to-br from-gray-100 to-gray-200">
           <img src="{{ product.get_images()[0] if product.get_images() else 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=600&q=80' }}" 
                alt="{{ product.name }}" 
@@ -106,7 +105,7 @@
       </a>
       
       <div class="p-6">
-        <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="block group">
+        <a href="{{ url_for('main.product_detail', product_id=product.id, lang=current_lang()) }}" class="block group">
           <h4 class="font-semibold text-xl mb-2 text-gray-800 group-hover:text-pink-600 transition-colors">
             {{ product.name }}
           </h4>
@@ -121,18 +120,18 @@
             ${{ product.price }}
           </span>
           <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-            新品
+            {{ _('New') }}
           </span>
         </div>
         
         <div class="flex gap-3">
-          <a href="{{ url_for('main.product_detail', product_id=product.id) }}" 
+          <a href="{{ url_for('main.product_detail', product_id=product.id, lang=current_lang()) }}" 
              class="flex-1 text-center py-3 px-4 border-2 border-pink-200 text-pink-600 font-medium rounded-xl hover:bg-pink-50 transition-all duration-300">
-            查看详情
+            {{ _('View Details') }}
           </a>
           <button onclick="addToCart({{ product.id }})" 
                   class="flex-1 btn-primary text-center py-3 px-4 font-medium rounded-xl">
-            加入购物车
+            {{ _('Add to Cart') }}
           </button>
         </div>
       </div>
@@ -141,29 +140,29 @@
   </div>
   
   <div class="text-center mt-12">
-    <a href="{{ url_for('main.products') }}" class="btn-secondary text-lg px-8 py-4">
-      查看全部商品 →
+    <a href="{{ url_for('main.products', lang=current_lang()) }}" class="btn-secondary text-lg px-8 py-4">
+      {{ _('View All Products') }} →
     </a>
   </div>
 </section>
 
 <!-- JavaScript -->
 <script>
-// 添加到购物车功能
+// Add to cart functionality
 function addToCart(productId) {
-  // 获取现有购物车数据
+  // Get existing cart data
   let cart = JSON.parse(localStorage.getItem('cart') || '[]');
   
-  // 检查商品是否已在购物车中
+  // Check if product is already in cart
   let existingItem = cart.find(item => item.id === productId);
   
   if (existingItem) {
     existingItem.quantity += 1;
     localStorage.setItem('cart', JSON.stringify(cart));
-    showMessage('商品数量已更新！', 'success');
+    showMessage('{{ _('Product quantity updated!') }}', 'success');
     updateCartCount();
   } else {
-    // 调用API获取商品信息并添加到购物车
+    // Call API to get product info and add to cart
     fetch('/api/cart', {
       method: 'POST',
       headers: {
@@ -187,20 +186,20 @@ function addToCart(productId) {
         });
         
         localStorage.setItem('cart', JSON.stringify(cart));
-        showMessage('商品已加入购物车！', 'success');
+        showMessage('{{ _('Product added to cart!') }}', 'success');
         updateCartCount();
       } else {
-        showMessage(data.message || '添加失败', 'error');
+        showMessage(data.message || '{{ _('Failed to add') }}', 'error');
       }
     })
     .catch(error => {
       console.error('Error:', error);
-      showMessage('网络错误，请重试', 'error');
+      showMessage('{{ _('Network error, please try again') }}', 'error');
     });
   }
 }
 
-// 显示消息
+// Show message
 function showMessage(message, type = 'info') {
   const messageDiv = document.createElement('div');
   messageDiv.className = `fixed top-8 right-8 z-50 p-4 rounded-2xl shadow-2xl border transition-all duration-300 backdrop-blur-md ${
@@ -213,12 +212,12 @@ function showMessage(message, type = 'info') {
   
   document.body.appendChild(messageDiv);
   
-  // 添加入场动画
+  // Add entrance animation
   setTimeout(() => {
     messageDiv.style.transform = 'translateX(0)';
   }, 100);
   
-  // 添加退场动画和移除
+  // Add exit animation and remove
   setTimeout(() => {
     messageDiv.style.transform = 'translateX(100%)';
     setTimeout(() => {
@@ -229,7 +228,7 @@ function showMessage(message, type = 'info') {
   }, 3000);
 }
 
-// 更新购物车计数
+// Update cart count
 function updateCartCount() {
   const cart = JSON.parse(localStorage.getItem('cart') || '[]');
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -241,7 +240,7 @@ function updateCartCount() {
   });
 }
 
-// 页面加载时更新购物车计数
+// Update cart count when page loads
 document.addEventListener('DOMContentLoaded', function() {
   updateCartCount();
 });

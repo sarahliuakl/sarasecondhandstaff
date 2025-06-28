@@ -1,31 +1,31 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="{{ current_lang() }}">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{% block title %}Sara的二手售卖网站{% endblock %}</title>
+  <title>{% block title %}{{ _('Sarah\'s Garage Sale') }}{% endblock %}</title>
   
   <!-- SEO Meta标签 -->
-  <meta name="description" content="{% block description %}Sara二手商品售卖网站 - 新西兰奥克兰地区优质二手商品，电子产品、服装、动漫周边等，品质保证，价格优惠{% endblock %}" />
-  <meta name="keywords" content="{% block keywords %}二手商品,新西兰,奥克兰,电子产品,服装,动漫周边,二手交易,Sara{% endblock %}" />
+  <meta name="description" content="{% block description %}{{ _('Sarah\'s Garage Sale - Personal garage sale in Auckland, New Zealand. Electronics, clothing, books and more. Student-friendly prices, honest descriptions') }}{% endblock %}" />
+  <meta name="keywords" content="{% block keywords %}second-hand goods,New Zealand,Auckland,electronics,clothing,anime merchandise,second-hand trading,Sara{% endblock %}" />
   <meta name="author" content="Sara" />
   <meta name="robots" content="index, follow" />
-  <meta name="language" content="zh-CN" />
+  <meta name="language" content="{{ current_lang() }}-{{ get_locale().territory if get_locale() and get_locale().territory else 'CN' }}" />
   
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="{% block og_url %}{{ request.url }}{% endblock %}" />
-  <meta property="og:title" content="{% block og_title %}Sara的二手售卖网站{% endblock %}" />
-  <meta property="og:description" content="{% block og_description %}Sara二手商品售卖网站 - 新西兰奥克兰地区优质二手商品，电子产品、服装、动漫周边等，品质保证，价格优惠{% endblock %}" />
+  <meta property="og:title" content="{% block og_title %}{{ _('Sarah\'s Garage Sale') }}{% endblock %}" />
+  <meta property="og:description" content="{% block og_description %}{{ _('Sarah\'s Garage Sale - Personal garage sale in Auckland, New Zealand. Electronics, clothing, books and more. Student-friendly prices, honest descriptions') }}{% endblock %}" />
   <meta property="og:image" content="{% block og_image %}{{ url_for('static', filename='images/logo.png', _external=True) if url_for else '/static/images/logo.png' }}{% endblock %}" />
-  <meta property="og:locale" content="zh_CN" />
-  <meta property="og:site_name" content="Sara的二手售卖" />
+  <meta property="og:locale" content="{{ (get_locale().language + '_' + get_locale().territory) if get_locale() and get_locale().territory else (get_locale().language + '_CN') if get_locale() else 'zh_CN' }}" />
+  <meta property="og:site_name" content="{{ _('Sarah\'s Garage Sale') }}" />
   
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:url" content="{% block twitter_url %}{{ request.url }}{% endblock %}" />
-  <meta name="twitter:title" content="{% block twitter_title %}Sara的二手售卖网站{% endblock %}" />
-  <meta name="twitter:description" content="{% block twitter_description %}Sara二手商品售卖网站 - 新西兰奥克兰地区优质二手商品，电子产品、服装、动漫周边等，品质保证，价格优惠{% endblock %}" />
+  <meta name="twitter:title" content="{% block twitter_title %}{{ _('Sarah\'s Garage Sale') }}{% endblock %}" />
+  <meta name="twitter:description" content="{% block twitter_description %}{{ _('Sarah\'s Garage Sale - Personal garage sale in Auckland, New Zealand. Electronics, clothing, books and more. Student-friendly prices, honest descriptions') }}{% endblock %}" />
   <meta name="twitter:image" content="{% block twitter_image %}{{ url_for('static', filename='images/logo.png', _external=True) if url_for else '/static/images/logo.png' }}{% endblock %}" />
   
   <!-- 额外的SEO标签 -->
@@ -202,9 +202,9 @@
   {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "name": "Sara的二手售卖",
+    "name": "{{ _('Sarah\'s Garage Sale') }}",
     "url": "{{ request.url_root if request else 'https://example.com' }}",
-    "description": "Sara二手商品售卖网站 - 新西兰奥克兰地区优质二手商品，电子产品、服装、动漫周边等，品质保证，价格优惠",
+    "description": "{{ _('Sarah\'s Garage Sale - Personal garage sale in Auckland, New Zealand. Electronics, clothing, books and more. Student-friendly prices, honest descriptions') }}",
     "potentialAction": {
       "@type": "SearchAction",
       "target": "{{ (request.url_root + 'products?search={search_term_string}') if request else 'https://example.com/products?search={search_term_string}' }}",
@@ -222,21 +222,30 @@
         <div class="w-10 h-10 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center">
           <span class="text-white font-bold text-lg">S</span>
         </div>
-        <h1 class="hero-title text-3xl font-bold text-gray-800">Sara的二手售卖</h1>
+        <h1 class="hero-title text-3xl font-bold text-gray-800">{{ _('Sarah\'s Garage Sale') }}</h1>
       </div>
       <nav class="flex items-center space-x-2">
-        <a href="{{ url_for('main.index') }}" class="nav-link">首页</a>
-        <a href="{{ url_for('main.products') }}" class="nav-link">宝贝列表</a>
-        <a href="{{ url_for('main.info') }}" class="nav-link">售卖说明</a>
+        <a href="{{ url_for('main.index', lang=current_lang()) }}" class="nav-link">{{ _('Home') }}</a>
+        <a href="{{ url_for('main.products', lang=current_lang()) }}" class="nav-link">{{ _('Products') }}</a>
+        <a href="{{ url_for('main.info', lang=current_lang()) }}" class="nav-link">{{ _('Sale Info') }}</a>
         
         <!-- 购物车 -->
-        <a href="{{ url_for('main.cart') }}" class="nav-link relative">
-          购物车
+        <a href="{{ url_for('main.cart', lang=current_lang()) }}" class="nav-link relative">
+          {{ _('Cart') }}
           <span class="cart-count absolute -top-1 -right-1 bg-gradient-to-r from-pink-500 to-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center" style="display: none;">0</span>
         </a>
         
         <!-- 订单查询 -->
-        <a href="{{ url_for('main.order_query') }}" class="nav-link">订单查询</a>
+        <a href="{{ url_for('main.order_query', lang=current_lang()) }}" class="nav-link">{{ _('Order Query') }}</a>
+        
+        <!-- 语言切换器 -->
+        <div class="language-switcher flex items-center space-x-2 ml-4 border-l border-white/20 pl-4">
+          <a href="{{ url_for('main.set_language_route', language='zh') }}" 
+             class="nav-link text-sm {{ 'font-bold text-pink-600' if get_locale().language == 'zh' else '' }}">中文</a>
+          <span class="text-gray-400">|</span>
+          <a href="{{ url_for('main.set_language_route', language='en') }}" 
+             class="nav-link text-sm {{ 'font-bold text-pink-600' if get_locale().language == 'en' else '' }}">EN</a>
+        </div>
       </nav>
     </div>
   </header>
@@ -254,16 +263,16 @@
             <div class="w-8 h-8 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center">
               <span class="text-white font-bold">S</span>
             </div>
-            <h3 class="hero-title text-xl font-semibold text-gray-800">Sara的二手售卖</h3>
+            <h3 class="hero-title text-xl font-semibold text-gray-800">{{ _('Sarah\'s Garage Sale') }}</h3>
           </div>
           <p class="text-gray-600 text-sm leading-relaxed">
-            新西兰奥克兰地区优质二手商品专卖店<br>
-            品质保证，价格优惠，服务贴心
+            {{ _('Personal garage sale in Auckland, New Zealand') }}<br>
+            {{ _('Student decluttering - honest descriptions, fair prices') }}
           </p>
         </div>
         
         <div class="text-center">
-          <h4 class="font-semibold text-gray-800 mb-4">联系方式</h4>
+          <h4 class="font-semibold text-gray-800 mb-4">{{ _('Contact') }}</h4>
           <div class="space-y-2 text-sm text-gray-600">
             <p class="flex items-center justify-center space-x-2">
               <span>📞</span>
@@ -271,21 +280,21 @@
             </p>
             <p class="flex items-center justify-center space-x-2">
               <span>✉️</span>
-              <span>haixialiu2017@gmail.com</span>
+              <span>sarahliu.akl@gmail.com</span>
             </p>
             <p class="flex items-center justify-center space-x-2">
               <span>📍</span>
-              <span>奥克兰北岸</span>
+              <span>{{ _('North Shore, Auckland') }}</span>
             </p>
           </div>
         </div>
         
         <div class="text-center md:text-right">
-          <h4 class="font-semibold text-gray-800 mb-4">实时信息</h4>
+          <h4 class="font-semibold text-gray-800 mb-4">{{ _('Live Info') }}</h4>
           <div class="space-y-2 text-sm text-gray-600">
             <div class="flex items-center justify-center md:justify-end space-x-2">
               <span>🌤️</span>
-              <span id="weather">正在获取天气...</span>
+              <span id="weather">{{ _('Loading weather...') }}</span>
             </div>
             <div class="flex items-center justify-center md:justify-end space-x-2">
               <span>⏰</span>
@@ -296,13 +305,13 @@
       </div>
       
       <div class="border-t border-white/20 pt-6 text-center text-sm text-gray-500">
-        © 2025 Sara的二手售卖 - 所有权利保留
+        © 2025 {{ _('Sarah\'s Garage Sale') }} - {{ _('All rights reserved') }}
       </div>
     </div>
   </footer>
 <script>
 function updateTime() {
-  // 新西兰奥克兰时区为 UTC+12
+  // Auckland, New Zealand timezone is UTC+12
   let now = new Date();
   let utc = now.getTime() + (now.getTimezoneOffset() * 60000);
   let auckland = new Date(utc + (12 * 3600000));
@@ -312,7 +321,7 @@ function updateTime() {
   let h = String(auckland.getHours()).padStart(2,'0');
   let min = String(auckland.getMinutes()).padStart(2,'0');
   let s = String(auckland.getSeconds()).padStart(2,'0');
-  document.getElementById('localtime').textContent = `奥克兰时间：${y}-${m}-${d} ${h}:${min}:${s}`;
+  document.getElementById('localtime').textContent = `{{ _('Auckland Time') }}: ${y}-${m}-${d} ${h}:${min}:${s}`;
 }
 setInterval(updateTime, 1000);
 updateTime();
@@ -323,11 +332,11 @@ updateTime();
     .then(data => {
       const temp = data.current_weather.temperature;
       const wind = data.current_weather.windspeed;
-      document.getElementById("weather").innerText = `奥克兰天气：${temp}℃，风速 ${wind}km/h`;
+      document.getElementById("weather").innerText = `{{ _('Auckland Weather') }}: ${temp}℃, {{ _('Wind') }} ${wind}km/h`;
     })
     .catch(error => {
-      document.getElementById("weather").innerText = "天气信息获取失败";
-      console.error("天气接口错误：", error);
+      document.getElementById("weather").innerText = "{{ _('Failed to load weather') }}";
+      console.error("Weather API error:", error);
     });
 </script>
 

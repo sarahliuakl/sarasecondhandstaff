@@ -4,6 +4,7 @@ from flask_login import LoginManager
 from .models import db, Admin
 from .email_queue import email_queue
 from .config import config
+from .i18n import init_babel
 import os
 import logging
 from logging.handlers import RotatingFileHandler
@@ -30,6 +31,7 @@ def create_app(config_name=None):
     csrf.init_app(app)
     login_manager.init_app(app)
     db.init_app(app)
+    init_babel(app)
     email_queue.app = app
 
     # Register blueprints
@@ -41,6 +43,32 @@ def create_app(config_name=None):
 
     from .api.routes import api as api_blueprint
     app.register_blueprint(api_blueprint, url_prefix='/api')
+    
+    # Template context processors
+    @app.context_processor
+    def inject_locale():
+        from flask_babel import get_locale, get_timezone
+        from .i18n import localized_url, get_supported_languages
+        
+        def current_lang():
+            """Get current language for URL building"""
+            return get_locale().language if get_locale() else 'en'
+        
+        return dict(
+            get_locale=get_locale, 
+            get_timezone=get_timezone,
+            localized_url=localized_url,
+            supported_languages=get_supported_languages(),
+            current_lang=current_lang
+        )
+    
+    # Language redirect handler
+    @app.route('/')
+    def root():
+        from flask import redirect, request
+        from .i18n import get_user_locale
+        lang = get_user_locale()
+        return redirect(f'/{lang}/')
     
     # Error handlers
     @app.errorhandler(404)

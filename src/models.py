@@ -716,7 +716,7 @@ def get_orders_by_contact(contact_info):
     """根据联系方式获取订单列表"""
     return Order.query.filter(
         (Order.customer_email == contact_info) | 
-        (Order.customer_contact == contact_info)
+        (Order.customer_phone == contact_info)
     ).order_by(Order.created_at.desc()).all()
 
 
@@ -1175,3 +1175,466 @@ def get_recent_api_logs(limit=10):
     except Exception as e:
         print(f"获取API日志失败: {str(e)}")
         return []
+
+
+class SiteInfoSection(db.Model):
+    """站点信息部分模型 - 存储信息页面的主要部分"""
+    __tablename__ = 'site_info_sections'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    key = db.Column(db.String(50), unique=True, nullable=False)  # 唯一标识符，如'about', 'policies'
+    name = db.Column(db.String(100), nullable=False)  # 部分名称
+    description = db.Column(db.Text)  # 部分描述
+    icon = db.Column(db.String(50))  # 图标类名
+    sort_order = db.Column(db.Integer, default=0)  # 排序权重
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # 关联信息项
+    items = db.relationship('SiteInfoItem', backref='section', lazy='dynamic', cascade='all, delete-orphan')
+    
+    def get_active_items(self):
+        """获取启用的信息项"""
+        return self.items.filter(SiteInfoItem.is_active == True).order_by(SiteInfoItem.sort_order).all()
+    
+    def to_dict(self, include_items=False, lang='zh'):
+        """转换为字典格式"""
+        result = {
+            'id': self.id,
+            'key': self.key,
+            'name': self.name,
+            'description': self.description,
+            'icon': self.icon,
+            'sort_order': self.sort_order,
+            'is_active': self.is_active,
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat()
+        }
+        
+        if include_items:
+            result['items'] = [item.to_dict(lang=lang) for item in self.get_active_items()]
+        
+        return result
+    
+    def __repr__(self):
+        return f'<SiteInfoSection {self.key}: {self.name}>'
+
+
+class SiteInfoItem(db.Model):
+    """站点信息项模型 - 存储具体的信息项"""
+    __tablename__ = 'site_info_items'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    section_id = db.Column(db.Integer, db.ForeignKey('site_info_sections.id'), nullable=False)
+    key = db.Column(db.String(50), nullable=False)  # 项目标识符
+    item_type = db.Column(db.String(20), nullable=False)  # 项目类型
+    content = db.Column(db.Text)  # 内容（JSON格式存储复杂数据）
+    sort_order = db.Column(db.Integer, default=0)  # 排序权重
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # 项目类型常量
+    TYPE_TEXT = 'text'  # 普通文本
+    TYPE_HTML = 'html'  # HTML内容
+    TYPE_LIST = 'list'  # 列表项
+    TYPE_FAQ = 'faq'  # 问答
+    TYPE_CONTACT = 'contact'  # 联系信息
+    TYPE_FEATURE = 'feature'  # 特性/功能点
+    
+    ITEM_TYPES = [
+        (TYPE_TEXT, '文本'),
+        (TYPE_HTML, 'HTML内容'),
+        (TYPE_LIST, '列表项'),
+        (TYPE_FAQ, '问答'),
+        (TYPE_CONTACT, '联系信息'),
+        (TYPE_FEATURE, '特性功能')
+    ]
+    
+    # 关联翻译
+    translations = db.relationship('SiteInfoTranslation', backref='item', lazy='dynamic', cascade='all, delete-orphan')
+    
+    def get_content(self):
+        """获取内容数据"""
+        if self.content:
+            try:
+                return json.loads(self.content)
+            except json.JSONDecodeError:
+                return {}
+        return {}
+    
+    def set_content(self, content_data):
+        """设置内容数据"""
+        if isinstance(content_data, (dict, list)):
+            self.content = json.dumps(content_data, ensure_ascii=False)
+        else:
+            self.content = json.dumps({})
+    
+    def get_translation(self, lang='zh'):
+        """获取指定语言的翻译"""
+        translation = self.translations.filter(SiteInfoTranslation.language == lang).first()
+        return translation
+    
+    def get_translated_content(self, lang='zh'):
+        """获取翻译内容"""
+        translation = self.get_translation(lang)
+        if translation:
+            return translation.get_content()
+        return {}
+    
+    def get_type_display(self):
+        """获取类型显示名称"""
+        type_dict = dict(self.ITEM_TYPES)
+        return type_dict.get(self.item_type, self.item_type)
+    
+    def to_dict(self, lang='zh'):
+        """转换为字典格式"""
+        # 获取翻译内容，如果没有则使用默认内容
+        translated_content = self.get_translated_content(lang)
+        default_content = self.get_content()
+        
+        # 合并翻译内容和默认内容
+        final_content = {**default_content, **translated_content}
+        
+        return {
+            'id': self.id,
+            'section_id': self.section_id,
+            'key': self.key,
+            'item_type': self.item_type,
+            'type_display': self.get_type_display(),
+            'content': final_content,
+            'sort_order': self.sort_order,
+            'is_active': self.is_active,
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat()
+        }
+    
+    def __repr__(self):
+        return f'<SiteInfoItem {self.key}: {self.item_type}>'
+
+
+class SiteInfoTranslation(db.Model):
+    """站点信息翻译模型 - 存储多语言翻译"""
+    __tablename__ = 'site_info_translations'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    item_id = db.Column(db.Integer, db.ForeignKey('site_info_items.id'), nullable=False)
+    language = db.Column(db.String(5), nullable=False)  # 语言代码，如'zh', 'en'
+    content = db.Column(db.Text, nullable=False)  # 翻译内容（JSON格式）
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # 添加组合唯一索引
+    __table_args__ = (
+        db.UniqueConstraint('item_id', 'language', name='unique_item_language'),
+    )
+    
+    def get_content(self):
+        """获取翻译内容"""
+        if self.content:
+            try:
+                return json.loads(self.content)
+            except json.JSONDecodeError:
+                return {}
+        return {}
+    
+    def set_content(self, content_data):
+        """设置翻译内容"""
+        if isinstance(content_data, (dict, list)):
+            self.content = json.dumps(content_data, ensure_ascii=False)
+        else:
+            self.content = json.dumps({})
+    
+    def to_dict(self):
+        """转换为字典格式"""
+        return {
+            'id': self.id,
+            'item_id': self.item_id,
+            'language': self.language,
+            'content': self.get_content(),
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat()
+        }
+    
+    def __repr__(self):
+        return f'<SiteInfoTranslation {self.item_id}-{self.language}>'
+
+
+# 站点信息相关辅助函数
+def get_site_info_sections(active_only=True):
+    """获取所有信息部分"""
+    query = SiteInfoSection.query
+    if active_only:
+        query = query.filter(SiteInfoSection.is_active == True)
+    return query.order_by(SiteInfoSection.sort_order).all()
+
+
+def get_site_info_section_by_key(key):
+    """根据key获取信息部分"""
+    return SiteInfoSection.query.filter(SiteInfoSection.key == key).first()
+
+
+def get_site_info_items_by_section(section_key, active_only=True, lang='zh'):
+    """获取指定部分的信息项"""
+    section = get_site_info_section_by_key(section_key)
+    if not section:
+        return []
+    
+    query = section.items
+    if active_only:
+        query = query.filter(SiteInfoItem.is_active == True)
+    
+    items = query.order_by(SiteInfoItem.sort_order).all()
+    return [item.to_dict(lang=lang) for item in items]
+
+
+def get_all_site_info_data(lang='zh'):
+    """获取所有站点信息数据"""
+    sections = get_site_info_sections(active_only=True)
+    result = {}
+    
+    for section in sections:
+        result[section.key] = {
+            'section': section.to_dict(),
+            'items': [item.to_dict(lang=lang) for item in section.get_active_items()]
+        }
+    
+    return result
+
+
+def init_default_site_info():
+    """初始化默认站点信息数据"""
+    try:
+        # 创建主要部分
+        sections_data = [
+            {
+                'key': 'owner_info',
+                'name': '店主信息',
+                'description': '店主的基本信息和介绍',
+                'icon': '👋',
+                'sort_order': 1
+            },
+            {
+                'key': 'security_features',
+                'name': '交易保障',
+                'description': '交易安全和信任保障',
+                'icon': '🛡️',
+                'sort_order': 2
+            },
+            {
+                'key': 'policies',
+                'name': '售后政策',
+                'description': '售后服务政策',
+                'icon': '📋',
+                'sort_order': 3
+            },
+            {
+                'key': 'payment_methods',
+                'name': '支付方式',
+                'description': '支持的支付方式',
+                'icon': '💳',
+                'sort_order': 4
+            },
+            {
+                'key': 'faq',
+                'name': '常见问题',
+                'description': '客户常见问题解答',
+                'icon': '❓',
+                'sort_order': 5
+            },
+            {
+                'key': 'contact_info',
+                'name': '联系信息',
+                'description': '联系方式和服务时间',
+                'icon': '📞',
+                'sort_order': 6
+            }
+        ]
+        
+        # 创建部分
+        for section_data in sections_data:
+            existing = SiteInfoSection.query.filter(SiteInfoSection.key == section_data['key']).first()
+            if not existing:
+                section = SiteInfoSection(**section_data)
+                db.session.add(section)
+                db.session.flush()  # 确保获得ID
+                
+                # 根据部分类型创建相应的信息项
+                if section_data['key'] == 'owner_info':
+                    # 店主信息
+                    items = [
+                        {
+                            'key': 'name',
+                            'item_type': 'contact',
+                            'content': json.dumps({'value': 'Sara'}, ensure_ascii=False),
+                            'sort_order': 1
+                        },
+                        {
+                            'key': 'phone',
+                            'item_type': 'contact',
+                            'content': json.dumps({'value': '0225255862'}, ensure_ascii=False),
+                            'sort_order': 2
+                        },
+                        {
+                            'key': 'email',
+                            'item_type': 'contact',
+                            'content': json.dumps({'value': 'sarahliu.akl@gmail.com'}, ensure_ascii=False),
+                            'sort_order': 3
+                        },
+                        {
+                            'key': 'location',
+                            'item_type': 'contact',
+                            'content': json.dumps({'value': 'Auckland North Shore'}, ensure_ascii=False),
+                            'sort_order': 4
+                        },
+                        {
+                            'key': 'introduction',
+                            'item_type': 'text',
+                            'content': json.dumps({'value': '你好，欢迎来到Sara的小店！我是Sara，目前居住在奥克兰北岸，热爱生活，喜欢分享。希望通过这个温馨的小店，让我家中品质不错的二手物品找到新主人，也让更多朋友受益。'}, ensure_ascii=False),
+                            'sort_order': 5
+                        }
+                    ]
+                elif section_data['key'] == 'security_features':
+                    # 交易保障
+                    items = [
+                        {
+                            'key': 'authentic_photos',
+                            'item_type': 'feature',
+                            'content': json.dumps({'title': '真实拍摄', 'description': '所有商品均为个人使用，实物拍摄，描述真实。'}, ensure_ascii=False),
+                            'sort_order': 1
+                        },
+                        {
+                            'key': 'delivery_options',
+                            'item_type': 'feature',
+                            'content': json.dumps({'title': '交付方式', 'description': '支持见面交易和邮寄，奥克兰地区优先见面交易。'}, ensure_ascii=False),
+                            'sort_order': 2
+                        },
+                        {
+                            'key': 'payment_flexibility',
+                            'item_type': 'feature',
+                            'content': json.dumps({'title': '支付方式', 'description': '多种支付方式，安全可靠。'}, ensure_ascii=False),
+                            'sort_order': 3
+                        },
+                        {
+                            'key': 'quick_response',
+                            'item_type': 'feature',
+                            'content': json.dumps({'title': '响应时间', 'description': '承诺2小时内回复所有咨询，耐心解答售后问题。'}, ensure_ascii=False),
+                            'sort_order': 4
+                        }
+                    ]
+                elif section_data['key'] == 'policies':
+                    # 售后政策
+                    items = [
+                        {
+                            'key': 'return_policy',
+                            'item_type': 'text',
+                            'content': json.dumps({'value': '二手商品见面确认后不支持退换货。'}, ensure_ascii=False),
+                            'sort_order': 1
+                        },
+                        {
+                            'key': 'after_sales',
+                            'item_type': 'text',
+                            'content': json.dumps({'value': '如有任何问题或售后问题，可以联系我们，Sara会耐心解答。'}, ensure_ascii=False),
+                            'sort_order': 2
+                        },
+                        {
+                            'key': 'product_guarantee',
+                            'item_type': 'text',
+                            'content': json.dumps({'value': '所有商品均实物拍摄，保证描述真实。'}, ensure_ascii=False),
+                            'sort_order': 3
+                        }
+                    ]
+                elif section_data['key'] == 'payment_methods':
+                    # 支付方式
+                    items = [
+                        {
+                            'key': 'anz_transfer',
+                            'item_type': 'feature',
+                            'content': json.dumps({'title': 'ANZ银行转账', 'icon': '🏦'}, ensure_ascii=False),
+                            'sort_order': 1
+                        },
+                        {
+                            'key': 'bank_transfer',
+                            'item_type': 'feature',
+                            'content': json.dumps({'title': '跨行转账', 'icon': '🔄'}, ensure_ascii=False),
+                            'sort_order': 2
+                        },
+                        {
+                            'key': 'wechat_alipay',
+                            'item_type': 'feature',
+                            'content': json.dumps({'title': '微信/支付宝', 'icon': '📱'}, ensure_ascii=False),
+                            'sort_order': 3
+                        },
+                        {
+                            'key': 'cash',
+                            'item_type': 'feature',
+                            'content': json.dumps({'title': '现金支付', 'icon': '💵'}, ensure_ascii=False),
+                            'sort_order': 4
+                        }
+                    ]
+                elif section_data['key'] == 'faq':
+                    # 常见问题
+                    items = [
+                        {
+                            'key': 'shipping_areas',
+                            'item_type': 'faq',
+                            'content': json.dumps({'question': '新西兰哪些城市可以邮寄？', 'answer': '支持新西兰全国邮寄，奥克兰地区优先见面交易。'}, ensure_ascii=False),
+                            'sort_order': 1
+                        },
+                        {
+                            'key': 'order_status',
+                            'item_type': 'faq',
+                            'content': json.dumps({'question': '如何查询订单状态？', 'answer': '可以通过邮件或电话联系Sara查询订单状态。'}, ensure_ascii=False),
+                            'sort_order': 2
+                        },
+                        {
+                            'key': 'after_sales_service',
+                            'item_type': 'faq',
+                            'content': json.dumps({'question': '售后服务如何保障？', 'answer': '如有售后问题，Sara会在2小时内回复并协助解决。'}, ensure_ascii=False),
+                            'sort_order': 3
+                        },
+                        {
+                            'key': 'shipping_cost',
+                            'item_type': 'faq',
+                            'content': json.dumps({'question': '邮费如何计算？', 'answer': '邮费根据商品大小和重量计算，奥克兰地区建议见面交易。'}, ensure_ascii=False),
+                            'sort_order': 4
+                        }
+                    ]
+                elif section_data['key'] == 'contact_info':
+                    # 联系信息
+                    items = [
+                        {
+                            'key': 'working_hours',
+                            'item_type': 'contact',
+                            'content': json.dumps({'label': '工作时间', 'value': '9:00-21:00'}, ensure_ascii=False),
+                            'sort_order': 1
+                        },
+                        {
+                            'key': 'service_area',
+                            'item_type': 'contact',
+                            'content': json.dumps({'label': '服务区域', 'value': '奥克兰北岸'}, ensure_ascii=False),
+                            'sort_order': 2
+                        },
+                        {
+                            'key': 'response_time',
+                            'item_type': 'contact',
+                            'content': json.dumps({'label': '回复时间', 'value': '24小时内回复'}, ensure_ascii=False),
+                            'sort_order': 3
+                        }
+                    ]
+                else:
+                    items = []
+                
+                # 添加信息项
+                for item_data in items:
+                    item = SiteInfoItem(section_id=section.id, **item_data)
+                    db.session.add(item)
+        
+        db.session.commit()
+        return True
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"初始化站点信息失败: {str(e)}")
+        return False
