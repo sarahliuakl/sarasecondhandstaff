@@ -1,4 +1,4 @@
-# Sara的二手售卖网站
+# Sarah's Garage Sale 的源代码
 
 [项目GitHub仓库（sarasecondhandstaff）](https://github.com/sarahliuakl/sarasecondhandstaff)
 
