@@ -18,9 +18,15 @@ def create_app():
     """创建Flask应用实例"""
     app = Flask(__name__)
     
-    # 数据库配置
-    basedir = os.path.abspath(os.path.dirname(__file__))
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(basedir, "sara_shop.db")}'
+    # 数据库配置 - 使用instance目录
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    instance_dir = os.path.join(project_root, 'instance')
+    
+    # 确保instance目录存在
+    if not os.path.exists(instance_dir):
+        os.makedirs(instance_dir)
+    
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(instance_dir, "sara_shop.db")}'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SECRET_KEY'] = 'sara-secondhand-shop-2025'
     
@@ -54,7 +60,9 @@ def init_database():
         print("已导入站点信息数据")
         
         print("数据库初始化完成！")
-        print(f"数据库文件位置: {os.path.join(os.path.abspath(os.path.dirname(__file__)), 'sara_shop.db')}")
+        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        db_path = os.path.join(project_root, 'instance', 'sara_shop.db')
+        print(f"数据库文件位置: {db_path}")
 
 
 

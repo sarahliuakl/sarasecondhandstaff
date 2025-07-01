@@ -44,9 +44,13 @@ class Config:
                 }
             }
         else:
-            # SQLite配置（默认）
-            basedir = os.path.abspath(os.path.dirname(__file__))
-            self.SQLALCHEMY_DATABASE_URI = f'sqlite:///{os.path.join(basedir, "sara_shop.db")}'
+            # SQLite配置（默认） - 使用instance目录
+            basedir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+            instance_dir = os.path.join(basedir, 'instance')
+            # 确保instance目录存在
+            if not os.path.exists(instance_dir):
+                os.makedirs(instance_dir)
+            self.SQLALCHEMY_DATABASE_URI = f'sqlite:///{os.path.join(instance_dir, "sara_shop.db")}'
             
             # SQLite连接池配置（相对简单）
             self.SQLALCHEMY_ENGINE_OPTIONS = {
@@ -113,9 +117,13 @@ class ProductionConfig(Config):
                 }
             }
         else:
-            # 如果生产环境仍需要SQLite
-            basedir = os.path.abspath(os.path.dirname(__file__))
-            self.SQLALCHEMY_DATABASE_URI = f'sqlite:///{os.path.join(basedir, "sara_shop.db")}'
+            # 如果生产环境仍需要SQLite - 使用instance目录
+            basedir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+            instance_dir = os.path.join(basedir, 'instance')
+            # 确保instance目录存在
+            if not os.path.exists(instance_dir):
+                os.makedirs(instance_dir)
+            self.SQLALCHEMY_DATABASE_URI = f'sqlite:///{os.path.join(instance_dir, "sara_shop.db")}'
             
             # 生产环境SQLite配置
             self.SQLALCHEMY_ENGINE_OPTIONS = {
