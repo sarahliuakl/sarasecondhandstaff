@@ -4,7 +4,7 @@ Sara二手售卖网站 - 数据库初始化脚本
 """
 
 from flask import Flask
-from models import db, Product, Order, Message
+from src.models import db, Product, Order, Message
 import os
 
 def create_app():
