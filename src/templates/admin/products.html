@@ -106,7 +106,7 @@
                                         <div class="flex-shrink-0 h-12 w-12">
                                             {% set images = product.get_images() %}
                                             <img class="h-12 w-12 rounded-lg object-cover" 
-                                                 src="{{ images[0] if images else 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=400&q=80' }}" 
+                                                 src="{{ product.get_cover_image() or (images[0] if images else 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=400&q=80') }}" 
                                                  alt="{{ product.name }}">
                                         </div>
                                         <div class="ml-4">

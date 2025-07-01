@@ -7,7 +7,7 @@
 
 {% block og_title %}{{ product.name }} - {{ product.condition }} - NZD ${{ "%.2f"|format(product.price) }}{% endblock %}
 {% block og_description %}{{ product.description[:200] }}{% if product.description|length > 200 %}...{% endif %}{% endblock %}
-{% block og_image %}{% set images = product.get_images() %}{{ images[0] if images else url_for('static', filename='images/default-product.png', _external=True) }}{% endblock %}
+{% block og_image %}{{ product.get_cover_image() or (product.get_images()[0] if product.get_images() else url_for('static', filename='images/default-product.png', _external=True)) }}{% endblock %}
 
 {% block extra_meta %}
 <meta property="product:price:amount" content="{{ product.price }}" />
@@ -24,7 +24,7 @@
   "@type": "Product",
   "name": "{{ product.name }}",
   "description": "{{ product.description|replace('"', '\\"') }}",
-  "image": {% set images = product.get_images() %}{% if images %}{{ images|tojson }}{% else %}["{{ url_for('static', filename='images/default-product.png', _external=True) }}"]{% endif %},
+  "image": {% set images = product.get_images() %}{% set cover_image = product.get_cover_image() %}{% if cover_image %}["{{ cover_image }}"]{% elif images %}{{ images|tojson }}{% else %}["{{ url_for('static', filename='images/default-product.png', _external=True) }}"]{% endif %},
   "sku": "{{ product.id }}",
   "category": "{{ product.get_category_display() }}",
   "brand": {
@@ -72,7 +72,7 @@
       {% if images %}
         <!-- 主图 -->
         <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden">
-          <img id="mainImage" src="{{ images[0] }}" alt="{{ product.name }}" 
+          <img id="mainImage" src="{{ product.get_cover_image() or images[0] }}" alt="{{ product.name }}" 
                class="w-full h-full object-cover">
         </div>
         
@@ -309,7 +309,12 @@ function addToCart(productId) {
         quantity: 1
       })
     })
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
     .then(data => {
       if (data.success) {
         cart.push({

@@ -261,7 +261,8 @@ def add_to_cart():
             'name': product.name,
             'price': float(product.price),
             'image': images[0] if images else None,
-            'condition': product.condition
+            'condition': product.condition,
+            'face_to_face_only': product.face_to_face_only
         },
         'quantity': quantity
     })

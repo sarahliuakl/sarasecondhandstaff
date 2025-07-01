@@ -215,7 +215,7 @@
     {% set images = product.get_images() %}
     <a href="{{ url_for('main.product_detail', product_id=product.id, lang=current_lang()) }}" class="block">
       <div class="product-image relative overflow-hidden h-64 bg-gradient-to-br from-gray-100 to-gray-200">
-        <img src="{{ images[0] if images else 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=600&q=80' }}" 
+        <img src="{{ product.get_cover_image() or (images[0] if images else 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=600&q=80') }}" 
              alt="{{ product.name }}" 
              class="w-full h-full object-cover transition-transform duration-300 hover:scale-105">
         <div class="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors duration-300"></div>
@@ -606,7 +606,12 @@ function addToCart(productId) {
         quantity: 1
       })
     })
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
     .then(data => {
       if (data.success) {
         cart.push({
@@ -615,7 +620,8 @@ function addToCart(productId) {
           price: data.product.price,
           image: data.product.image,
           condition: data.product.condition,
-          quantity: data.quantity
+          quantity: data.quantity,
+          face_to_face_only: data.product.face_to_face_only || false
         });
         
         localStorage.setItem('cart', JSON.stringify(cart));

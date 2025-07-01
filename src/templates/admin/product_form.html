@@ -205,7 +205,10 @@
                                            multiple accept="image/*" onchange="previewImages(this)">
                                 </label>
                                 <p class="text-sm text-gray-500">
-                                    支持 PNG、JPG、JPEG、GIF、WebP 格式，单个文件最大 5MB
+                                    支持 PNG、JPG、JPEG、GIF、WebP 格式，单个文件最大 5MB，最多上传9张图片
+                                </p>
+                                <p class="text-xs text-blue-600">
+                                    <i class="fas fa-info-circle mr-1"></i>可以选择其中一张作为产品封面图
                                 </p>
                             </div>
                         </div>
@@ -218,23 +221,44 @@
                 <!-- 现有图片展示 -->
                 {% if product and product.get_images() %}
                 <div>
-                    <h4 class="text-md font-medium text-gray-900 mb-3">当前图片</h4>
-                    <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+                    <h4 class="text-md font-medium text-gray-900 mb-3">当前图片 ({{ product.get_image_count() }}/9)</h4>
+                    <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4" id="existing-images">
                         {% for image in product.get_images() %}
-                            <div class="relative group">
+                            <div class="relative group" data-image-url="{{ image }}">
                                 <img src="{{ image }}" alt="产品图片" 
-                                     class="w-full h-32 object-cover rounded-lg border border-gray-200">
-                                <div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                                     class="w-full h-32 object-cover rounded-lg border-2 {% if product.get_cover_image() == image %}border-yellow-400{% else %}border-gray-200{% endif %}">
+                                
+                                <!-- 封面标识 -->
+                                {% if product.get_cover_image() == image %}
+                                <div class="absolute top-2 left-2 bg-yellow-400 text-black text-xs px-2 py-1 rounded-full font-semibold">
+                                    <i class="fas fa-star mr-1"></i>封面
+                                </div>
+                                {% endif %}
+                                
+                                <!-- 操作按钮 -->
+                                <div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center space-x-2">
+                                    <button type="button" onclick="setCoverImage('{{ image }}')" 
+                                            class="bg-yellow-500 text-white px-2 py-1 rounded text-sm hover:bg-yellow-600" 
+                                            title="设为封面">
+                                        <i class="fas fa-star"></i>
+                                    </button>
                                     <button type="button" onclick="removeExistingImage('{{ image }}')" 
-                                            class="text-white hover:text-red-300" title="删除图片">
-                                        <i class="fas fa-trash text-lg"></i>
+                                            class="bg-red-500 text-white px-2 py-1 rounded text-sm hover:bg-red-600" 
+                                            title="删除图片">
+                                        <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
+                                
                                 <input type="hidden" name="images" value="{{ image }}">
                             </div>
                         {% endfor %}
                     </div>
+                    <!-- 封面图片隐藏字段 -->
+                    <input type="hidden" name="cover_image" id="cover_image" value="{{ product.get_cover_image() or '' }}">
                 </div>
+                {% else %}
+                    <!-- 没有现有图片时的封面图片字段 -->
+                    <input type="hidden" name="cover_image" id="cover_image" value="">
                 {% endif %}
                 
                 <!-- URL输入区域 -->
@@ -361,21 +385,40 @@ function previewImages(input) {
     previewContainer.innerHTML = '';
     
     if (input.files) {
+        // 检查图片数量限制
+        const existingImages = document.querySelectorAll('#existing-images .relative').length;
+        const totalImages = existingImages + input.files.length;
+        
+        if (totalImages > 9) {
+            alert(`最多只能上传9张图片！当前已有${existingImages}张，您选择了${input.files.length}张，超出${totalImages - 9}张。`);
+            input.value = ''; // 清空文件选择
+            return;
+        }
+        
         Array.from(input.files).forEach((file, index) => {
             if (file.type.startsWith('image/')) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const div = document.createElement('div');
-                    div.className = 'relative';
+                    div.className = 'relative group';
                     div.innerHTML = `
                         <img src="${e.target.result}" alt="预览图片" 
-                             class="w-full h-32 object-cover rounded-lg border border-gray-200">
-                        <div class="absolute top-2 right-2">
+                             class="w-full h-32 object-cover rounded-lg border-2 border-gray-200">
+                        
+                        <!-- 操作按钮 -->
+                        <div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center space-x-2">
+                            <button type="button" onclick="setCoverImageFromPreview(this, '${e.target.result}')" 
+                                    class="bg-yellow-500 text-white px-2 py-1 rounded text-sm hover:bg-yellow-600" 
+                                    title="设为封面">
+                                <i class="fas fa-star"></i>
+                            </button>
                             <button type="button" onclick="removePreviewImage(this, ${index})" 
-                                    class="bg-red-500 text-white rounded-full p-1 text-sm hover:bg-red-600">
-                                <i class="fas fa-times"></i>
+                                    class="bg-red-500 text-white px-2 py-1 rounded text-sm hover:bg-red-600" 
+                                    title="删除图片">
+                                <i class="fas fa-trash"></i>
                             </button>
                         </div>
+                        
                         <div class="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
                             ${file.name}
                         </div>
@@ -407,6 +450,21 @@ function removePreviewImage(button, index) {
 
 function removeExistingImage(imageUrl) {
     if (confirm('确定要删除这张图片吗？')) {
+        // 如果删除的是封面图片，需要重新设置封面
+        const coverImageInput = document.getElementById('cover_image');
+        if (coverImageInput.value === imageUrl) {
+            // 找到其他图片设为封面
+            const otherImages = document.querySelectorAll('input[name="images"]');
+            let newCover = '';
+            for (let input of otherImages) {
+                if (input.value !== imageUrl) {
+                    newCover = input.value;
+                    break;
+                }
+            }
+            coverImageInput.value = newCover;
+        }
+        
         // 找到对应的隐藏输入框并移除
         const hiddenInputs = document.querySelectorAll('input[name="images"]');
         hiddenInputs.forEach(input => {
@@ -414,6 +472,66 @@ function removeExistingImage(imageUrl) {
                 input.closest('.relative').remove();
             }
         });
+        
+        // 更新图片计数
+        updateImageCount();
+    }
+}
+
+function setCoverImage(imageUrl) {
+    // 设置封面图片
+    const coverImageInput = document.getElementById('cover_image');
+    coverImageInput.value = imageUrl;
+    
+    // 更新UI显示
+    updateCoverImageDisplay();
+}
+
+function setCoverImageFromPreview(button, imageDataUrl) {
+    // 从预览图片设置封面（这里需要在上传后再设置）
+    alert('图片上传后会自动设为封面');
+}
+
+function updateCoverImageDisplay() {
+    const coverImageUrl = document.getElementById('cover_image').value;
+    
+    // 移除所有封面标识
+    document.querySelectorAll('.relative img').forEach(img => {
+        img.className = img.className.replace('border-yellow-400', 'border-gray-200');
+    });
+    document.querySelectorAll('.absolute.top-2.left-2').forEach(el => {
+        if (el.textContent.includes('封面')) {
+            el.remove();
+        }
+    });
+    
+    // 添加新的封面标识
+    if (coverImageUrl) {
+        const imageElements = document.querySelectorAll('.relative[data-image-url]');
+        imageElements.forEach(container => {
+            if (container.dataset.imageUrl === coverImageUrl) {
+                const img = container.querySelector('img');
+                img.className = img.className.replace('border-gray-200', 'border-yellow-400');
+                
+                // 添加封面标识
+                const coverBadge = document.createElement('div');
+                coverBadge.className = 'absolute top-2 left-2 bg-yellow-400 text-black text-xs px-2 py-1 rounded-full font-semibold';
+                coverBadge.innerHTML = '<i class="fas fa-star mr-1"></i>封面';
+                container.appendChild(coverBadge);
+            }
+        });
+    }
+}
+
+function updateImageCount() {
+    const existingImages = document.querySelectorAll('#existing-images .relative').length;
+    const previewImages = document.querySelectorAll('#image-preview .relative').length;
+    const totalImages = existingImages + previewImages;
+    
+    // 更新计数显示
+    const countElement = document.querySelector('h4');
+    if (countElement && countElement.textContent.includes('当前图片')) {
+        countElement.textContent = `当前图片 (${totalImages}/9)`;
     }
 }
 

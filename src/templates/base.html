@@ -11,6 +11,7 @@
   <meta name="author" content="Sara" />
   <meta name="robots" content="index, follow" />
   <meta name="language" content="{{ current_lang() }}-{{ get_locale().territory if get_locale() and get_locale().territory else 'CN' }}" />
+  <meta name="csrf-token" content="{{ csrf_token() }}" />
   
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website" />

@@ -142,6 +142,7 @@ class Product(db.Model):
     low_stock_threshold = db.Column(db.Integer, default=1, nullable=False)  # 低库存警告阈值
     track_inventory = db.Column(db.Boolean, default=True, nullable=False)  # 是否启用库存跟踪
     images = db.Column(db.Text)  # JSON格式存储图片URL列表
+    cover_image = db.Column(db.String(500))  # 封面图片URL
     specifications = db.Column(db.Text)  # JSON格式存储商品规格
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -172,6 +173,9 @@ class Product(db.Model):
         (STATUS_RESERVED, '已预订')
     ]
     
+    # 图片相关常量
+    MAX_IMAGES = 9  # 最大图片数量
+    
     def get_images(self):
         """获取图片URL列表"""
         if self.images:
@@ -182,9 +186,15 @@ class Product(db.Model):
         return []
     
     def set_images(self, image_list):
-        """设置图片URL列表"""
+        """设置图片URL列表 - 限制最大数量"""
         if isinstance(image_list, list):
-            self.images = json.dumps(image_list)
+            # 限制图片数量不超过最大值
+            limited_images = image_list[:self.MAX_IMAGES]
+            self.images = json.dumps(limited_images)
+            
+            # 如果没有设置封面图片且有图片，自动设置第一张为封面
+            if limited_images and not self.cover_image:
+                self.cover_image = limited_images[0]
         else:
             self.images = json.dumps([])
     
@@ -203,6 +213,56 @@ class Product(db.Model):
             self.specifications = json.dumps(spec_dict, ensure_ascii=False)
         else:
             self.specifications = json.dumps({})
+    
+    def get_cover_image(self):
+        """获取封面图片URL"""
+        if self.cover_image:
+            return self.cover_image
+        # 如果没有设置封面图片，返回第一张图片
+        images = self.get_images()
+        return images[0] if images else None
+    
+    def set_cover_image(self, image_url):
+        """设置封面图片"""
+        images = self.get_images()
+        if image_url in images:
+            self.cover_image = image_url
+            return True
+        return False
+    
+    def get_image_count(self):
+        """获取图片数量"""
+        return len(self.get_images())
+    
+    def can_add_more_images(self):
+        """检查是否可以添加更多图片"""
+        return self.get_image_count() < self.MAX_IMAGES
+    
+    def add_image(self, image_url):
+        """添加单张图片"""
+        if not self.can_add_more_images():
+            return False, f"最多只能上传{self.MAX_IMAGES}张图片"
+        
+        images = self.get_images()
+        if image_url not in images:
+            images.append(image_url)
+            self.set_images(images)
+            return True, "图片添加成功"
+        return False, "图片已存在"
+    
+    def remove_image(self, image_url):
+        """删除指定图片"""
+        images = self.get_images()
+        if image_url in images:
+            images.remove(image_url)
+            self.set_images(images)
+            
+            # 如果删除的是封面图片，重新设置封面
+            if self.cover_image == image_url:
+                self.cover_image = images[0] if images else None
+            
+            return True, "图片删除成功"
+        return False, "图片不存在"
     
     def get_category_display(self):
         """获取分类显示名称"""
@@ -316,6 +376,8 @@ class Product(db.Model):
             'status_display': self.get_status_display(),
             'face_to_face_only': self.face_to_face_only,
             'images': self.get_images(),
+            'cover_image': self.get_cover_image(),
+            'image_count': self.get_image_count(),
             'specifications': self.get_specifications(),
             'is_available': self.is_available(),
             'created_at': self.created_at.isoformat(),

@@ -483,13 +483,18 @@ def product_create():
                 track_inventory=clean_data['track_inventory']
             )
             
-            # 处理图片 - 支持文件上传和URL输入
+            # 处理图片 - 支持文件上传和URL输入，限制最大数量
             uploaded_images = []
             
             # 处理文件上传
             uploaded_files = request.files.getlist('image_files')
             for file in uploaded_files:
                 if file and file.filename != '':
+                    # 检查图片数量限制
+                    if len(uploaded_images) >= Product.MAX_IMAGES:
+                        flash(f'最多只能上传{Product.MAX_IMAGES}张图片', 'error')
+                        break
+                    
                     success, result, thumbnail = upload_image(file)
                     if success:
                         uploaded_images.append(get_image_url(result))
@@ -501,10 +506,18 @@ def product_create():
             url_images = request.form.getlist('images')
             valid_url_images = [img.strip() for img in url_images if img.strip()]
             
-            # 合并所有图片
-            all_images = uploaded_images + valid_url_images
+            # 合并所有图片并限制数量
+            all_images = (uploaded_images + valid_url_images)[:Product.MAX_IMAGES]
             if all_images:
                 product.set_images(all_images)
+            
+            # 处理封面图片
+            cover_image = request.form.get('cover_image', '').strip()
+            if cover_image and cover_image in all_images:
+                product.cover_image = cover_image
+            elif all_images:
+                # 如果没有指定封面图片，使用第一张图片
+                product.cover_image = all_images[0]
             
             # 处理规格
             spec_keys = request.form.getlist('spec_keys')
@@ -630,13 +643,21 @@ def product_edit(product_id):
             product.low_stock_threshold = low_stock_threshold
             product.track_inventory = clean_data['track_inventory']
             
-            # 处理图片 - 支持文件上传和URL输入
+            # 处理图片 - 支持文件上传和URL输入，限制最大数量
             uploaded_images = []
             
             # 处理文件上传
             uploaded_files = request.files.getlist('image_files')
+            existing_images = product.get_images()
+            
             for file in uploaded_files:
                 if file and file.filename != '':
+                    # 检查图片数量限制
+                    total_images = len(existing_images) + len(uploaded_images)
+                    if total_images >= Product.MAX_IMAGES:
+                        flash(f'最多只能上传{Product.MAX_IMAGES}张图片，当前已有{len(existing_images)}张', 'error')
+                        break
+                    
                     success, result, thumbnail = upload_image(file)
                     if success:
                         uploaded_images.append(get_image_url(result))
@@ -649,16 +670,23 @@ def product_edit(product_id):
             valid_url_images = [img.strip() for img in url_images if img.strip()]
             
             # 合并所有图片 - 保留现有图片，添加新上传的图片
-            existing_images = product.get_images()
             all_images = existing_images + uploaded_images + valid_url_images
             
-            # 去重并过滤空值
+            # 去重并过滤空值，限制最大数量
             unique_images = []
             for img in all_images:
-                if img and img not in unique_images:
+                if img and img not in unique_images and len(unique_images) < Product.MAX_IMAGES:
                     unique_images.append(img)
             
             product.set_images(unique_images)
+            
+            # 处理封面图片
+            cover_image = request.form.get('cover_image', '').strip()
+            if cover_image and cover_image in unique_images:
+                product.cover_image = cover_image
+            elif unique_images and not product.cover_image:
+                # 如果没有设置封面图片且有图片，使用第一张图片
+                product.cover_image = unique_images[0]
             
             # 处理规格
             spec_keys = request.form.getlist('spec_keys')
