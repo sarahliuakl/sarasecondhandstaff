@@ -35,6 +35,44 @@ def sanitize_html(text):
     return clean_text.strip()
 
 
+def sanitize_rich_text(text):
+    """
+    清理富文本内容，允许安全的HTML标签
+    
+    Args:
+        text (str): 需要清理的富文本HTML
+        
+    Returns:
+        str: 清理后的安全富文本
+    """
+    if not text:
+        return ""
+    
+    # 允许的HTML标签（用于富文本编辑器）
+    allowed_tags = [
+        'p', 'br', 'strong', 'b', 'em', 'i', 'u', 
+        'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+        'ul', 'ol', 'li', 'a'
+    ]
+    
+    # 允许的属性
+    allowed_attributes = {
+        'a': ['href', 'title'],
+        'p': ['class'],
+        '*': ['class']  # 允许所有标签有class属性（用于样式）
+    }
+    
+    # 清理HTML，保留允许的标签
+    clean_text = bleach.clean(
+        text, 
+        tags=allowed_tags, 
+        attributes=allowed_attributes,
+        strip=True
+    )
+    
+    return clean_text.strip()
+
+
 def validate_phone_number(phone):
     """
     验证电话号码格式（新西兰格式）

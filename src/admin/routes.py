@@ -14,7 +14,7 @@ from ..models import get_sales_stats, get_monthly_sales_trend, get_popular_produ
 from ..models import get_all_categories, get_category_by_id, create_category
 from ..models import get_api_usage_stats, get_recent_api_logs
 from ..models import get_site_info_sections, get_site_info_section_by_key, get_all_site_info_data
-from ..utils import sanitize_user_input, validate_form_data, validate_email_address
+from ..utils import sanitize_user_input, sanitize_rich_text, validate_form_data, validate_email_address
 from ..file_upload import upload_image, delete_image, get_image_url
 from ..api_auth import APIKeyManager
 import logging
@@ -412,8 +412,10 @@ def product_create():
             'track_inventory': request.form.get('track_inventory') == '1'
         }
         
-        # 清理用户输入
-        clean_data = sanitize_user_input(form_data)
+        # 清理用户输入 - 单独处理描述字段
+        description = form_data.pop('description', '')  # 先取出描述字段
+        clean_data = sanitize_user_input(form_data)     # 清理其他字段
+        clean_data['description'] = sanitize_rich_text(description)  # 单独处理描述字段
         
         # 验证必填字段
         required_fields = ['name', 'price', 'category', 'condition', 'stock_status']
@@ -567,8 +569,10 @@ def product_edit(product_id):
             'track_inventory': request.form.get('track_inventory') == '1'
         }
         
-        # 清理用户输入
-        clean_data = sanitize_user_input(form_data)
+        # 清理用户输入 - 单独处理描述字段
+        description = form_data.pop('description', '')  # 先取出描述字段
+        clean_data = sanitize_user_input(form_data)     # 清理其他字段
+        clean_data['description'] = sanitize_rich_text(description)  # 单独处理描述字段
         
         # 验证必填字段
         required_fields = ['name', 'price', 'category', 'condition', 'stock_status']
@@ -631,6 +635,10 @@ def product_edit(product_id):
                                  statuses=Product.STOCK_STATUSES)
         
         try:
+            # 调试：记录描述内容
+            logger.info(f'原始描述内容: {description[:100]}...')
+            logger.info(f'清理后描述内容: {clean_data["description"][:100]}...')
+            
             # 更新产品信息
             product.name = clean_data['name']
             product.description = clean_data['description']

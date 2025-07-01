@@ -241,7 +241,15 @@
         <div>
           <h3 class="text-lg font-semibold text-gray-900 mb-3">{{ _('Product Description') }}</h3>
           <div class="text-gray-700 leading-relaxed rich-text-content">
-            {{ product.description|safe if product.description else _('No description available') }}
+            {% if product.description %}
+              {% if '<' in product.description and '>' in product.description %}
+                {{ product.description|safe }}
+              {% else %}
+                {{ product.description|replace('\n', '<br>')|safe }}
+              {% endif %}
+            {% else %}
+              {{ _('No description available') }}
+            {% endif %}
           </div>
         </div>
       </div>

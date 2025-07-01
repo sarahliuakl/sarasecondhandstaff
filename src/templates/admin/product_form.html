@@ -387,7 +387,23 @@ var quill = new Quill('#description-editor', {
 // Load existing content
 var existingContent = document.getElementById('description').value;
 if (existingContent) {
-    quill.root.innerHTML = existingContent;
+    // Check if content contains HTML tags
+    if (existingContent.includes('<') && existingContent.includes('>')) {
+        // Content is HTML, set as innerHTML
+        quill.root.innerHTML = existingContent;
+    } else {
+        // Content is plain text, set as text with proper formatting
+        var lines = existingContent.split('\n');
+        var htmlContent = '';
+        for (var i = 0; i < lines.length; i++) {
+            if (lines[i].trim() !== '') {
+                htmlContent += '<p>' + lines[i] + '</p>';
+            } else {
+                htmlContent += '<p><br></p>';
+            }
+        }
+        quill.root.innerHTML = htmlContent;
+    }
 }
 
 // Update hidden textarea when content changes
@@ -395,9 +411,49 @@ quill.on('text-change', function() {
     document.getElementById('description').value = quill.root.innerHTML;
 });
 
-// Make sure content is saved before form submission
-document.querySelector('form').addEventListener('submit', function() {
+// Update textarea when editor loses focus
+quill.on('selection-change', function(range, oldRange, source) {
+    if (range === null && oldRange !== null) {
+        // Editor lost focus
+        document.getElementById('description').value = quill.root.innerHTML;
+    }
+});
+
+// Combined form submission handler
+document.querySelector('form').addEventListener('submit', function(e) {
+    // First: Force update the textarea value from Quill editor
     document.getElementById('description').value = quill.root.innerHTML;
+    
+    // Debug: log the content being saved
+    console.log('Saving content:', document.getElementById('description').value);
+    
+    // Then: Perform form validation
+    const name = document.getElementById('name').value.trim();
+    const price = document.getElementById('price').value;
+    const category = document.getElementById('category').value;
+    const condition = document.getElementById('condition').value.trim();
+
+    if (!name || !price || !category || !condition) {
+        e.preventDefault();
+        alert('请填写所有必需字段');
+        return;
+    }
+
+    if (parseFloat(price) <= 0) {
+        e.preventDefault();
+        alert('价格必须大于0');
+        return;
+    }
+    
+    // All validations passed, form will submit
+    console.log('Form validation passed, submitting...');
+});
+
+// Additional safety: save content when page unloads
+window.addEventListener('beforeunload', function() {
+    if (quill && document.getElementById('description')) {
+        document.getElementById('description').value = quill.root.innerHTML;
+    }
 });
 </script>
 
@@ -602,24 +658,5 @@ function removeSpecInput(button) {
     }
 }
 
-// 表单验证
-document.querySelector('form').addEventListener('submit', function(e) {
-    const name = document.getElementById('name').value.trim();
-    const price = document.getElementById('price').value;
-    const category = document.getElementById('category').value;
-    const condition = document.getElementById('condition').value.trim();
-
-    if (!name || !price || !category || !condition) {
-        e.preventDefault();
-        alert('请填写所有必需字段');
-        return;
-    }
-
-    if (parseFloat(price) <= 0) {
-        e.preventDefault();
-        alert('价格必须大于0');
-        return;
-    }
-});
 </script>
 {% endblock %}
