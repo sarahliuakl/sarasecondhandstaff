@@ -21,7 +21,7 @@
       "item": {
         "@type": "Product",
         "name": "{{ product.name }}",
-        "description": "{{ product.description[:100]|replace('"', '\\"') }}",
+        "description": "{{ (product.description|striptags)[:100]|replace('"', '\\"') if product.description else '' }}",
         "offers": {
           "@type": "Offer",
           "priceCurrency": "NZD",
@@ -251,7 +251,8 @@
       </a>
       
       <p class="text-gray-600 mb-4 leading-relaxed text-sm">
-        {{ product.description[:80] + '...' if product.description|length > 80 else product.description }}
+        {% set desc = product.description|striptags if product.description else '' %}
+        {{ desc[:80] + '...' if desc|length > 80 else desc }}
       </p>
       
       <div class="flex items-center justify-between mb-4">

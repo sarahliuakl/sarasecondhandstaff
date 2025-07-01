@@ -112,7 +112,8 @@
         </a>
         
         <p class="text-gray-600 mb-4 leading-relaxed text-sm">
-          {{ product.description[:80] }}{{ '...' if product.description and product.description|length > 80 else '' }}
+          {% set desc = product.description|striptags if product.description else '' %}
+          {{ desc[:80] }}{{ '...' if desc and desc|length > 80 else '' }}
         </p>
         
         <div class="flex items-center justify-between mb-4">

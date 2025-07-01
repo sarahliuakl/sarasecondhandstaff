@@ -1,12 +1,115 @@
 {% extends "base.html" %}
 {% block title %}{{ product.name }} - {{ _('Sarah\'s Garage Sale') }}{% endblock %}
 
-{% block description %}{{ product.description[:150] }}{% if product.description|length > 150 %}...{% endif %} - {{ product.get_category_display() }}, {{ product.condition }}, {{ _('only') }} NZD ${{ "%.2f"|format(product.price) }}{% endblock %}
+{% block head %}
+{{ super() }}
+<style>
+/* Rich text content styling */
+.rich-text-content {
+  line-height: 1.6;
+}
+
+.rich-text-content p {
+  margin-bottom: 1rem;
+}
+
+.rich-text-content h1,
+.rich-text-content h2,
+.rich-text-content h3,
+.rich-text-content h4,
+.rich-text-content h5,
+.rich-text-content h6 {
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.3;
+}
+
+.rich-text-content h1 { font-size: 1.875rem; }
+.rich-text-content h2 { font-size: 1.5rem; }
+.rich-text-content h3 { font-size: 1.25rem; }
+
+.rich-text-content strong {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.rich-text-content em {
+  font-style: italic;
+}
+
+.rich-text-content u {
+  text-decoration: underline;
+}
+
+.rich-text-content ul,
+.rich-text-content ol {
+  margin: 1rem 0;
+  padding-left: 1.5rem;
+}
+
+.rich-text-content ul {
+  list-style-type: disc;
+}
+
+.rich-text-content ol {
+  list-style-type: decimal;
+}
+
+.rich-text-content li {
+  margin-bottom: 0.25rem;
+}
+
+.rich-text-content a {
+  color: #3b82f6;
+  text-decoration: underline;
+}
+
+.rich-text-content a:hover {
+  color: #1d4ed8;
+}
+
+.rich-text-content br {
+  line-height: 1.6;
+}
+
+/* Text alignment */
+.rich-text-content .ql-align-center {
+  text-align: center;
+}
+
+.rich-text-content .ql-align-right {
+  text-align: right;
+}
+
+.rich-text-content .ql-align-justify {
+  text-align: justify;
+}
+
+/* Color support */
+.rich-text-content .ql-color-red { color: #ef4444; }
+.rich-text-content .ql-color-orange { color: #f97316; }
+.rich-text-content .ql-color-yellow { color: #eab308; }
+.rich-text-content .ql-color-green { color: #22c55e; }
+.rich-text-content .ql-color-blue { color: #3b82f6; }
+.rich-text-content .ql-color-purple { color: #a855f7; }
+
+/* Background color support */
+.rich-text-content .ql-bg-red { background-color: #fef2f2; padding: 0.125rem 0.25rem; border-radius: 0.25rem; }
+.rich-text-content .ql-bg-orange { background-color: #fff7ed; padding: 0.125rem 0.25rem; border-radius: 0.25rem; }
+.rich-text-content .ql-bg-yellow { background-color: #fefce8; padding: 0.125rem 0.25rem; border-radius: 0.25rem; }
+.rich-text-content .ql-bg-green { background-color: #f0fdf4; padding: 0.125rem 0.25rem; border-radius: 0.25rem; }
+.rich-text-content .ql-bg-blue { background-color: #eff6ff; padding: 0.125rem 0.25rem; border-radius: 0.25rem; }
+.rich-text-content .ql-bg-purple { background-color: #faf5ff; padding: 0.125rem 0.25rem; border-radius: 0.25rem; }
+</style>
+{% endblock %}
+
+{% block description %}{% set desc = product.description|striptags if product.description else '' %}{{ desc[:150] }}{% if desc|length > 150 %}...{% endif %} - {{ product.get_category_display() }}, {{ product.condition }}, {{ _('only') }} NZD ${{ "%.2f"|format(product.price) }}{% endblock %}
 
 {% block keywords %}{{ product.name }},{{ product.get_category_display() }},{{ product.condition }},{{ _('garage sale') }},{{ _('New Zealand') }},{{ _('Auckland') }},NZD{{ "%.0f"|format(product.price) }}{% endblock %}
 
 {% block og_title %}{{ product.name }} - {{ product.condition }} - NZD ${{ "%.2f"|format(product.price) }}{% endblock %}
-{% block og_description %}{{ product.description[:200] }}{% if product.description|length > 200 %}...{% endif %}{% endblock %}
+{% block og_description %}{% set desc = product.description|striptags if product.description else '' %}{{ desc[:200] }}{% if desc|length > 200 %}...{% endif %}{% endblock %}
 {% block og_image %}{{ product.get_cover_image() or (product.get_images()[0] if product.get_images() else url_for('static', filename='images/default-product.png', _external=True)) }}{% endblock %}
 
 {% block extra_meta %}
@@ -23,7 +126,7 @@
   "@context": "https://schema.org",
   "@type": "Product",
   "name": "{{ product.name }}",
-  "description": "{{ product.description|replace('"', '\\"') }}",
+  "description": "{{ (product.description|striptags)|replace('"', '\\"') if product.description else '' }}",
   "image": {% set images = product.get_images() %}{% set cover_image = product.get_cover_image() %}{% if cover_image %}["{{ cover_image }}"]{% elif images %}{{ images|tojson }}{% else %}["{{ url_for('static', filename='images/default-product.png', _external=True) }}"]{% endif %},
   "sku": "{{ product.id }}",
   "category": "{{ product.get_category_display() }}",
@@ -65,78 +168,89 @@
     </a>
   </div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-    <!-- 左侧：商品图片 -->
-    <div class="space-y-4">
-      {% set images = product.get_images() %}
-      {% if images %}
-        <!-- 主图 -->
-        <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden">
-          <img id="mainImage" src="{{ product.get_cover_image() or images[0] }}" alt="{{ product.name }}" 
-               class="w-full h-full object-cover">
-        </div>
-        
-        <!-- 缩略图 -->
-        {% if images|length > 1 %}
-        <div class="grid grid-cols-4 gap-2">
-          {% for image in images %}
-          <div class="aspect-square bg-gray-100 rounded overflow-hidden cursor-pointer hover:ring-2 hover:ring-orange-300 transition"
-               onclick="changeMainImage('{{ image }}')">
-            <img src="{{ image }}" alt="{{ product.name }}" class="w-full h-full object-cover">
+  <!-- 商品主要信息卡片（图片+基本信息+描述） -->
+  <div class="card p-8 mb-8">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <!-- 左侧：商品图片 -->
+      <div class="space-y-4">
+        {% set images = product.get_images() %}
+        {% if images %}
+          <!-- 主图 -->
+          <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+            <img id="mainImage" src="{{ product.get_cover_image() or images[0] }}" alt="{{ product.name }}" 
+                 class="w-full h-full object-cover">
           </div>
-          {% endfor %}
-        </div>
+          
+          <!-- 缩略图 -->
+          {% if images|length > 1 %}
+          <div class="grid grid-cols-4 gap-2">
+            {% for image in images %}
+            <div class="aspect-square bg-gray-100 rounded overflow-hidden cursor-pointer hover:ring-2 hover:ring-orange-300 transition"
+                 onclick="changeMainImage('{{ image }}')">
+              <img src="{{ image }}" alt="{{ product.name }}" class="w-full h-full object-cover">
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        {% else %}
+          <!-- 默认图片 -->
+          <div class="aspect-square bg-gray-200 rounded-lg flex items-center justify-center">
+            <svg class="w-24 h-24 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+          </div>
         {% endif %}
-      {% else %}
-        <!-- 默认图片 -->
-        <div class="aspect-square bg-gray-200 rounded-lg flex items-center justify-center">
-          <svg class="w-24 h-24 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-          </svg>
+      </div>
+
+      <!-- 右侧：商品基本信息和描述 -->
+      <div class="space-y-6">
+        <!-- 基本信息 -->
+        <div>
+          <div class="flex items-center gap-2 mb-2 flex-wrap">
+            <span class="bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-sm font-medium">
+              {{ product.get_category_display() }}
+            </span>
+            <span class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-sm font-medium">
+              {{ product.condition }}
+            </span>
+            {% if product.is_available() %}
+            <span class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm font-medium">
+              {{ _('In Stock') }}
+            </span>
+            {% else %}
+            <span class="bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-medium">
+              {{ _('Sold Out') }}
+            </span>
+            {% endif %}
+            {% if product.face_to_face_only %}
+            <span class="bg-purple-100 text-purple-600 px-3 py-1 rounded-full text-sm font-medium">
+              {{ _('Face-to-face only') }}
+            </span>
+            {% endif %}
+          </div>
+          
+          <h1 class="text-3xl font-bold text-gray-900 mb-4">{{ product.name }}</h1>
+          
+          <div class="text-4xl font-bold text-orange-600 mb-6">
+            NZD ${{ "%.2f"|format(product.price) }}
+          </div>
         </div>
-      {% endif %}
+
+        <!-- 商品描述 -->
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">{{ _('Product Description') }}</h3>
+          <div class="text-gray-700 leading-relaxed rich-text-content">
+            {{ product.description|safe if product.description else _('No description available') }}
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
 
-    <!-- 右侧：商品信息 -->
+  <!-- 商品详细信息卡片（规格+交付+支付等） -->
+  <div class="card p-8 mb-8">
     <div class="space-y-6">
-      <!-- 基本信息 -->
-      <div>
-        <div class="flex items-center gap-2 mb-2">
-          <span class="bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-sm font-medium">
-            {{ product.get_category_display() }}
-          </span>
-          <span class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-sm font-medium">
-            {{ product.condition }}
-          </span>
-          {% if product.is_available() %}
-          <span class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm font-medium">
-            {{ _('In Stock') }}
-          </span>
-          {% else %}
-          <span class="bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-medium">
-            {{ _('Sold Out') }}
-          </span>
-          {% endif %}
-          {% if product.face_to_face_only %}
-          <span class="bg-purple-100 text-purple-600 px-3 py-1 rounded-full text-sm font-medium">
-            {{ _('Face-to-face only') }}
-          </span>
-          {% endif %}
-        </div>
-        
-        <h1 class="text-3xl font-bold text-gray-900 mb-4">{{ product.name }}</h1>
-        
-        <div class="text-4xl font-bold text-orange-600 mb-6">
-          NZD ${{ "%.2f"|format(product.price) }}
-        </div>
-      </div>
-
-      <!-- 商品描述 -->
-      <div>
-        <h3 class="text-lg font-semibold text-gray-900 mb-3">{{ _('Product Description') }}</h3>
-        <div class="text-gray-700 leading-relaxed whitespace-pre-line">{{ product.description }}</div>
-      </div>
 
       <!-- 商品规格 -->
       {% set specs = product.get_specifications() %}
