@@ -3,9 +3,16 @@ Sara二手售卖网站 - 数据库初始化脚本
 用于创建数据库表结构并导入示例数据
 """
 
+import sys
+import os
+
+# 添加项目根目录到Python路径
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(current_dir)
+sys.path.insert(0, project_root)
+
 from flask import Flask
 from src.models import db, Order, Admin, init_default_site_info
-import os
 
 def create_app():
     """创建Flask应用实例"""
