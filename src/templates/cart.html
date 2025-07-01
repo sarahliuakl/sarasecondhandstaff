@@ -396,7 +396,7 @@ function proceedToCheckout() {
   }
   
   // 跳转到订单确认页面
-  window.location.href = '/order/confirm';
+  window.location.href = '{{ url_for("main.order_confirm", lang=current_lang()) }}';
 }
 
 // 更新购物车计数
